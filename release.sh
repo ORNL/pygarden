@@ -34,4 +34,4 @@ uv build && uv publish --token "$UV_PUBLISH_TOKEN" --index "code.ornl"
 rm -rf dist/
 git push
 git push --tags
-echo "🥳 Released pyGARDEn Successfully"
+echo "🥳 Released pyGARDEN Successfully"
