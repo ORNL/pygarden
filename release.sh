@@ -30,7 +30,7 @@ if [[ $? -ne 0 ]]; then
   echo "Version was not bumped, exiting"
   exit 1
 fi
-uv build && uv publish --token "$UV_PUBLISH_TOKEN"
+uv build && uv publish --token "$UV_PUBLISH_TOKEN" --index "code.ornl"
 git push
 git push --tags
 echo "🥳 Released $NEW_VERSION of $BUMP_KIND successfully"
