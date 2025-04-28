@@ -106,7 +106,6 @@ skip-magic-trailing-comma = false
 docstring-code-format = true
 
 [tool.bumpversion]
-current_version = "0.3.8"
 commit = true
 tag = true
 tag_name = "v{new_version}"
