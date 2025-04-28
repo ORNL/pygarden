@@ -24,13 +24,14 @@ case "$BUMP_KIND" in
     exit 1
     ;;
 esac
-bumpversion --current-version "$(cat COMMON_VERSION)" "$BUMP_KIND" COMMON_VERSION
+bumpversion --current-version "$(cat COMMON_VERSION)" "$BUMP_KIND"
 # check if the version was bumped
 if [[ $? -ne 0 ]]; then
   echo "Version was not bumped, exiting"
   exit 1
 fi
 uv build && uv publish --token "$UV_PUBLISH_TOKEN" --index "code.ornl"
+rm -rf dist/
 git push
 git push --tags
-echo "🥳 Released $NEW_VERSION of $BUMP_KIND successfully"
+echo "🥳 Released pyGARDEn Successfully"
