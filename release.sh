@@ -24,7 +24,7 @@ case "$BUMP_KIND" in
     exit 1
     ;;
 esac
-bumpversion --current-version "$(cat COMMON_VERSION)" "$BUMP_KIND"
+bumpversion --current-version "$(cat COMMON_VERSION)" "$BUMP_KIND" COMMON_VERSION
 # check if the version was bumped
 if [[ $? -ne 0 ]]; then
   echo "Version was not bumped, exiting"
