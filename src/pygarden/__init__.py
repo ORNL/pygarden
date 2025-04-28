@@ -3,4 +3,4 @@
 """
 pyGARDEN (General Application Resource Development Environment Network) to assist in rapid package development.
 """
-VERSION="0.3.9"
+VERSION="0.3.10"
