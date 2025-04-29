@@ -70,6 +70,8 @@ all = [
     "rich==13.7.1",
     "click==8.0.3",
     "minio~=7.1.0",
+    "pandas==2.1.4",
+    "SQLAlchemy~=2.0.23"
 ]
 dev = [
     "ruff==0.5.4",
