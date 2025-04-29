@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup as Soup
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class CFSCRAPE_Mixin:
+class CfscrapeMixin:
     """Group together CFSCRAPE methods."""
 
     def request(self, url, verify=False, **kwargs):

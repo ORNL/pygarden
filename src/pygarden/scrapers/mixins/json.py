@@ -7,7 +7,7 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class JSON_Mixin:
+class JsonMixin:
     """Group together all JSON logic into a single Mixin."""
 
     def request(self, url, method="GET", **kwargs):

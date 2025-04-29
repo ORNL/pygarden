@@ -96,7 +96,7 @@ class Scraper(ABC):
     def parse(self, data):
         """Parse method for the inherited classes to use for logic.
         :param data: data structured to be parsed; likely in the form of
-                     JSON, XML, BeautifulSoup, etc, depending oon the MIXIN
+                     JSON, XML, BeautifulSoup, etc, depending on the MIXIN
         """
         raise NotImplementedError
 

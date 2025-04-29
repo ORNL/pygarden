@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup as Soup
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class HTML_Soup_Mixin(object):
+class HtmlSoupMixin(object):
     """Group together all HTML logic into a single Mixin."""
 
     def request_html(self, url, method="get", **kwargs):

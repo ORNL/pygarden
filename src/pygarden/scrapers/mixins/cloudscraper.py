@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup as Soup
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class CloudScraper_Mixin:
+class CloudscraperMixin:
     def request(self, url, n_retries=3, **kwargs):
         """Fetch data from `url` and return that in a Soup object."""
         for i in range(n_retries):

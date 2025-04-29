@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup as Soup
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class XML_Mixin:
+class XmlMixin:
     """Mix-in for XML formatted sites."""
 
     def request(self, url, method="GET", **kwargs):

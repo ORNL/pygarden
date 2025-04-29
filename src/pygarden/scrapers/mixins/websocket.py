@@ -9,7 +9,7 @@ from websocket import create_connection
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class WEBSOCKET_Mixin:
+class WebsocketMixin:
     """Group together all WebSocket logic into a single Mixin."""
 
     def request(self, url, **kwargs):
