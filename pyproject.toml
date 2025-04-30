@@ -110,6 +110,9 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 
+[tool.ruff.mccabe]
+max-complexity = 10
+
 [tool.bumpversion]
 commit = true
 tag = true

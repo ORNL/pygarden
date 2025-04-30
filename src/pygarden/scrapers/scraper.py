@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# noqa: C901
 """Provide a scraper base class, which other scraper types are built."""
 import collections.abc
 import gzip
@@ -107,6 +106,14 @@ class Scraper(ABC):
         """Scrape a website."""
 
         def do_scrape(url):
+            """
+            Scrape a website and parse the data.
+
+            :param url: URL to scrape
+            :type url: str
+            :return: parsed data
+            :rtype: dict
+            """
             data = None  # set from self.request()
 
             for retry in range(self.SCRAPER_MAX_RETRIES):
@@ -116,9 +123,9 @@ class Scraper(ABC):
                 except requests.exceptions.SSLError as error:
                     self.log.critical(error)
                     self.log.critical(
-                        "Failed to connect to url: %s, due to an"
-                        + " SSL issue. Check the request params "
-                        + " and fix the resulting issue." % url
+                        f"Failed to connect to url: {url}, due to an \n"
+                        " SSL issue. Check the request params "
+                        " and fix the resulting issue."
                     )
                     break
                 except (
