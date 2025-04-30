@@ -8,7 +8,10 @@ cat <<EOF
 | |_) | |_| | |_| |/ ___ \|  _ <| |_| | |___| |\  |
 | .__/ \__, |\____/_/   \_\_| \_\____/|_____|_| \_|
 |_|    |___/            release script
-
+()
+ \
+  \
+  ^ ^ ^
 EOF
 BUMP_KIND=${1:-patch}
 source .venv/bin/activate

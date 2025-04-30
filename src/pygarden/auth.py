@@ -1,40 +1,30 @@
 """Provide authentication methods."""
 
 import hashlib
+import importlib.util
 import os
-from typing import Any, Callable, Dict
-from urllib.parse import urlencode, urlparse
+import sys
+from typing import Any, Callable
 
 from pygarden.env import check_environment as ce
+from pygarden.logz import create_logger
 
-try:
-    from ldap3 import ALL, SUBTREE, Connection, Server
-    from ldap3.core.exceptions import LDAPBindError, LDAPException
-except ImportError:
-    import sys
+log = create_logger()
 
-    from pygarden.logz import create_logger
-
-    log = create_logger()
+if importlib.util.find_spec("ldap3") is not None:
+    from ldap3 import ALL, Connection, Server
+else:
     log.warn("To use this module, install common-package[auth] extra.")
     sys.exit(1)
 
 
-def authenticate_ldap_user(uid, password):
+def authenticate_ldap_user(uid: str, password: str) -> Any:
     """
-    Authenticates a user against an LDAP server using their user ID and password.
+    Authenticate a user against an LDAP server using their user ID and password.
 
     This function retrieves the necessary LDAP configuration from environment variables,
     establishes a connection to the LDAP server, and attempts to bind with the provided
     credentials. If the binding is successful, it searches for the user's entry and returns it.
-
-    Parameters:
-    - uid (str): The user ID of the LDAP account to authenticate.
-    - password (str): The password for the LDAP account.
-
-    Returns:
-    - ldap3.Entry: The LDAP entry of the authenticated user if successful.
-    - None: If the authentication fails (e.g., incorrect credentials or issues with server connection).
 
     Environment Variables:
     - LDAP_SERVER: URL of the LDAP server. .
@@ -43,11 +33,17 @@ def authenticate_ldap_user(uid, password):
     - LDAP_USER_SEARCH_FILTER: LDAP search filter to find the user. Default is "(uid={uid})".
 
     Example:
+    -------
     To authenticate a user with ID 'jdoe' and password 'securepassword', you can call:
+    ```python
     authenticate_ldap_user('jdoe', 'securepassword')
+    ```
 
-    Raises:
-    - ldap3.core.exceptions.LDAPException: If there is an issue connecting to the LDAP server or during the search.
+    :param uid: The user ID of the user to authenticate.
+    :param password: The password of the user to authenticate.
+    :raises ldap3.core.exceptions.LDAPException: If there is an issue connecting
+    to the LDAP server or during the search.
+    :return: The user's LDAP entry if authentication is successful, None otherwise.
     """
     ldap_server = ce("LDAP_SERVER")
     root_dn = ce("LDAP_ROOT_DN")
@@ -64,6 +60,7 @@ def authenticate_ldap_user(uid, password):
 
 
 def generate_salt() -> str:
+    """Generate a random salt for password hashing."""
     return str(os.urandom(32)).replace("\\", "").replace("b", "")
 
 
@@ -74,4 +71,13 @@ def hash_password(
     *args: Any,
     **kwargs: Any,
 ) -> str:
+    """
+    Hash a password using the specified hash algorithm and salt.
+
+    :param password: The password to hash.
+    :param salt: The salt to use for hashing.
+    :param hash_algorithm: The hashing algorithm to use (default: PBKDF2-HMAC-SHA256).
+    :param args: Additional arguments for the hashing algorithm.
+    :param kwargs: Additional keyword arguments for the hashing algorithm.
+    """
     return hash_algorithm(password.encode(), salt.encode(), *args, **kwargs).hex()

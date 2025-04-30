@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-""" Provide common utilities for various file operations."""
+"""Provide common utilities for various file operations."""
 import json
 from pathlib import Path
+from typing import Union
 
 # So, here are the tasks for file operations
 # Use Pathlib package
@@ -15,18 +14,19 @@ from pathlib import Path
 
 def path_exists(dirc_or_file):
     """
-    # function to check if directory/file exists
-    # @params  : directory/file to check
-    # @returns : boolean
+    Check if a directory or file exists.
+
+    :param dirc_or_file: Directory or file to check
     """
     return Path(dirc_or_file).exists()
 
 
 def create_directory(dirc=None):
     """
-    # function to create directories at the specified path
-    # @params  : directory to create
-    # @returns : boolean / None
+    Create a directory if it doesn't exist.
+
+    :param dirc: Directory to create
+    :return: Success message or None
     """
     if dirc is not None:
         try:
@@ -42,9 +42,10 @@ def create_directory(dirc=None):
 
 def delete_directory(dirc=None):
     """
-    # function to delete directories at the specified path
-    # @params  : directory to delete
-    # @returns : str / None
+    Delete a directory and its contents.
+
+    :param dirc: Directory to delete
+    :return: Success message or None
     """
     if dirc is not None:
         try:
@@ -68,9 +69,10 @@ def delete_directory(dirc=None):
 
 def tree(dirc=None):
     """
-    # function to walk a directory
-    # @params  : directory to walk
-    # @returns : None
+    Walk a directory and print the contents.
+
+    :param dirc: Directory to walk
+    :return: None
     """
     if dirc is not None:
         try:
@@ -89,9 +91,10 @@ def tree(dirc=None):
 
 def read_file(file_name):
     """
-    # function to read a file
-    # @params  : file name
-    # @returns : str
+    Read a file into a python object
+
+    :param file_name: Name of the file
+    :return: File contents or None
     """
     try:
         with open(f"{file_name}", "r+") as file:
@@ -109,15 +112,16 @@ def read_file(file_name):
 
 def append_file(file_name, file_data):
     """
-    # function to append contents to a file
-    # @params  : file name, data to append
-    # @returns : str / None
-    # append_file function will not work for JSON files as key/value pairs are unordered.
+    Append data to a file
+
+    :param file_name: Name of the file
+    :param file_data: Data to append to the file
+    :return: Success message or None
     """
     try:
         with open(f"{file_name}", "a+") as file:
-            file_contents = file.write(file_data)
-        return f"Contents successfully appended to the file"
+            file.write(file_data)
+        return "Contents successfully appended to the file"
     except FileNotFoundError as e:
         print(f"File doesn't exist: {e}")
     except TypeError as te:
@@ -127,9 +131,10 @@ def append_file(file_name, file_data):
 
 def write_file(file_name, file_data=""):
     """
-    # function to write to a file
-    # @params  : file name, data to write
-    # @returns : None
+    Write data to a file
+
+    :param file_name: Name of the file
+    :param file_data: Data to write to the file
     """
     try:
         if Path(file_name).suffix == ".json":
@@ -151,11 +156,11 @@ def write_file(file_name, file_data=""):
     return None
 
 
-def delete_file(file_name):
+def delete_file(file_name: Union[str, Path]):
     """
-    # function to delete a file
-    # @params  : file name
-    # @returns : str
+    Delete a file
+
+    :param file_name: Name of the file to delete
     """
     if Path(file_name).exists():
         Path(file_name).unlink()

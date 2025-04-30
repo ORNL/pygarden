@@ -18,7 +18,9 @@ from pygarden.env import check_multi_environment as cme
 
 
 class MSSQLMixin:
-    """Provides a convenient API-like interface to Microsoft SQL databases.
+    """
+    Provides a convenient API-like interface to Microsoft SQL databases.
+
     The database object is the interface to the database.
     """
 
@@ -29,14 +31,20 @@ class MSSQLMixin:
     DEFAULT_PORT = int(cme("DATABASE_PORT_MS", 1433, "DATABASE_PORT"))
 
     def __del__(self):
-        """Close the connection to database.
+        """
+        Close the connection to database.
+
         Ensure function call is superior to Database i.e:
-        class MSSQLDB(MSSQLMixin, Database):"""
+        class MSSQLDB(MSSQLMixin, Database):
+        """
         self.close()
 
     def open(self):
-        """Open the connection to the database.
-        :return: True if connection established, else false"""
+        """
+        Open the connection to the database.
+
+        :return: True if connection established, else false
+        """
         self.logger.debug("Opening Database Object")
 
         db_name = self.connection_info.get("dbName", MSSQLMixin.DEFAULT_DB)
@@ -45,12 +53,7 @@ class MSSQLMixin:
         db_host = self.connection_info.get("dbHost", MSSQLMixin.DEFAULT_HOST)
 
         try:
-            msg = (
-                "\nConnecting information\n"
-                + f"Database: {db_name}\n"
-                + f"Host: {db_host}\n"
-                + f"User: {db_user}\n"
-            )
+            msg = "\nConnecting information\n" + f"Database: {db_name}\n" + f"Host: {db_host}\n" + f"User: {db_user}\n"
             self.logger.debug(msg)
             self.connection = pymssql.connect(
                 database=db_name,

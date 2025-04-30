@@ -1,17 +1,17 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""Provide a standard logger for all use cases."""
 
+import logging
 import os
 import sys
-"""Provide a standard logger for all use cases."""
-import logging
 
 
 def create_handler(file_out, mode, encoding, another_handler=None):
     """
+    Create a logging handler.
+
     create_handler:
         Creates a logging handler to format text written by Python logging module.
-    
+
     :param file_out: Path to file to output logs to, defaults to None
     :type file_out: str, optional
     :param mode: Mode to open the file with, defaults to None
@@ -23,31 +23,30 @@ def create_handler(file_out, mode, encoding, another_handler=None):
     :return: A Python logging handler
     :rtype: handler
     """
-
     if file_out is not None:
         file_handler = logging.FileHandler(file_out, mode, encoding)
-        file_handler_fmt = logging.Formatter(
-            "[%(asctime)s]" + "%(levelname)8s - " + " - %(message)s"
-        )
+        file_handler_fmt = logging.Formatter("[%(asctime)s]" + "%(levelname)8s - " + " - %(message)s")
         file_handler.setFormatter(file_handler_fmt)
         handlers = [file_handler]
-        if another_handler: handlers = [another_handler, file_handler]
+        if another_handler:
+            handlers = [another_handler, file_handler]
     else:
         file_handler = None
-        if another_handler: 
-            handlers = [another_handler] 
-        else: handlers = [] 
-    
+        if another_handler:
+            handlers = [another_handler]
+        else:
+            handlers = []
+
     return file_handler, handlers
 
 
-def create_rich_logger(file_out=None, 
-                       mode=None, 
-                       encoding=None):
+def create_rich_logger(file_out=None, mode=None, encoding=None):
     """
+    Create a rich logger.
+
     create_rich_logger:
         Creates a Rich logger for all uses
-    
+
     :param file_out: Path to file to output logs to, defaults to None
     :type file_out: str, optional
     :param mode: Mode to open the file with, defaults to None
@@ -57,7 +56,6 @@ def create_rich_logger(file_out=None,
     :return: A Rich logger instance
     :rtype: Logger
     """
-
     try:
         from rich.logging import RichHandler
         from rich.traceback import install
@@ -82,13 +80,13 @@ def create_rich_logger(file_out=None,
     return logging.getLogger("rich")
 
 
-def create_loguru_logger(file_out=None,
-                        mode=None, 
-                        encoding=None):
+def create_loguru_logger(file_out=None, mode=None, encoding=None):
     """
+    Create a loguru logger.
+
     create_loguru_logger:
         Creates a Rich logger for all uses
-    
+
     :param file_out: Path to file to output logs to, defaults to None
     :type file_out: str, optional
     :param mode: Mode to open the file with, defaults to None
@@ -98,11 +96,10 @@ def create_loguru_logger(file_out=None,
     :return: A Loguru logger instance
     :rtype: Logger
     """
-
     try:
         from loguru import logger as loguru_logger
-    except:
-        print("Failed to load loguru logger")
+    except Exception as e:
+        print(f"Failed to load loguru logger: {e}")
         return
 
     loguru_logger.remove()
@@ -115,7 +112,7 @@ def create_loguru_logger(file_out=None,
             level=log_level,
             format="[{time:YYYY/MM/DD HH:mm:ss}] - {level} - {message}",
             backtrace=True,
-            diagnose=True
+            diagnose=True,
         )
     else:
         loguru_logger.add(
@@ -123,18 +120,18 @@ def create_loguru_logger(file_out=None,
             level=log_level,
             format="[{time:YYYY/MM/DD HH:mm:ss}] - {level} - {message}",
             backtrace=True,
-            diagnose=True
+            diagnose=True,
         )
     return loguru_logger
 
 
-def create_python_logger(file_out=None,
-                        mode=None, 
-                        encoding=None):
+def create_python_logger(file_out=None, mode=None, encoding=None):
     """
+    Create a Python logger for all uses.
+
     create_python_logger:
         Creates a Python logger for all uses
-    
+
     :param file_out: Path to file to output logs to, defaults to None
     :type file_out: str, optional
     :param mode: Mode to open the file with, defaults to None
@@ -144,13 +141,10 @@ def create_python_logger(file_out=None,
     :return: Python logger instance
     :rtype: Logger
     """
-
     log_level = os.environ.get("LOGLEVEL", "INFO").upper()
     file_handler, handlers = create_handler(file_out, mode, encoding)
     stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler_fmt = logging.Formatter(
-            "[%(asctime)s]" + "%(levelname)8s - " + " - %(message)s"
-    )
+    stdout_handler_fmt = logging.Formatter("[%(asctime)s]" + "%(levelname)8s - " + " - %(message)s")
     stdout_handler.setFormatter(stdout_handler_fmt)
     handlers.append(stdout_handler)
     if file_handler:
@@ -164,7 +158,7 @@ def create_python_logger(file_out=None,
         logging.basicConfig(
             level=log_level,
             format="%(asctime)s" + "%(levelname)8s - " + " - %(message)s",
-            datefmt="[%Y/%m/%d %H:%M;%S]"
+            datefmt="[%Y/%m/%d %H:%M;%S]",
         )
     # if there is a file_handler set, close it before leaving :)
     # This prevents leaving open files
@@ -173,14 +167,13 @@ def create_python_logger(file_out=None,
     return logging.getLogger()
 
 
-def create_logger(file_out=None, 
-                  mode=None, 
-                  encoding=None,
-                  logger_type="rich"):
+def create_logger(file_out=None, mode=None, encoding=None, logger_type="rich"):
     """
+    Create a logger instance.
+
     create_logger:
         Creates a logger for all uses
-    
+
     :param file_out: Path to file to output logs to, defaults to None
     :type file_out: str, optional
     :param mode: Mode to open the file with, defaults to None
@@ -205,5 +198,5 @@ def create_logger(file_out=None,
         return create_loguru_logger(file_out, mode, encoding)
     elif logger_type == "logging":
         return create_python_logger(file_out, mode, encoding)
-    
+
     return create_rich_logger(file_out, mode, encoding)

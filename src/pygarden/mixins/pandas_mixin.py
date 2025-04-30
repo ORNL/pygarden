@@ -19,7 +19,8 @@ class PandasMixin:
     """Group together all pandas logic."""
 
     def query_pandas(self, query=None, table=None, schema=None, log_df=False, log_query=False):
-        """Return a query as a pandas table.
+        """
+        Return a query as a pandas table.
 
         Provided a query, uses the default cursor assumming a
         PostgreSQL connection.
@@ -62,11 +63,7 @@ class PandasMixin:
 
         if query is not None and not isinstance(self.connection, sqlalchemy.engine.base.Engine):
             return make_dataframe(query)
-        if (
-            table is not None
-            and schema is not None
-            and isinstance(self.connection, sqlalchemy.engine.base.Engine)
-        ):
+        if table is not None and schema is not None and isinstance(self.connection, sqlalchemy.engine.base.Engine):
             return pd.read_from_table(table_name=table, schema=schema)
         if query is not None and isinstance(self.connection, sqlalchemy.engine.base.Engine):
             return pd.read_sql_from_query(query, ur=self.connection_inf["uri"])

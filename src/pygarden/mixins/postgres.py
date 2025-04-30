@@ -16,11 +16,11 @@ except ImportError:
     )
     sys.exit(1)
 from pygarden.env import check_environment as ce
-from pygarden.env import check_multi_environment as cme
 
 
 class PostgresMixin:
-    """Serve common connection method for postgres.
+    """
+    Serve common connection method for postgres.
 
     The default `search_path` variable can be set with the following
     operating system variable:
@@ -38,20 +38,11 @@ class PostgresMixin:
     DEFAULT_SEARCH_PATH = ce("DATABASE_SEARCH_PATH", "public")
 
     # define a URI string if URI is perferred to connect
-    DEFAULT_URI = (
-        DEFAULT_ENGINE
-        + "://"
-        + DEFAULT_USER
-        + ":"
-        + str(DEFAULT_PW)
-        + "@"
-        + DEFAULT_HOST
-        + "/"
-        + DEFAULT_DB
-    )
+    DEFAULT_URI = DEFAULT_ENGINE + "://" + DEFAULT_USER + ":" + str(DEFAULT_PW) + "@" + DEFAULT_HOST + "/" + DEFAULT_DB
 
     def open(self, search_path=DEFAULT_SEARCH_PATH):
-        """Explicitly open the database connection
+        """
+        Explicitly open the database connection
 
         :param search_path: the search path to default to
         :return: True if connection established, else false
@@ -97,7 +88,8 @@ class PostgresMixin:
         return True
 
     def query(self, query, as_dict=False):
-        """Query the database.
+        """
+        Query the database.
 
         :param query: A Valid SQL statement to send to the database.
         :return: None if query's cursor does not have a description, otherwise
@@ -127,7 +119,5 @@ class PostgresMixin:
         except psycopg2.NotSupportedError as error:
             self.logger.error(f"An unexpected NotSupportedError occurred: {error}")
         except Exception as error:
-            self.logger.error(
-                "There was an undetermined issue with the query process:" + f" {error}"
-            )
+            self.logger.error("There was an undetermined issue with the query process:" + f" {error}")
         return None

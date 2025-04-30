@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-""" Mix-in class for HTML formatted sites. """
+"""Mix-in class for HTML formatted sites."""
 import requests
 import urllib3
 from bs4 import BeautifulSoup as Soup
@@ -12,7 +12,8 @@ class HtmlMixin:
     """Mix-in for HTML formatted sites."""
 
     def request(self, url, method="GET", **kwargs):
-        """Fetch data from `url` and return that in a Soup object
+        """
+        Fetch data from `url` and return that in a Soup object
 
         :param url: of the remote host
         :param method: one of GET, OPTIONS, HEAD, POST, PUT, PATCH, or DELETE
