@@ -22,7 +22,6 @@ def common_cli():
     pass
 
 
-
 common_cli.add_command(docker, name="docker")
 common_cli.add_command(python_cli, name="py")
 common_cli.add_command(gen_cli, name="gen")

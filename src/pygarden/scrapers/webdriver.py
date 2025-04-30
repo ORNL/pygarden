@@ -77,10 +77,7 @@ class WebDriver:
                 "headless",
             ]
         if service_args is None:
-            service_args = [
-                "--ignore-ssl-errors=true",
-                "--ssl-protocol=any"
-            ]
+            service_args = ["--ignore-ssl-errors=true", "--ssl-protocol=any"]
         rich_handler = RichHandler(rich_tracebacks=True, markup=True)
         logging.basicConfig(
             level="INFO",

@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from pygarden.mixins.postgres import PostgresMixin
     from pygarden.mixins.sqlite import SQLiteMixin
 
+
 class MultiDatabase:
     """Provide a MultiDatabase class using multiple Database Mixins."""
 
