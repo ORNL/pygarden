@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Abstract Database class for connecting to a database.
+
 This class provides an abstract method of interacting with a (by default)
 PostgreSQL database. However, the connection paramater may be specified to open
 any type of connection through implementation of this abstract class.
@@ -14,8 +16,8 @@ from pygarden.logz import create_logger
 
 
 class Database(ABC):
-    """Provides an abstract class for connecting to a database using
-    environmental variables.
+    """
+    Provides an abstract class for connecting to a database using environmental variables.
 
     Connection info stored in system environment variables:
         - DATABASE_TIMEOUT, PG_TIMEOUT: an integer representing the seconds to wait
@@ -65,9 +67,7 @@ class Database(ABC):
     DEFAULT_LOG_MODE = ce("DATABASE_LOG_MODE", "a")
     DEFAULT_LOG_ENCODING = ce("DATABASE_LOG_ENCODING", "utf-8")
     # define a URI string if URI is perferred to connect
-    DEFAULT_URI = (
-        f"{DEFAULT_ENGINE}://{DEFAULT_USER}:{str(DEFAULT_PW)}" + f"@{DEFAULT_HOST}/{DEFAULT_DB}"
-    )
+    DEFAULT_URI = f"{DEFAULT_ENGINE}://{DEFAULT_USER}:{str(DEFAULT_PW)}" + f"@{DEFAULT_HOST}/{DEFAULT_DB}"
 
     def __init__(
         self,
@@ -75,10 +75,14 @@ class Database(ABC):
         connection_info: Optional[dict] = None,
         **kwargs,
     ):
-        """Create a Database object.  This *does not* open a connection to the
-        database.  Use open() or `with` to establish a database connection.
+        """
+        Create a Database object.
 
+        This *does not* open a connection to the database.  Use open() or `with` to establish a database connection.
+
+        :param log_file_info: a dictionary containing log file info
         :param connection_info: a dictionary containing connection info
+
         """
         if log_file_info is None:
             log_file_info = {
@@ -91,9 +95,7 @@ class Database(ABC):
         if log_file_info["path"] == "":
             self.logger = create_logger()
         else:
-            self.logger = create_logger(
-                log_file_info["path"], log_file_info["mode"], log_file_info["encoding"]
-            )
+            self.logger = create_logger(log_file_info["path"], log_file_info["mode"], log_file_info["encoding"])
         self.connection_info = connection_info
         self.logger.debug(connection_info)
         self.connection = None
@@ -101,7 +103,8 @@ class Database(ABC):
         self.logger.debug("Database object successfully initialized")
 
     def __del__(self):
-        """Make any pending database commits and close the connection
+        """
+        Make any pending database commits and close the connection
 
         Note that you *should not* rely on this to close connection; you
         should explicitly use close() to sever database connections.  That
@@ -113,12 +116,12 @@ class Database(ABC):
         self.close()
 
     def __enter__(self):
-        """allow database to be entered via with"""
+        """Allow database to be entered via with"""
         self.silent_open()
         return self
 
     def __exit__(self, err_type, err_value, err_traceback):
-        """hande database closing when leaving with"""
+        """Hande database closing when leaving with"""
         self.close()
 
     def silent_open(self):
@@ -137,7 +140,8 @@ class Database(ABC):
             raise BaseException("Not possible to enter Database")
 
     def close(self):
-        """Explicitly close the connection
+        """
+        Explicitly close the connection
 
         :return: None
         """
@@ -158,16 +162,18 @@ class Database(ABC):
         return False
 
     def override_connection(self, connection):
-        """Override the default connection, useful for using other connections
-        than `psycopg2` for downstream development.
+        """
+        Override the default connection.
+
+        This is useful for using other connections than `psycopg2` for downstream development.
 
         :param connection: any type of database connection object.
         """
         self.connection = connection
 
     def modify_connection_info(self, variable, value):
-        """Modify a `variable` and set it to `value` in the connection_info
-        attribute.
+        """
+        Modify a `variable` and set it to `value` in the connection_info attribute.
 
         :param variable: the connection variable to set
         :param value: the value for the connection variable
@@ -176,15 +182,15 @@ class Database(ABC):
 
     @staticmethod
     def create_connection_info(
-            db_name=None,
-            db_user=None,
-            db_password=None,
-            db_host=None,
-            db_port=None,
-            db_schema=None,
-            db_type=None,
-            db_engine=None,
-            db_timeout=None
+        db_name=None,
+        db_user=None,
+        db_password=None,
+        db_host=None,
+        db_port=None,
+        db_schema=None,
+        db_type=None,
+        db_engine=None,
+        db_timeout=None,
     ):
         """
         Creates the complete connection_info dictionary to use for database connection.
@@ -194,31 +200,36 @@ class Database(ABC):
         on the provided parameters and defaults to certain values if parameters are not
         provided.
 
-        Parameters:
-        db_name (str, optional): The name of the database. Defaults to Database.DEFAULT_DB.
-        db_user (str, optional): The database user. Defaults to Database.DEFAULT_USER.
-        db_password (str, optional): The password for the database user. Defaults to Database.DEFAULT_PW.
-        db_host (str, optional): The host where the database is located. Defaults to Database.DEFAULT_HOST.
-        db_port (int, optional): The port on which the database is listening. Defaults to Database.DEFAULT_PORT.
-        db_schema (str, optional): The schema to use within the database. Defaults to Database.DEFAULT_SCHEMA.
-        db_type (str, optional): The type of the database (e.g., 'postgres', 'mssql'). Used to infer db_engine.
-        db_engine (str, optional): The SQLAlchemy database engine string (e.g., 'postgresql', 'mssql+pymssql').
-                                   If not provided, it is inferred from db_type or defaults to Database.DEFAULT_ENGINE.
-        db_timeout (int, optional): The timeout setting for the database connection. Defaults to Database.DEFAULT_TIMEOUT.
+        :param db_name: The name of the database. Defaults to Database.DEFAULT_DB.
+        :param db_user: The database user. Defaults to Database.DEFAULT_USER.
+        :param db_password: The password for the database user. Defaults to Database.DEFAULT_PW.
+        :param db_host: The host where the database is located. Defaults to Database.DEFAULT_HOST.
+        :param db_port: The port on which the database is listening. Defaults to Database.DEFAULT_PORT.
+        :param db_schema: The schema to use within the database. Defaults to Database.DEFAULT_SCHEMA.
+        :param db_type: The type of the database (e.g., 'postgres', 'mssql'). Used to infer db_engine.
+        :param db_engine: The SQLAlchemy database engine string (e.g., 'postgresql', 'mssql+pymssql').
+                          If not provided, it is inferred from db_type or defaults to Database.DEFAULT_ENGINE.
+        :param db_timeout: The timeout setting for the database connection. Defaults to Database.DEFAULT_TIMEOUT.
         """
         if db_type and not db_engine:
             if db_type.startswith("postgres") or db_type.startswith("pg"):
-                db_engine = 'postgresql'
+                db_engine = "postgresql"
             elif db_type.startswith("mssql"):
-                db_engine = 'mssql+pymssql'
+                db_engine = "mssql+pymssql"
             elif db_type.startswith("influx"):
-                db_engine = 'influxdb'
+                db_engine = "influxdb"
             elif db_type.startswith("sqlite"):
-                db_engine = 'sqlite'
-        if db_engine is not None and db_engine.startswith('sqlite'):
-            uri = f'{db_engine}://{db_name}'
+                db_engine = "sqlite"
+        if db_engine is not None and db_engine.startswith("sqlite"):
+            uri = f"{db_engine}://{db_name}"
         else:
-            uri = f"{db_engine if db_engine is not None else Database.DEFAULT_ENGINE}://{db_user if db_user is not None else Database.DEFAULT_USER}:{db_password if db_password is not None else Database.DEFAULT_PW}@{db_host if db_host is not None else Database.DEFAULT_HOST}:{db_port if db_port is not None else Database.DEFAULT_PORT}/{db_name if db_name is not None else Database.DEFAULT_DB}"
+            engine = db_engine or Database.DEFAULT_ENGINE
+            user = db_user or Database.DEFAULT_USER
+            password = db_password or Database.DEFAULT_PW
+            host = db_host or Database.DEFAULT_HOST
+            port = db_port or Database.DEFAULT_PORT
+            name = db_name or Database.DEFAULT_DB
+            uri = f"{engine}://{user}:{password}@{host}:{port}/{name}"
 
         connection_info = {
             "dbName": db_name if db_name is not None else Database.DEFAULT_DB,
@@ -232,4 +243,3 @@ class Database(ABC):
             "uri": uri,
         }
         return connection_info
-

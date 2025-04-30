@@ -1,6 +1,4 @@
-import time
-from os import times
-
+"""Provide a logger mixin for PostgreSQL."""
 from pygarden.database import Database
 from pygarden.mixins.postgres import PostgresMixin
 
@@ -15,17 +13,18 @@ class PostgresLoggerMixin(Database, PostgresMixin):
     the function to write the log to the database, for example:
     db_logger.info("TEST MESSAGE", w=True)
 
-    Attributes:
+    Attributes
+    ----------
         schema (str): The name of the schema
 
     """
 
-    def __init__(self, schema, **kwargs):
+    def __init__(self, schema: str, **kwargs):
         """
         The constructor for the PostgresLoggerMixin class.
 
-        Parameters:
-            schema (str): The name of the schema
+        :param schema: The name of the schema
+        :param kwargs: Additional keyword arguments.
         """
         super().__init__()
         self.schema = schema
@@ -42,6 +41,7 @@ class PostgresLoggerMixin(Database, PostgresMixin):
         self.logger.debug(message)
 
     def info(self, message, w=False, c=False):
+        """Logs an info message."""
         if w:
             self.check_table_exists()
             self.log_to_database("INFO", message)
@@ -50,6 +50,7 @@ class PostgresLoggerMixin(Database, PostgresMixin):
         self.logger.info(message)
 
     def warning(self, message, w=False, c=False):
+        """Logs a warning message."""
         if w:
             self.check_table_exists()
             self.log_to_database("WARNING", message)
@@ -94,11 +95,9 @@ class PostgresLoggerMixin(Database, PostgresMixin):
         self.close()
 
     def log_to_database(self, loglevel, message):
-        "Logs log message to database."
+        """Logs log message to database."""
         self.open()
-        self.cursor.execute(
-            f"INSERT INTO {self.schema}.log (levelname, message) VALUES('{loglevel}', '{message}');"
-        )
+        self.cursor.execute(f"INSERT INTO {self.schema}.log (levelname, message) VALUES('{loglevel}', '{message}');")
         self.close()
 
     def collect_logs(self, level, message):
@@ -113,11 +112,11 @@ class PostgresLoggerMixin(Database, PostgresMixin):
         # the code
         self.open()
         if log_list:
-            for l in log_list:
-                self.cursor.execute(f"INSERT INTO {self.schema}.log VALUES('{l[0]}', '{l[1]}');")
+            for log_entry in log_list:
+                self.cursor.execute(f"INSERT INTO {self.schema}.log VALUES('{log_entry[0]}', '{log_entry[1]}');")
         elif self.log_collection:
-            for l in self.log_collection:
-                self.cursor.execute(f"INSERT INTO {self.schema}.log VALUES('{l[0]}', '{l[1]}');")
+            for log_entry in self.log_collection:
+                self.cursor.execute(f"INSERT INTO {self.schema}.log VALUES('{log_entry[0]}', '{log_entry[1]}');")
             self.log_collection = []
         else:
             self.warning("No logs recorded.")

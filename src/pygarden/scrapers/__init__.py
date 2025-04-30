@@ -1,18 +1,22 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""Initialize the scrapers module."""
+import importlib.util
 import warnings
 
-try:
-    import bs4
-    import cfscrape
-    import cloudscraper
-    import requests
-    import selenium
-    import urllib3
-    import websocket
-except ImportError as e:
-    missing_module = str(e).split("No module named ")[-1].replace("'", "")
-    warnings.warn(
-        f'You should install the extra "scrapers", missing required module: {missing_module}.',
-        UserWarning,
-    )
+OPTIONAL_MODULES = [
+    "bs4",
+    "cfscrape",
+    "cloudscraper",
+    "requests",
+    "selenium",
+    "urllib3",
+    "websocket",
+]
+
+for module_name in OPTIONAL_MODULES:
+    if importlib.util.find_spec(module_name) is None:
+        warnings.warn(
+            f'You should install the extra "scrapers", missing required module: {module_name}.',
+            UserWarning,
+        )
+    else:
+        importlib.import_module(module_name)

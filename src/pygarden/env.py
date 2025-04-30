@@ -9,7 +9,8 @@ FALSE_SET = {0, "0", "FALSE", "False", "false", False, "no", "n", "F", "f"}
 
 
 def boolify(var):
-    """Check if a variable should be a boolean and return.
+    """
+    Check if a variable should be a boolean and return.
 
     :param var: the variable to check to see if it can be converted to bool
     """
@@ -21,7 +22,10 @@ def boolify(var):
 
 
 def check_environment(env_var, default=None):
-    """Check if an environmental variable or variable is set, and if so,
+    """
+    Check availability of an environment variable.
+
+    Check if an environmental variable or variable is set, and if so,
     return that value, else return the default variable
 
     :param env_var: the environmental variable to look for
@@ -49,7 +53,10 @@ def check_environment(env_var, default=None):
 
 
 def check_multi_environment(env_var_multi, multi_value, env_var, default=None):
-    """Check if the mod environment variable exists,
+    """
+    Check availability of multiple environment variables.
+
+    Check if the mod environment variable exists,
     if so, return that. If not, check if the vanilla variable
     has been specified and return that value instead.
 
@@ -68,7 +75,8 @@ def check_multi_environment(env_var_multi, multi_value, env_var, default=None):
 
 @contextmanager
 def mock_env_vars(temp_vars: dict):
-    """Mock environment variables.
+    """
+    Mock environment variables.
 
     :param temp_vars: a dictionary of the temporary variables in the form of key: name
     """

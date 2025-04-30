@@ -1,16 +1,13 @@
 """Tests for File Operations"""
-from pathlib import Path
-import json
 import pytest
-import os
 from pygarden.file_operations import (
-    path_exists,
+    append_file,
     create_directory,
     delete_directory,
-    tree,
     delete_file,
+    path_exists,
     read_file,
-    append_file,
+    tree,
     write_file,
 )
 
@@ -53,21 +50,15 @@ def test_path_exists(setup_file):
 
 def test_create_directory(tmp_path, setup_directory):
     """Test that you can create a directory."""
-    assert (
-        create_directory(str(setup_directory))
-        == f"{str(setup_directory)} already exists."
-    )
+    assert create_directory(str(setup_directory)) == f"{str(setup_directory)} already exists."
     new_dir = tmp_path / "newdir"
     assert create_directory(str(new_dir)) is True
 
 
 def test_delete_directory(setup_directory):
     """Test that deleting a directory works as expected."""
-    assert (
-        delete_directory(str(setup_directory))
-        == f"{str(setup_directory)} deleted successfully."
-    )
-    assert delete_directory("nodir") == f"nodir does not exist."
+    assert delete_directory(str(setup_directory)) == f"{str(setup_directory)} deleted successfully."
+    assert delete_directory("nodir") == "nodir does not exist."
 
 
 def test_tree(setup_populated_directory, setup_file, capsys):
@@ -113,4 +104,4 @@ def test_write_file(tmp_path):
 def test_delete_file(setup_file):
     """Test deletion of an existing file."""
     assert delete_file(setup_file) == f"File: {str(setup_file)} deleted successfully."
-    assert delete_file("nonexistent") == f"Error in deleting the file: nonexistent."
+    assert delete_file("nonexistent") == "Error in deleting the file: nonexistent."

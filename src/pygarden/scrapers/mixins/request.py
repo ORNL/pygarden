@@ -11,7 +11,8 @@ class RequestMixin:
     """Group together Request logic into a single Mixin."""
 
     def request(self, url, **kwargs):
-        """Fetch data from `url` and return that in a Soup object
+        """
+        Fetch data from `url` and return that in a Soup object
 
         :param url: of the remote host
         :param kwargs: optional requests keyword arguments

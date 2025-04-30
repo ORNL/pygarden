@@ -1,30 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-   This class is responsible for initiating a webdriver. If called by itself,
-   it tests for example.com using both curl and chromedriver (currently).
-"""
+"""Provide a class is responsible for initiating a webdriver."""
 import logging
 import traceback
+from typing import Optional
 
 import requests
 from rich.logging import RichHandler
 from rich.traceback import install
 from selenium import webdriver
 from selenium.common.exceptions import (
-    ElementNotVisibleException,
-    NoSuchAttributeException,
     NoSuchElementException,
-    NoSuchFrameException,
-    NoSuchWindowException,
     StaleElementReferenceException,
     TimeoutException,
     WebDriverException,
 )
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.select import Select
+from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 from urllib3.exceptions import ConnectionError, HTTPError
 
@@ -35,21 +28,19 @@ install()
 
 class WebDriver:
     """
-    this class is a wrapper for interacting with selenium's webdriver or
-    requests
+    Provide a wrapper for interacting with selenium's webdriver or requests
 
-        :Details:
-            chrome requires Google Chrome and chromedriver
-            firefox requires geckodriver
-
-        :param url: the URL being requested
-        :param driver: the type of driver to use to connect
-        :param output: 'text' or 'json'
-        :param options: list of options to be passed to selenium
-        :param service_args: a list of service arguments to be passed to driver
-        :param timeout: how long to wait for an element to appear before timing
-                       out
-        :param implicit_wait: set how long to wait on a DOM object
+    :note:
+        chrome requires Google Chrome and chromedriver
+        firefox requires geckodriver
+    :param url: the URL being requested
+    :param driver: the type of driver to use to connect
+    :param output: 'text' or 'json'
+    :param options: list of options to be passed to selenium
+    :param service_args: a list of service arguments to be passed to driver
+    :param timeout: how long to wait for an element to appear before timing
+                   out
+    :param implicit_wait: set how long to wait on a DOM object
 
     """
 
@@ -58,29 +49,38 @@ class WebDriver:
         url=None,
         driver="chromedriver",
         output="text",
-        options=[
-            "--no-sandbox",
-            "--disable-logging",
-            "--disable-gpu",
-            "--disable-dev-shm-usage",
-            "headless",
-        ],
-        service_args=["--ignore-ssl-errors=true", "--ssl-protocol=any"],
+        options: Optional[list] = None,
+        service_args: Optional[list] = None,
         script=None,
         timeout=30,
         implicit_wait=5,
     ):
         """
+        Initialize a webdriver object.
+
         :param url: to connect to
         :param driver: underlying driver to use; can be 'chromedriver' or ...
         :param output: what kind of output we want; can be 'text' or ...
         :param options: for the underlying driver
         :param service_args: some more parameters
-        :param script: ???
+        :param script: a script to run
         :param timeout: for connecting?
         :param implicit_wait: for getting desired components to render?
         :param logger: for logging
         """
+        if options is None:
+            options = [
+                "--no-sandbox",
+                "--disable-logging",
+                "--disable-gpu",
+                "--disable-dev-shm-usage",
+                "headless",
+            ]
+        if service_args is None:
+            service_args = [
+                "--ignore-ssl-errors=true",
+                "--ssl-protocol=any"
+            ]
         rich_handler = RichHandler(rich_tracebacks=True, markup=True)
         logging.basicConfig(
             level="INFO",
@@ -96,10 +96,6 @@ class WebDriver:
         self.service_args = service_args
         self.out = None
         self.timeout = timeout
-        if script is None:
-            self.script = ""
-        else:
-            self.script = script
         if driver.lower() in ["requests", "curl"]:
             self.out = self.request_url()
         elif driver.lower() == "chromedriver":
@@ -125,7 +121,7 @@ class WebDriver:
             self.logger.info("Connected to %s" % self.url)
 
     def __str__(self):
-        """creates a simple string object"""
+        """Creates a simple string object"""
         msg = "WebDriver() Class with the following attributes:\n\tURL:"
         msg = msg + "%s\n\tDriver: %s\n" % (self.url, self.driver_type)
         if hasattr(self, "driver") and self.driver is not None:
@@ -133,19 +129,19 @@ class WebDriver:
         return msg
 
     def __enter__(self):
-        """return self upon entry via with"""
+        """Return self upon entry via with"""
         return self
 
     def __exit__(self, wd_type, wd_value, wd_traceback):
-        """handle exiting the with"""
+        """Handle exiting the with"""
         self.close()
 
     def __del__(self):
-        """delete the webDriver object"""
+        """Delete the webDriver object"""
         self.close()
 
     def close(self):
-        """close the webdriver class"""
+        """Close the webdriver class"""
         if hasattr(self, "driver"):
             if self.driver is not None:
                 try:
@@ -158,7 +154,7 @@ class WebDriver:
         del self
 
     def request_url(self):
-        """use requests to parse the url"""
+        """Use requests to parse the url"""
         try:
             response = requests.get(self.url, timeout=10)
             response.raise_for_status()
@@ -172,13 +168,11 @@ class WebDriver:
             return response.text
         if self.output_type == "json":
             return response.json()
-        self.logger.warning(
-            f"Unknown output_type specified: " f"{self.output_type}. Returning bare response"
-        )
+        self.logger.warning(f"Unknown output_type specified: " f"{self.output_type}. Returning bare response")
         return response
 
     def request_chrome(self):
-        """method to create driver based on chrome"""
+        """Method to create driver based on chrome"""
         self.logger.info(f"Using chrome to connect to {self.url}")
         self.options = webdriver.ChromeOptions()
         try:
@@ -260,59 +254,59 @@ class WebDriver:
             self.logger.error(f"Element seems stale: {e}")
 
     def move_to_element(self, target):
-        """perform action chains move to element and click"""
+        """Perform action chains move to element and click"""
         try:
             action_chains = ActionChains(self.driver).move_to_element(target)
             action_chains.click(target).perform()
         except NoSuchElementException as e:
             self.logger.error(f"The element {target} does not exist: {e}")
-        except TimeoutException as e:
+        except TimeoutException:
             self.logger.error(f"Connection timed out: {self.url}")
-        except WebDriverException as e:
+        except WebDriverException:
             self.logger.error("Webdriver error occurred: {e}")
         except StaleElementReferenceException as e:
             self.logger.error(f"Element seems stale: {e}")
 
     def request_phantomjs(self):
-        """method to create driver based on PhantomJS"""
+        """Method to create driver based on PhantomJS"""
         self.driver = webdriver.PhantomJS(service_args=self.service_args)
 
     def dump_out(self):
-        """dump self.out attribute"""
+        """Dump self.out attribute"""
         return self.out
 
     def driver_out(self):
-        """dump self.driver attribute"""
+        """Dump self.driver attribute"""
         return self.driver
 
     def wait_for_element(self, elem, elem_type, wait=None):
-        """wait for element is available in the page"""
+        """Wait for element is available in the page"""
         if wait is None:
             wait = self.timeout
         try:
             if elem_type.lower() == "xpath":
-                element_present = EC.presence_of_element_located((By.XPATH, elem))
+                element_present = ec.presence_of_element_located((By.XPATH, elem))
                 WebDriverWait(self.driver, wait).until(element_present)
             elif elem_type.lower() == "id":
-                element_present = EC.presence_of_element_located((By.ID, elem))
+                element_present = ec.presence_of_element_located((By.ID, elem))
                 WebDriverWait(self.driver, wait).until(element_present)
             elif elem_type.lower() == "class":
-                element_present = EC.presence_of_element_located((By.CLASS_NAME, elem))
+                element_present = ec.presence_of_element_located((By.CLASS_NAME, elem))
                 WebDriverWait(self.driver, wait).until(element_present)
             elif elem_type.lower() == "css":
-                element_present = EC.presence_of_element_located((By.CSS_SELECTOR, elem))
+                element_present = ec.presence_of_element_located((By.CSS_SELECTOR, elem))
                 WebDriverWait(self.driver, wait).until(element_present)
             elif elem_type.lower() == "name":
-                element_present = EC.presence_of_element_located((By.NAME, elem))
+                element_present = ec.presence_of_element_located((By.NAME, elem))
                 WebDriverWait(self.driver, wait).until(element_present)
             elif elem_type.lower() == "tag":
-                element_present = EC.presence_of_element_located((By.TAG_NAME, elem))
+                element_present = ec.presence_of_element_located((By.TAG_NAME, elem))
                 WebDriverWait(self.driver, wait).until(element_present)
             elif elem_type.lower() == "link text":
-                element_present = EC.presence_of_element_located((By.LINK_TEXT, elem))
+                element_present = ec.presence_of_element_located((By.LINK_TEXT, elem))
                 WebDriverWait(self.driver, wait).until(element_present)
             elif elem_type.lower() == "partial link text":
-                element_present = EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, elem))
+                element_present = ec.presence_of_element_located((By.PARTIAL_LINK_TEXT, elem))
                 WebDriverWait(self.driver, wait).until(element_present)
             else:
                 raise ParserError(f"{elem_type} is not a supported type")

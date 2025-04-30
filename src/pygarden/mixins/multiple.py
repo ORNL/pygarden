@@ -1,18 +1,30 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This is a MultiDatabase class using multiple Database Mixins
-"""
+"""Provide a MultiDatabase class using multiple Database Mixins."""
+from __future__ import annotations
+
 from concurrent.futures import ThreadPoolExecutor
-from typing import Callable, Optional, Type, Union
+from typing import TYPE_CHECKING, Callable, Optional, Type, Union
 from uuid import uuid4
 
 from pygarden.env import mock_env_vars
 from pygarden.logz import create_logger
 
+if TYPE_CHECKING:
+    from pygarden.mixins.influx import InfluxMixin
+    from pygarden.mixins.mssql import MSSQLMixin
+    from pygarden.mixins.postgres import PostgresMixin
+    from pygarden.mixins.sqlite import SQLiteMixin
 
 class MultiDatabase:
+    """Provide a MultiDatabase class using multiple Database Mixins."""
+
     def __init__(self, configs: list[dict]):
+        """
+        Initialize the MultiDatabase class with a list of database configurations.
+
+        :param configs: a list of dictionaries containing database configurations
+        """
         self.databases = {}
         self.logger = create_logger()
         for config in configs:
@@ -26,12 +38,12 @@ class MultiDatabase:
                 mixin = self._get_mixin_for_type(db_type=db_type)
                 if mixin:
                     conn_info = Database.create_connection_info(
-                        db_name=config.get('DATABASE_DB', None),
-                        db_user=config.get('DATABASE_USER', None),
-                        db_password=config.get('DATABASE_PW', None),
-                        db_host=config.get('DATABASE_HOST', None),
-                        db_port=config.get('DATABASE_PORT', None),
-                        db_type=db_type
+                        db_name=config.get("DATABASE_DB", None),
+                        db_user=config.get("DATABASE_USER", None),
+                        db_password=config.get("DATABASE_PW", None),
+                        db_host=config.get("DATABASE_HOST", None),
+                        db_port=config.get("DATABASE_PORT", None),
+                        db_type=db_type,
                     )
                     db_instance = type(db_type.capitalize() + "DB", (mixin, Database), {})(connection_info=conn_info)
                     self.databases[db_id] = db_instance
@@ -81,7 +93,13 @@ class MultiDatabase:
     @staticmethod
     def _get_mixin_for_type(
         db_type: str,
-    ) -> Optional[Type[Union['PostgresMixin', 'MSSQLMixin', 'InfluxMixin', 'SQLiteMixin']]]:
+    ) -> Optional[Type[Union[PostgresMixin, MSSQLMixin, InfluxMixin, SQLiteMixin]]]:
+        """
+        Get the appropriate mixin class for the given database type.
+
+        :param db_type: the type of database to initialize
+        :return:
+        """
         db_type = db_type.lower()
         if db_type.startswith("postgres") or db_type.startswith("pg"):
             from pygarden.mixins.postgres import PostgresMixin
@@ -95,7 +113,7 @@ class MultiDatabase:
             from pygarden.mixins.influx import InfluxMixin
 
             return InfluxMixin
-        if db_type.startswith('sqlite'):
+        if db_type.startswith("sqlite"):
             from pygarden.mixins.sqlite import SQLiteMixin
 
             return SQLiteMixin
@@ -104,21 +122,22 @@ class MultiDatabase:
         return None
 
     def open(self):
+        """Open all databases in parallel."""
         with ThreadPoolExecutor(max_workers=len(self.databases)) as executor:
             for db in self.databases.values():
                 executor.submit(db.open)
 
     def close(self):
+        """Close all databases in parallel."""
         with ThreadPoolExecutor(max_workers=len(self.databases)) as executor:
             for db in self.databases.values():
                 executor.submit(db.close)
 
     def query(self, query):
+        """Query multiple databases in parallel."""
         results = {}
         with ThreadPoolExecutor(max_workers=len(self.databases)) as executor:
-            future_to_db_id = {
-                executor.submit(db.query, query): db_id for db_id, db in self.databases.items()
-            }
+            future_to_db_id = {executor.submit(db.query, query): db_id for db_id, db in self.databases.items()}
             for future in future_to_db_id:
                 db_id = future_to_db_id[future]
                 results[db_id] = future.result()
@@ -135,14 +154,12 @@ class MultiDatabase:
         """
         Converts data from a PostgreSQL database to a Microsoft SQL Server database.
 
-        Args:
-        from_db_id (str): The ID of the PostgreSQL database.
-        to_db_id (str): The ID of the SQL Server database.
-        select_query (str): SQL query to select data from PostgreSQL.
-        insert_query_template (str): SQL template for inserting data into SQL Server.
-
-        Returns:
-        bool: True if the conversion was successful, False otherwise.
+        :param from_db_id: The ID of the PostgreSQL database.
+        :param to_db_id: The ID of the SQL Server database.
+        :param select_query: SQL query to select data from PostgreSQL.
+        :param insert_query_template: SQL template for inserting data into SQL Server.
+        :param transform_func: Optional function to transform data before inserting into SQL Server.
+        :return: True if the conversion was successful, False otherwise.
         """
         try:
             # Execute the select query on PostgreSQL
@@ -160,9 +177,7 @@ class MultiDatabase:
             # Insert data into SQL Server
             self._execute_parallel_db_operations(to_db_id, operations)
 
-            self.logger.info(
-                f"Data conversion from {from_db_id} to {to_db_id} completed successfully."
-            )
+            self.logger.info(f"Data conversion from {from_db_id} to {to_db_id} completed successfully.")
             return True
         except Exception as e:
             self.logger.error(f"Failed to convert data from {from_db_id} to {to_db_id}: {e}")
@@ -173,6 +188,7 @@ class MultiDatabase:
         Executes database operations in parallel.
 
         Args:
+        ----
             db_id (str): the ID of the database to execute operations in SQL
             operations (list): A list of SQL operations to execute
         """

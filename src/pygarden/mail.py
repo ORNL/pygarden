@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""Provide functions to send emails."""
 import os
 import smtplib
 import ssl
@@ -12,13 +11,18 @@ from pygarden.logz import create_logger
 
 
 def send_email(subject, text, files=None, recipients=None):
-    """Send email to the EMAIL_RECIPIENTS env variable with the given subject
+    """
+    Construct and send an email.
+
+    Send email to the EMAIL_RECIPIENTS env variable with the given subject
     and message body from the EMAIL_SENDER address. Email debug level is
     controlled with the EMAIL_DEBUG_LEVEL environmental variable and
     defaults to `0`, resulting in no debugging information.
 
     :param subject: the subject of email to send
     :param text: the content of the message to send
+    :param files: a list of files to attach to the email
+    :param recipients: a list of email addresses to send the email to
     :return: None
     """
     logger = create_logger()

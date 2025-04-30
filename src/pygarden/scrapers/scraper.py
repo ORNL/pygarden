@@ -6,7 +6,6 @@ import gzip
 import re
 import sys
 import time
-import traceback
 import urllib.error
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -26,7 +25,8 @@ __authors__ = ["grantjn@ornl.gov", "colletim@ornl.gov"]
 
 
 class Scraper(ABC):
-    """Abstract base class for all your scraping and parsing needs.
+    """
+    Abstract base class for all your scraping and parsing needs.
 
     Environmental variables that alter behavior:
         * `DRY_RUN`: if True, do not write to any files
@@ -53,7 +53,8 @@ class Scraper(ABC):
     SCRAPER_RAW_DATA = Path(ce("SCRAPER_RAW_DATA", "/tmp/raw"))
 
     def __init__(self, url, **kwargs):
-        """Initialize the scraper object and assign internal states.
+        """
+        Initialize the scraper object and assign internal states.
 
         The `**kwargs` is a generic way to tailor `request()`..
 
@@ -94,7 +95,9 @@ class Scraper(ABC):
 
     @abstractmethod
     def parse(self, data):
-        """Parse method for the inherited classes to use for logic.
+        """
+        Parse method for the inherited classes to use for logic.
+
         :param data: data structured to be parsed; likely in the form of
                      JSON, XML, BeautifulSoup, etc, depending on the MIXIN
         """

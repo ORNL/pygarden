@@ -1,14 +1,13 @@
+"""Test MinioMixin class."""
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from moto import mock_aws
-from minio import Minio
-
 from pygarden.mixins.minio_mixin import MinioMixin
 
 
-@pytest.fixture(scope='function', autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def setup_environment(tmp_path):
     """Create a temporary directory and files for the test."""
     test_dir = tmp_path / "tests" / "data"
@@ -18,28 +17,32 @@ def setup_environment(tmp_path):
     retrieved_file_path = test_dir / "test_retrieved.txt"
 
     # Setting environment variables for the test
-    os.environ['TEST_FILE_PATH'] = str(test_file_path)
-    os.environ['RETRIEVED_FILE_PATH'] = str(retrieved_file_path)
+    os.environ["TEST_FILE_PATH"] = str(test_file_path)
+    os.environ["RETRIEVED_FILE_PATH"] = str(retrieved_file_path)
 
 
-@pytest.fixture(autouse=True, scope='function')
+@pytest.fixture(autouse=True, scope="function")
 def aws_credentials():
     """Mocked AWS credentials."""
-    os.environ['AWS_ACCESS_KEY_ID'] = 'testing'
-    os.environ['AWS_SECRET_ACCESS_KEY'] = 'testing'
-    os.environ['AWS_SECURITY_TOKEN'] = 'testing'
-    os.environ['AWS_SESSION_TOKEN'] = 'testing'
-    os.environ['AWS_REGION'] = 'us-east-1'
+    os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+    os.environ["AWS_SECURITY_TOKEN"] = "testing"
+    os.environ["AWS_SESSION_TOKEN"] = "testing"
+    os.environ["AWS_REGION"] = "us-east-1"
 
 
 @mock_aws
 class TestMinioMixin:
+    """Test class for MinioMixin."""
+
     @pytest.fixture(autouse=True)
     def setup_class(self, aws_credentials, setup_environment):
         """Set up class with Minio client mocks."""
-        with patch('common.env.check_environment',
-                   side_effect=lambda key: "localhost:9000" if key == "MINIO_ENDPOINT" else "minio"):
-            with patch('common.mixins.minio_mixin.MinioMixin.get_minio_client') as mock_get_minio_client:
+        with patch(
+            "common.env.check_environment",
+            side_effect=lambda key: "localhost:9000" if key == "MINIO_ENDPOINT" else "minio",
+        ):
+            with patch("common.mixins.minio_mixin.MinioMixin.get_minio_client") as mock_get_minio_client:
                 mock_client = MagicMock()
                 mock_client.create_bucket = MagicMock(return_value=None)
                 mock_client.list_objects = MagicMock(return_value=[MagicMock(object_name="test.txt")])
@@ -60,16 +63,16 @@ class TestMinioMixin:
 
     def test_upload_file(self):
         """Test the upload_file method."""
-        test_file_path = os.getenv('TEST_FILE_PATH')
+        test_file_path = os.getenv("TEST_FILE_PATH")
         self.mixin.upload_file(test_file_path, "test.txt")
         objects = list(self.mixin.minio.list_objects(self.mixin.bucket_name))
         assert len(objects) == 1 and objects[0].object_name == "test.txt"
-        body = self.mixin.minio.get_object(self.mixin.bucket_name, 'test.txt').read().decode()
+        body = self.mixin.minio.get_object(self.mixin.bucket_name, "test.txt").read().decode()
         assert body == "content"
 
     def test_retrieve_file(self):
         """Test the retrieve_file method."""
-        retrieved_file_path = os.getenv('RETRIEVED_FILE_PATH')
+        retrieved_file_path = os.getenv("RETRIEVED_FILE_PATH")
         self.mixin.retrieve_file("test.txt", retrieved_file_path)
         with open(retrieved_file_path, "r") as file:
             assert file.read() == "content"

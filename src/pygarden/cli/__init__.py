@@ -1,9 +1,11 @@
 """Initialize the CLI module."""
-import os
-import subprocess
 
 try:
     import click
+
+    from pygarden.cli.docker_cli import docker
+    from pygarden.cli.gen_cli import gen_cli
+    from pygarden.cli.python_cli import python_cli
 except ImportError:
     import sys
 
@@ -16,14 +18,9 @@ except ImportError:
 
 @click.group()
 def common_cli():
-    """pyGARDEN (General Application Resource Development Environment Network) CLI."""
+    """PyGARDEN (General Application Resource Development Environment Network) CLI."""
     pass
 
-
-# noqa: PEP402
-from pygarden.cli.docker_cli import docker
-from pygarden.cli.python_cli import python_cli
-from pygarden.cli.gen_cli import gen_cli
 
 
 common_cli.add_command(docker, name="docker")
