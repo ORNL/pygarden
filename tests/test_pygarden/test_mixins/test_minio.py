@@ -39,10 +39,10 @@ class TestMinioMixin:
     def setup_class(self, aws_credentials, setup_environment):
         """Set up class with Minio client mocks."""
         with patch(
-            "common.env.check_environment",
+            "pygarden.env.check_environment",
             side_effect=lambda key: "localhost:9000" if key == "MINIO_ENDPOINT" else "minio",
         ):
-            with patch("common.mixins.minio_mixin.MinioMixin.get_minio_client") as mock_get_minio_client:
+            with patch("pygarden.mixins.minio_mixin.MinioMixin.get_minio_client") as mock_get_minio_client:
                 mock_client = MagicMock()
                 mock_client.create_bucket = MagicMock(return_value=None)
                 mock_client.list_objects = MagicMock(return_value=[MagicMock(object_name="test.txt")])
