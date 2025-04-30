@@ -12,7 +12,7 @@ authors = [
     {name = "Chris Tester", email = "testercb@ornl.gov"},
     {name = "Jacob Isber", email = "isberj@ornl.gov"},
     {name = "Mitchell Broughton", email = "broxsonmr@ornl.gov" },
-    {name = "Alec Hamaker", email = "@alechamker:site:github.com"},
+    {name = "Alec Hamaker"},
 ]
 requires-python = ">=3.10,<4.0"
 keywords = ["mixins", "logging", "database", "mysqlmixin", "postgresmixin", "pandasmixin"]
