@@ -4,13 +4,15 @@ version = "0.3.14"
 readme = "README.md"
 description = "Package to perform everyday tasks - logging, accessing database, etc."
 authors = [
-    { name = "Grant, Josh", email = "grantjn@ornl.gov" },
+    {name = "Grant, Josh", email = "grantjn@ornl.gov" },
     {name = "Jonathan Huihui", email = "huihuijk@ornl.gov"},
     {name = "Bhaskar Bishnoi", email = "bishnoib@ornl.gov"},
     {name = "Kyle Medlen", email = "medlenwk@ornl.gov"},
     {name = "Midgie MacFarland", email = "macfarlandmj@ornl.gov"},
     {name = "Chris Tester", email = "testercb@ornl.gov"},
     {name = "Jacob Isber", email = "isberj@ornl.gov"},
+    {name = "Mitchell Broughton", email = "broxsonmr@ornl.gov" },
+    {name = "Alec Hamaker", email = "@alechamker:site:github.com"},
 ]
 requires-python = ">=3.10,<4.0"
 keywords = ["mixins", "logging", "database", "mysqlmixin", "postgresmixin", "pandasmixin"]
