@@ -1,9 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-from pathlib import Path
-
 """Provide generics for dealing with csvs."""
 import os
+from pathlib import Path
 
 import pandas as pd
 
@@ -11,7 +8,9 @@ from pygarden.logz import create_logger
 
 
 def get_csv(csv, **kwargs):
-    """Retrieve a CSV with standard defaults using Pandas.
+    """
+    Retrieve a CSV with standard defaults using Pandas.
+
     read in a pandas csv with optional arguments
     :param csv: the csv to import
     :returns: pandas.DataFrame

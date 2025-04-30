@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-""" Provide a Mixin that supports ArcGIS-based sites for attaching to Scraping
- classes.
-"""
+"""Provide a Mixin that supports ArcGIS-based sites for attaching to Scraping classes."""
 import requests
 import urllib3
 
@@ -10,7 +8,8 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class ArcgisMixin:
-    """Adds support for ArcGIS related websites by standardizing a query
+    """
+    Adds support for ArcGIS related websites by standardizing a query
 
     These ArcGIS parameters specify that we want JSON output, don't want
     geometry, and all the regions that intersect the areas of interest.  It
@@ -24,7 +23,19 @@ class ArcgisMixin:
     all records that intersect the area of interest.
     The default `returnGeometry` is `false` which means we don't want
     geometry returned.  If you want geometry, set this to `true`.
+
+    This can be modified with the `query_parameters` dictionary.
+    For example, to set the `outFields` to just `name` and `id`, you can do:
+    ```python
+    from pygarden.scrapers.scraper import Scraper
+    from pygarden.scrapers.mixins.arcgis import ArcgisMixin
+    class MyScraper(ArcgisMixin, Scraper):
+        def __init__(self, url):
+            super().__init__(url)
+            self.query_parameters["params"]["outFields"] = "name,id"
+    ```
     """
+
     query_parameters = {
         "params": {
             "f": "json",
@@ -36,12 +47,12 @@ class ArcgisMixin:
     }
 
     def request(self, url, **kwargs):
-        """Fetch data from `url` and return that in a Soup object
+        """
+        Fetch data from `url` and return that in a Soup object
 
         :param url: of the remote host
         :param kwargs: optional requests keyword arguments
         """
-
         combined_parameters = {**self.query_parameters, **kwargs}
         r = requests.request(url=url, **combined_parameters)
         return r.json()

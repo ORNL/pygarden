@@ -1,4 +1,4 @@
-"""Scratch file for showing how the mixins get used."""
+"""InfluxDB Mixin for pygarden."""
 
 try:
     from influxdb import InfluxDBClient
@@ -8,9 +8,7 @@ except ImportError:
     from pygarden.logz import create_logger
 
     logger = create_logger()
-    logger.warn(
-        "Influx extra must be installed to use influx mixin. "
-    )
+    logger.warn("Influx extra must be installed to use influx mixin. ")
     sys.exit(1)
 
 from pygarden.env import check_environment as ce
@@ -19,11 +17,11 @@ from pygarden.env import check_environment as ce
 class InfluxMixin:
     """Serve common connection method for InfluxDB."""
 
-    DEFAULT_HOST = ce('DATABASE_HOST_IN', ce("DATABASE_DB", ce("INFLUXDB_HOST", "localhost")))
-    DEFAULT_PORT = int(ce('DATABASE_PORT_IN', ce('DATABASE_PORT', ce("INFLUXDB_PORT", 8086))))
-    DEFAULT_USER = ce('DATABASE_USER_IN', ce('DATABASE_USER', ce("INFLUXDB_ADMIN_USER", "admin")))
-    DEFAULT_PASSWORD = ce('DATABASE_PW_IN', ce('DATABASE_PW', ce("INFLUXDB_ADMIN_PASSWORD", "secret")))
-    DEFAULT_DB = ce('DATABASE_DB_IN', ce('DATABASE_DB', ce("INFLUX_DB", "cast")))
+    DEFAULT_HOST = ce("DATABASE_HOST_IN", ce("DATABASE_DB", ce("INFLUXDB_HOST", "localhost")))
+    DEFAULT_PORT = int(ce("DATABASE_PORT_IN", ce("DATABASE_PORT", ce("INFLUXDB_PORT", 8086))))
+    DEFAULT_USER = ce("DATABASE_USER_IN", ce("DATABASE_USER", ce("INFLUXDB_ADMIN_USER", "admin")))
+    DEFAULT_PASSWORD = ce("DATABASE_PW_IN", ce("DATABASE_PW", ce("INFLUXDB_ADMIN_PASSWORD", "secret")))
+    DEFAULT_DB = ce("DATABASE_DB_IN", ce("DATABASE_DB", ce("INFLUX_DB", "cast")))
 
     def open(self):
         """Create the InfluxDB client instance."""
@@ -63,6 +61,7 @@ class InfluxMixin:
             return None
 
     def list_databases(self):
+        """List all databases in InfluxDB."""
         if not self.client:
             if not self.open():
                 return None

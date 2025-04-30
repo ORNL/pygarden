@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Provide an XML Mixin for attatching to Scraping classes."""
+"""Provide an XML Mixin for attaching to Scraping classes."""
 import requests
 import urllib3
 from bs4 import BeautifulSoup as Soup
@@ -9,9 +9,10 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class XmlSoupMixin(object):
-    """Group together all HTML logic into a single Mixin."""
+    """Group together all XML logic into a single Mixin."""
 
-    def request_html(self, url, method="GET", **kwargs):
+    @staticmethod
+    def request_html(url, method="GET", **kwargs):
         """Return the request as JSON."""
         request_list = {"stream": True, "allow_redirects": True, "verify": False}
         if len(**kwargs) > 0:
@@ -19,4 +20,5 @@ class XmlSoupMixin(object):
         return requests.request(method=method.upper(), url=url, **request_list).text
 
     def request(self, url, method, parser="lxml", **kwargs):
+        """Request the URL and return the parsed content."""
         return Soup(self.request_html(url, method, **kwargs), parser)

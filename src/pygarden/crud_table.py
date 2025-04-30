@@ -1,16 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-** AUTHOR **
-Alec Hamaker
-
-** WRITTEN **
-April 4, 2020
-
-** PURPOSE **
-The purpose of this file is to create an abstract base class that provides
-basic crud operations to database tables.
-"""
+"""Provide an abstract base class that provides basic crud operations to database tables."""
 
 from abc import ABC
 
@@ -18,7 +8,8 @@ from pygarden.logz import create_logger
 
 
 def convert_to_where(dictionary):
-    """convert's the dictionary to an SQL where clause
+    """
+    convert's the dictionary to an SQL where clause
 
     :param dictionary: key value mapping for where clause
     """
@@ -37,7 +28,8 @@ def convert_to_where(dictionary):
 
 
 def convert_to_update(dictionary):
-    """convert's the dictionary to an SQL update clause
+    """
+    convert's the dictionary to an SQL update clause
 
     :param dictionary:
     """
@@ -59,7 +51,8 @@ class CRUDTable(ABC):
     """Defines a database table with standard CRUD operations"""
 
     def __init__(self, columns, schema, db, table_name=None):
-        """__init__.
+        """
+        __init__.
 
         :param columns: dictionary like {'id': int, 'email': str}
         """
@@ -70,7 +63,8 @@ class CRUDTable(ABC):
         self.logger = create_logger()
 
     def create(self, **kwargs):
-        """creates an entry in the table
+        """
+        creates an entry in the table
 
         :param kwargs: column_name=value for every column
         """
@@ -112,7 +106,8 @@ class CRUDTable(ABC):
             self.db.close()
 
     def read(self, columns: list = None, json: bool = False, **kwargs):
-        """Reads an entry from the table
+        """
+        Reads an entry from the table
 
         :param columns: columns to select
         :type columns: list
@@ -136,8 +131,7 @@ class CRUDTable(ABC):
             # assure that every column specified in kwargs are define in
             # self.columns
             assert all(column in self.columns for column in kwargs), (
-                "Column(s) specified in kwargs could not be found. "
-                + "Please check kwargs definition and try again."
+                "Column(s) specified in kwargs could not be found. " + "Please check kwargs definition and try again."
             )
             # construct and assign the where clause with the
             # conversion function
@@ -158,17 +152,14 @@ class CRUDTable(ABC):
             elif isinstance(columns, str):
                 # assure that the column specified is defined in self.columns
                 assert columns in self.columns, (
-                    "Could not find column "
-                    + f"{columns} in self.columns definition: {self.columns}"
+                    "Could not find column " + f"{columns} in self.columns definition: {self.columns}"
                 )
                 # use the column specified as the select clause
                 select_clause = columns
             # if columns is of any other type...
             else:
                 # raise an exception as we do not know what to do
-                raise TypeError(
-                    "column argument should be of type list or" + f" str not {type(columns)}"
-                )
+                raise TypeError("column argument should be of type list or" + f" str not {type(columns)}")
         # if the where clause was not set/specified
         if where_clause is None:
             try:
@@ -192,11 +183,7 @@ class CRUDTable(ABC):
         else:
             try:
                 # make a query to select the columns with the where clause
-                query = (
-                    f"SELECT {select_clause} "
-                    + f"FROM {self.schema}.{self.name} "
-                    + f"{where_clause[0]}"
-                )
+                query = f"SELECT {select_clause} " + f"FROM {self.schema}.{self.name} " + f"{where_clause[0]}"
                 # tell the user we are executing their query
                 self.logger.info(f"Executing query: {query} " + f"params: {where_clause[1]}")
                 # if the db is not already opened..
@@ -241,16 +228,15 @@ class CRUDTable(ABC):
         return data
 
     def update(self, where: dict, **kwargs):
-        """update.
+        """
+        update.
 
         :param where: dictionary to define the where clause
         :type where: dict
         :param kwargs: keys and values to update in the database
         """
         # ensure there is a where clause
-        assert where is not None and len(where) > 0, (
-            "No where clause found." + "\nUpdate must have a where clause!"
-        )
+        assert where is not None and len(where) > 0, "No where clause found." + "\nUpdate must have a where clause!"
         # ensure that some update was specified in the kwargs
         assert kwargs is not None and len(kwargs) > 0, (
             "No keyword arguments supplied." + "\nUpdate must have a field to update!"
@@ -262,13 +248,9 @@ class CRUDTable(ABC):
             # construct the update clause with the conversion method
             update_clause = convert_to_update(kwargs)
             # construct the parms for the update statement
-            params = tuple([*update_clause[1], *where_clause[1]])
+            params = (*update_clause[1], *where_clause[1])
             # build a query to update the specified values in the db
-            query = (
-                f"UPDATE {self.schema}.{self.name} "
-                + f"SET {update_clause[0]} "
-                + f"{where_clause[0]}"
-            )
+            query = f"UPDATE {self.schema}.{self.name} " + f"SET {update_clause[0]} " + f"{where_clause[0]}"
             # tell the user we are executing their query
             self.logger.info(f"Executing query: {query} params: {params}")
             # if the db is not open..
@@ -283,9 +265,7 @@ class CRUDTable(ABC):
             self.db.connection.commit()
         except Exception as err:
             self.logger.error(
-                "Exception occured when trying to execute "
-                + f"query: {query} with "
-                + f"parameters: {params}"
+                "Exception occured when trying to execute " + f"query: {query} with " + f"parameters: {params}"
             )
             self.logger.error(f"Exception Message: {err}")
         finally:
@@ -293,7 +273,8 @@ class CRUDTable(ABC):
             self.db.close()
 
     def delete(self, **kwargs):
-        """delete.
+        """
+        delete.
 
         :param kwargs: where clause to delete on
         """
@@ -320,9 +301,7 @@ class CRUDTable(ABC):
             self.db.connection.commit()
         except Exception as err:
             self.logger.error(
-                "Exception occured when trying to execute "
-                + f"query: {query} with "
-                + f"parameters: {where_clause[1]}"
+                "Exception occured when trying to execute " + f"query: {query} with " + f"parameters: {where_clause[1]}"
             )
             self.logger.error(f"Exception Message: {err}")
         finally:
@@ -330,7 +309,8 @@ class CRUDTable(ABC):
             self.db.close()
 
     def fetch_json(self, cursor):
-        """fetches json/diction data from the database
+        """
+        fetches json/diction data from the database
 
         :param cursor: database cursor to fetch from
         """

@@ -11,15 +11,17 @@ logger = create_logger()
 
 
 class SQLiteMixin:
-    """Serve common connection method for sqlite.
+    """
+    Serve common connection method for sqlite.
 
     The default `search_path` is not applicable here since SQLite does not use schemas.
     """
 
-    DEFAULT_DB = ce("DATABASE_DB_SQLITE", ce('DATABASE_DB', ":memory:"))
+    DEFAULT_DB = ce("DATABASE_DB_SQLITE", ce("DATABASE_DB", ":memory:"))
 
     def open(self):
-        """Explicitly open the database connection
+        """
+        Explicitly open the database connection
 
         :return: True if connection established, else False
         """
@@ -27,9 +29,7 @@ class SQLiteMixin:
         self.logger.debug(f"Opening Database Connection to {db_name}")
         try:
             self.connection = sqlite3.connect(db_name)
-            self.connection.row_factory = (
-                sqlite3.Row
-            )  # This enables column access by name
+            self.connection.row_factory = sqlite3.Row  # This enables column access by name
             self.cursor = self.connection.cursor()
             self.logger.debug("Successfully opened connection to database and created cursor")
         except sqlite3.OperationalError as error:
@@ -38,7 +38,8 @@ class SQLiteMixin:
         return True
 
     def query(self, query):
-        """Query the database.
+        """
+        Query the database.
 
         :param query: A valid SQL statement to send to the database.
         :return: None if query's cursor does not have a description, otherwise return the results of using `fetchall()`
@@ -65,9 +66,7 @@ class SQLiteMixin:
         except sqlite3.DatabaseError as error:
             self.logger.error(f"An unexpected DatabaseError occurred: {error}")
         except Exception as error:
-            self.logger.error(
-                "There was an undetermined issue with the query process: " + f" {error}"
-            )
+            self.logger.error("There was an undetermined issue with the query process: " + f" {error}")
         return None
 
     def is_open(self):
