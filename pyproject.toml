@@ -30,7 +30,7 @@ dependencies = [
     "loguru==0.7.2"
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 postgres = ["psycopg2-binary==2.9.9"]
 mssql = ["pymssql==2.2.11"]
 influx = ["influxdb==5.3.1"]

@@ -25,7 +25,7 @@ Replace the above extras with the extras of your choice.
 Before install the `mssql` extra, you may need to install `freetds` using `brew`:
 
 ```bash
-brew install freetds libssl@3.0
+brew install freetds openssl@3.0
 export LDFLAGS="-L/opt/homebrew/opt/freetds/lib -L/opt/homebrew/opt/openssl@3.0/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/freetds/include -I/opt/homebrew/opt/openssl@3.0/include"
 export PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@3.0/lib/pkgconfig"
