@@ -14,7 +14,7 @@ authors = [
     {name = "Mitchell Broughton", email = "broxsonmr@ornl.gov" },
     {name = "Alec Hamaker"},
 ]
-requires-python = ">=3.10,<4.0"
+requires-python = ">=3.10,<3.13"
 keywords = ["mixins", "logging", "database", "mysqlmixin", "postgresmixin", "pandasmixin"]
 license = {file = "LICENSE"}
 classifiers = [
