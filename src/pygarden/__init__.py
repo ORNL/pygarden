@@ -7,4 +7,4 @@ pyGARDEN is a Python package that provides a set of tools and utilities to assis
 development of Python packages. It is designed to help developers create, test, and deploy
  their packages more efficiently.
 """
-VERSION = "0.3.18"
+VERSION = "0.3.19"
