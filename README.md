@@ -41,9 +41,9 @@ After than, you can run `uv sync --extra mssql` or `uv sync --extra all` to get 
 
 ### Installation via pip
 
-Run this command to install version 0.3.21 (latest) via pip:
+Run this command to install version 0.3.22 (latest) via pip:
 
-`python3 -m pip --no-cache-dir install common==0.3.21 --index-url https://code.ornl.gov/api/v4/projects/10568/packages/pypi/simple  --trusted-host code.ornl.gov`
+`python3 -m pip --no-cache-dir install common==0.3.22 --index-url https://code.ornl.gov/api/v4/projects/10568/packages/pypi/simple  --trusted-host code.ornl.gov`
 This will install latest (not recommended):
 
 `python3 -m pip --no-cache-dir install common --index-url https://code.ornl.gov/api/v4/projects/10568/packages/pypi/simple  --trusted-host code.ornl.gov`
