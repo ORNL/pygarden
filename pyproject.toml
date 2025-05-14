@@ -124,9 +124,3 @@ files = [
     "pyproject.toml",
     "README.md",
 ]
-
-[[tool.uv.index]]
-name = "code.ornl"
-url = "https://code.ornl.gov/api/v4/projects/18252/packages/pypi"
-publish-url = "https://code.ornl.gov/api/v4/projects/18252/packages/pypi"
-explicit = true
