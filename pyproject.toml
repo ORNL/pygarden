@@ -1,6 +1,6 @@
 [project]
 name = "pygarden"
-version = "0.3.19"
+version = "0.3.18"
 readme = "README.md"
 description = "Package to perform everyday tasks - logging, accessing database, etc."
 authors = [
@@ -124,3 +124,7 @@ files = [
     "pyproject.toml",
     "README.md",
 ]
+
+[[tool.uv.index]]
+url = "https://pypi.org/simple"
+explicit = true
