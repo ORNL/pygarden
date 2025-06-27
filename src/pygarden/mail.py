@@ -1,4 +1,51 @@
-"""Provide functions to send emails."""
+"""
+Provide functions to send emails.
+
+This module provides functionality to send emails with support for attachments,
+multiple recipients, and different SMTP configurations. It uses environment
+variables for configuration and supports both direct SMTP and relay connections.
+
+The module provides:
+- Email sending with customizable subject and content
+- File attachment support (single file or list of files)
+- Multiple recipient support
+- SMTP and relay server configurations
+- Environment variable based configuration
+
+Examples
+--------
+Send a simple email::
+
+    >>> send_email("Test Subject", "This is a test message")
+
+Send email with attachments::
+
+    >>> send_email("Report", "Please find attached report", files=["report.pdf"])
+
+Send email to specific recipients::
+
+    >>> send_email("Alert", "System alert", recipients=["admin@example.com"])
+
+Send email with multiple attachments::
+
+    >>> send_email("Data Export", "Please find the exported data", 
+    ...           files=["data.csv", "summary.pdf"])
+
+Notes
+-----
+Environment Variables Required:
+    - EMAIL_SENDER: The sender email address
+    - EMAIL_RECIPIENTS: Default recipients (comma-separated)
+    - SMTP_ADDRESS: SMTP server address
+    - SMTP_PORT: SMTP server port (default: 25)
+
+Optional Environment Variables:
+    - RELAY_ADDRESS: Relay server address
+    - RELAY_PORT: Relay server port
+    - RELAY_PASSWORD: Relay server password
+    - RELAY_USER: Relay server username
+    - EMAIL_DEBUG_LEVEL: Debug level for SMTP (default: 0)
+"""
 import os
 import smtplib
 import ssl
@@ -19,11 +66,55 @@ def send_email(subject, text, files=None, recipients=None):
     controlled with the EMAIL_DEBUG_LEVEL environmental variable and
     defaults to `0`, resulting in no debugging information.
 
-    :param subject: the subject of email to send
-    :param text: the content of the message to send
-    :param files: a list of files to attach to the email
-    :param recipients: a list of email addresses to send the email to
-    :return: None
+    The function supports both direct SMTP connections and relay server
+    connections based on environment variable configuration.
+
+    :param subject: The subject of email to send
+    :type subject: str
+    :param text: The content of the message to send
+    :type text: str
+    :param files: A list of files to attach to the email, or a single file path
+    :type files: list or str or None
+    :param recipients: A list of email addresses to send the email to
+    :type recipients: list or str or None
+    :return: Always returns None
+    :rtype: None
+    :raises Exception: If email configuration is missing or invalid
+
+    Examples
+    --------
+    Send a simple email::
+
+        >>> send_email("Test", "Hello world")
+
+    Send email with file attachment::
+
+        >>> send_email("Report", "See attached", files=["report.pdf"])
+
+    Send email to specific recipients::
+
+        >>> send_email("Alert", "System down", recipients=["admin@example.com"])
+
+    Send email with multiple attachments::
+
+        >>> send_email("Export", "Data attached", files=["data.csv", "summary.pdf"])
+
+    Notes
+    -----
+    Environment Variables Used:
+        - EMAIL_SENDER: The sender email address
+        - EMAIL_RECIPIENTS: Default recipients (comma-separated)
+        - SMTP_ADDRESS: SMTP server address
+        - SMTP_PORT: SMTP server port (default: 25)
+        - RELAY_ADDRESS: Relay server address (optional)
+        - RELAY_PORT: Relay server port (optional)
+        - RELAY_PASSWORD: Relay server password (optional)
+        - RELAY_USER: Relay server username (optional)
+        - EMAIL_DEBUG_LEVEL: Debug level for SMTP (default: 0)
+
+    Connection Types:
+        - Direct SMTP: Uses SMTP_ADDRESS and SMTP_PORT
+        - Relay: Uses RELAY_* variables for authenticated relay connection
     """
     logger = create_logger()
 

@@ -1,6 +1,49 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Provide an abstract base class that provides basic crud operations to database tables."""
+"""
+Provide an abstract base class that provides basic CRUD operations to database tables.
+
+This module provides a CRUDTable class that implements Create, Read, Update, and Delete
+operations for database tables. It includes utility functions for converting dictionaries
+to SQL clauses and provides a comprehensive interface for database operations.
+
+The module provides:
+- CRUDTable abstract base class with full CRUD operations
+- Utility functions for SQL clause generation
+- Support for different column types and schemas
+- JSON output formatting for query results
+- Comprehensive error handling and logging
+
+Examples
+--------
+Create a CRUD table class::
+
+    >>> class Users(CRUDTable):
+    ...     def __init__(self, db):
+    ...         columns = {'id': int, 'name': str, 'email': str}
+    ...         super().__init__(columns, 'public', db)
+    >>> 
+    >>> # Create a user
+    >>> users.create(id=1, name='John', email='john@example.com')
+    >>> 
+    >>> # Read users
+    >>> all_users = users.read()
+    >>> specific_user = users.read(id=1)
+    >>> 
+    >>> # Update a user
+    >>> users.update(where={'id': 1}, name='Jane')
+    >>> 
+    >>> # Delete a user
+    >>> users.delete(id=1)
+
+Use with specific columns::
+
+    >>> user_names = users.read(columns=['id', 'name'])
+
+Use with JSON output::
+
+    >>> user_data = users.read(id=1, json=True)
+"""
 
 from abc import ABC
 
@@ -9,9 +52,33 @@ from pygarden.logz import create_logger
 
 def convert_to_where(dictionary):
     """
-    convert's the dictionary to an SQL where clause
+    Convert a dictionary to an SQL WHERE clause.
 
-    :param dictionary: key value mapping for where clause
+    This function takes a dictionary of key-value pairs and converts them
+    into a SQL WHERE clause with parameterized queries for safe execution.
+
+    :param dictionary: Key-value mapping for WHERE clause conditions
+    :type dictionary: dict
+    :return: A list containing [WHERE_clause, parameters_tuple] where:
+             - WHERE_clause: The formatted WHERE clause string
+             - parameters_tuple: Tuple of parameter values for safe SQL execution
+    :rtype: list
+
+    Examples
+    --------
+    >>> convert_to_where({'id': 1, 'name': 'John'})
+    ['WHERE id = %s AND name = %s', (1, 'John')]
+
+    >>> convert_to_where({'status': 'active'})
+    ['WHERE status = %s', ('active',)]
+
+    >>> convert_to_where({})
+    ['WHERE ', ()]
+
+    Notes
+    -----
+    This function creates parameterized queries to prevent SQL injection.
+    The returned tuple can be used directly with cursor.execute().
     """
     # result is the where clause in index 0 and the tuple for params in index 1
     result = ["WHERE ", []]
@@ -29,9 +96,30 @@ def convert_to_where(dictionary):
 
 def convert_to_update(dictionary):
     """
-    convert's the dictionary to an SQL update clause
+    Convert a dictionary to an SQL UPDATE clause.
 
-    :param dictionary:
+    This function takes a dictionary of key-value pairs and converts them
+    into a SQL UPDATE clause with parameterized queries for safe execution.
+
+    :param dictionary: Key-value mapping for UPDATE clause
+    :type dictionary: dict
+    :return: A list containing [UPDATE_clause, parameters_tuple] where:
+             - UPDATE_clause: The formatted UPDATE clause string
+             - parameters_tuple: Tuple of parameter values for safe SQL execution
+    :rtype: list
+
+    Examples
+    --------
+    >>> convert_to_update({'name': 'Jane', 'email': 'jane@example.com'})
+    ['name = %s, email = %s', ('Jane', 'jane@example.com')]
+
+    >>> convert_to_update({'status': 'inactive'})
+    ['status = %s', ('inactive',)]
+
+    Notes
+    -----
+    This function creates parameterized queries to prevent SQL injection.
+    The returned tuple can be used directly with cursor.execute().
     """
     # index 0 is the update clause where index 1 is the tuple of params
     result = ["", []]
@@ -48,13 +136,75 @@ def convert_to_update(dictionary):
 
 
 class CRUDTable(ABC):
-    """Defines a database table with standard CRUD operations"""
+    """
+    Defines a database table with standard CRUD operations.
+
+    This abstract base class provides a complete interface for Create, Read,
+    Update, and Delete operations on database tables. It handles SQL generation,
+    parameter binding, and database connection management.
+
+    :param columns: Dictionary defining column names and their types (e.g., {'id': int, 'name': str})
+    :type columns: dict
+    :param schema: Database schema name where the table is located
+    :type schema: str
+    :param db: Database connection object
+    :type db: Database
+    :param table_name: Name of the table. If None, uses the lowercase class name
+    :type table_name: str or None
+
+    Attributes
+    ----------
+    columns : dict
+        Column definitions for the table
+    db : Database
+        Database connection object
+    schema : str
+        Database schema name
+    name : str
+        Table name
+    logger : Logger
+        Logger instance for this table
+
+    Examples
+    --------
+    Create a CRUD table for users::
+
+        >>> class Users(CRUDTable):
+        ...     def __init__(self, db):
+        ...         columns = {
+        ...             'id': int,
+        ...             'name': str,
+        ...             'email': str,
+        ...             'created_at': str
+        ...         }
+        ...         super().__init__(columns, 'public', db)
+
+    Create with custom table name::
+
+        >>> class UserTable(CRUDTable):
+        ...     def __init__(self, db):
+        ...         columns = {'id': int, 'name': str}
+        ...         super().__init__(columns, 'public', db, table_name='custom_users')
+
+    Notes
+    -----
+    This class provides a complete CRUD interface and handles all database
+    connection management automatically. It uses parameterized queries to
+    prevent SQL injection and provides comprehensive logging.
+    """
 
     def __init__(self, columns, schema, db, table_name=None):
         """
-        __init__.
+        Initialize the CRUD table.
 
-        :param columns: dictionary like {'id': int, 'email': str}
+        :param columns: Dictionary defining column names and their types
+        :type columns: dict
+        :param schema: Database schema name
+        :type schema: str
+        :param db: Database connection object
+        :type db: Database
+        :param table_name: Name of the table
+        :type table_name: str or None
         """
         self.columns = columns
         self.db = db
@@ -64,9 +214,29 @@ class CRUDTable(ABC):
 
     def create(self, **kwargs):
         """
-        creates an entry in the table
+        Create an entry in the table.
 
-        :param kwargs: column_name=value for every column
+        This method creates a new record in the table with the provided values.
+        All columns defined in the table must be provided in the kwargs.
+
+        :param **kwargs: Column_name=value pairs for every column in the table
+        :raises AssertionError: If not all columns are provided in kwargs
+
+        Examples
+        --------
+        Create a user with all required fields::
+
+            >>> users.create(id=1, name='John', email='john@example.com', created_at='2023-01-01')
+
+        Create with minimal fields::
+
+            >>> users.create(id=2, name='Jane', email='jane@example.com')
+
+        Notes
+        -----
+        This method automatically opens the database connection if it's not
+        already open, executes the INSERT query, commits the transaction,
+        and closes the connection.
         """
         # assure that all columns are defined
         # FIXME - asserts should only be used inside tests
@@ -107,13 +277,49 @@ class CRUDTable(ABC):
 
     def read(self, columns: list = None, json: bool = False, **kwargs):
         """
-        Reads an entry from the table
+        Read entries from the table.
 
-        :param columns: columns to select
-        :type columns: list
-        :param json: if output should be in json format
+        This method retrieves records from the table based on the provided
+        conditions. It supports selecting specific columns, filtering with
+        WHERE clauses, and returning results in JSON format.
+
+        :param columns: Columns to select. If None, selects all columns (*)
+        :type columns: list or str or None
+        :param json: If True, returns results in JSON format
         :type json: bool
-        :param kwargs: where clause keyword arguments
+        :param **kwargs: WHERE clause conditions as keyword arguments
+        :return: Query results. Returns None if query fails
+        :rtype: list or dict or None
+        :raises AssertionError: If specified columns are not found in the table definition
+        :raises TypeError: If columns parameter is not a list or string
+
+        Examples
+        --------
+        Read all records::
+
+            >>> all_users = users.read()
+
+        Read specific columns::
+
+            >>> user_names = users.read(columns=['id', 'name'])
+
+        Read with WHERE clause::
+
+            >>> user = users.read(id=1)
+
+        Read in JSON format::
+
+            >>> user_json = users.read(id=1, json=True)
+
+        Read with multiple conditions::
+
+            >>> active_users = users.read(status='active', role='user')
+
+        Notes
+        -----
+        This method automatically opens the database connection if it's not
+        already open, executes the SELECT query, fetches the results,
+        and closes the connection.
         """
         # define the select clause (this will remain the same unless we are
         # selecting specific columns
@@ -229,11 +435,35 @@ class CRUDTable(ABC):
 
     def update(self, where: dict, **kwargs):
         """
-        update.
+        Update entries in the table.
 
-        :param where: dictionary to define the where clause
+        This method updates records in the table based on the provided WHERE
+        conditions. It requires both a WHERE clause and update values.
+
+        :param where: Dictionary defining the WHERE clause conditions
         :type where: dict
-        :param kwargs: keys and values to update in the database
+        :param **kwargs: Column_name=value pairs to update
+        :raises AssertionError: If no WHERE clause or no update fields are provided
+
+        Examples
+        --------
+        Update a user's name::
+
+            >>> users.update(where={'id': 1}, name='Jane')
+
+        Update multiple fields::
+
+            >>> users.update(where={'email': 'old@example.com'}, name='John', email='new@example.com')
+
+        Update with multiple conditions::
+
+            >>> users.update(where={'status': 'active', 'role': 'user'}, last_login='2023-01-01')
+
+        Notes
+        -----
+        This method automatically opens the database connection if it's not
+        already open, executes the UPDATE query, commits the transaction,
+        and closes the connection.
         """
         # ensure there is a where clause
         assert where is not None and len(where) > 0, "No where clause found." + "\nUpdate must have a where clause!"
@@ -274,9 +504,34 @@ class CRUDTable(ABC):
 
     def delete(self, **kwargs):
         """
-        delete.
+        Delete entries from the table.
 
-        :param kwargs: where clause to delete on
+        This method deletes records from the table based on the provided
+        WHERE conditions. It requires at least one condition to prevent
+        accidental deletion of all records.
+
+        :param **kwargs: WHERE clause conditions as keyword arguments
+        :raises AssertionError: If no WHERE clause is provided
+
+        Examples
+        --------
+        Delete a user by ID::
+
+            >>> users.delete(id=1)
+
+        Delete users by email::
+
+            >>> users.delete(email='old@example.com')
+
+        Delete with multiple conditions::
+
+            >>> users.delete(status='inactive', last_login='2022-01-01')
+
+        Notes
+        -----
+        This method automatically opens the database connection if it's not
+        already open, executes the DELETE query, commits the transaction,
+        and closes the connection.
         """
         # ensure that some kwargs were passed
         assert kwargs is not None and len(kwargs) > 0, (
@@ -310,9 +565,31 @@ class CRUDTable(ABC):
 
     def fetch_json(self, cursor):
         """
-        fetches json/diction data from the database
+        Fetch JSON/dictionary data from the database.
 
-        :param cursor: database cursor to fetch from
+        This method converts database query results into a JSON-like
+        dictionary format with row numbers as keys and column data as
+        nested dictionaries.
+
+        :param cursor: Database cursor to fetch from
+        :type cursor: cursor
+        :return: Dictionary with row data indexed by row number
+        :rtype: dict
+
+        Examples
+        --------
+        >>> results = users.read(json=True)
+        >>> print(results)
+        {'0': {'id': '1', 'name': 'John', 'email': 'john@example.com'}}
+
+        >>> results = users.read(columns=['name'], json=True)
+        >>> print(results)
+        {'0': {'name': 'John'}, '1': {'name': 'Jane'}}
+
+        Notes
+        -----
+        This method converts all values to strings for JSON compatibility.
+        Row numbers start from 0 and are used as dictionary keys.
         """
         # initialize local vars
         columns = {}

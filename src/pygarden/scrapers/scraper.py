@@ -1,5 +1,27 @@
-# noqa: C901
-"""Provide a scraper base class, which other scraper types are built."""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Provide a base scraper class.
+
+This module provides a base Scraper class that serves as the foundation for
+all web scraping operations. It includes mixin classes for different data
+formats (HTML, XML, JSON) and provides a unified interface for web scraping.
+
+Examples
+--------
+Create a custom HTML scraper:
+    >>> class MyScraper(Scraper, HTMLMixin):
+    ...     def parse(self, data):
+    ...         # Parse HTML data
+    ...         soup = BeautifulSoup(data, 'html.parser')
+    ...         return soup.find('title').text
+
+Create a custom JSON scraper:
+    >>> class ApiScraper(Scraper, JSONMixin):
+    ...     def parse(self, data):
+    ...         # Parse JSON data
+    ...         return data['results']
+"""
 import collections.abc
 import gzip
 import re
@@ -9,6 +31,7 @@ import urllib.error
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 import requests
 import selenium.common.exceptions
@@ -25,17 +48,38 @@ __authors__ = ["grantjn@ornl.gov", "colletim@ornl.gov"]
 
 class Scraper(ABC):
     """
-    Abstract base class for all your scraping and parsing needs.
+    Base class for all scrapers.
 
-    Environmental variables that alter behavior:
-        * `DRY_RUN`: if True, do not write to any files
-        * `SAVE_RAW_PAGES`: if True, save the raw data from the website for
-                            later inspection
-        * `SCRAPER_MAX_RETRIES`: how many times to try before giving up
-        * `SCRAPER_TIMEOUT`: how long in seconds do we wait for a site to
-                             respond?
-        * `SCRAPER_DATA_PATH`: path to save retrieved data to
-        * `SCRAPER_RAW_PATH`: path to save raw webpage to
+    This abstract base class provides the foundation for web scraping
+    operations. It handles URL management, request configuration, and
+    provides a common interface for all scraper implementations.
+
+    Parameters
+    ----------
+    url : str
+        The URL to scrape
+    **kwargs
+        Optional keyword arguments for requests
+
+    Attributes
+    ----------
+    url : str
+        The URL being scraped
+    request_args : dict
+        Arguments for the request method
+    logger : Logger
+        Logger instance for this scraper
+
+    Examples
+    --------
+    Create a custom scraper:
+        >>> class MyScraper(Scraper, HTMLMixin):
+        ...     def parse(self, data):
+        ...         # Custom parsing logic
+        ...         return data.find('title').text
+        >>> 
+        >>> scraper = MyScraper("https://example.com")
+        >>> result = scraper.scrape()
     """
 
     # Is this a dry run?
@@ -51,22 +95,24 @@ class Scraper(ABC):
     # Path to save the raw data to
     SCRAPER_RAW_DATA = Path(ce("SCRAPER_RAW_DATA", "/tmp/raw"))
 
-    def __init__(self, url, **kwargs):
+    def __init__(self, url: str, **kwargs):
         """
-        Initialize the scraper object and assign internal states.
+        Initialize the scraper.
 
-        The `**kwargs` is a generic way to tailor `request()`..
+        Parameters
+        ----------
+        url : str
+            URL to scrape
+        **kwargs
+            Optional keyword arguments for requests
 
-        If `url` is a sequence, the individual URLs will be iteratively
-        processed indenedent of one another.
-
-        :param url: one or more URLs to be parsed by this scraper. Accepts
-                    types of `str` or `list`
-        :param **kwargs: optional keyword arguments that are passed to
-                         `request`
+        Examples
+        --------
+        >>> scraper = Scraper("https://example.com")
+        >>> scraper = Scraper("https://api.example.com", timeout=30)
         """
-        self.log = create_logger()
-        self.log.debug("Setting url to %s", url)
+        self.logger = create_logger()
+        self.logger.debug("Setting url to %s", url)
         self.url = url
         if "method" not in kwargs:
             self.request_args = {
@@ -93,108 +139,177 @@ class Scraper(ABC):
         self.end_time = None
 
     @abstractmethod
-    def parse(self, data):
+    def request(self, url: str, **kwargs) -> Any:
         """
-        Parse method for the inherited classes to use for logic.
+        Make a request to the specified URL.
 
-        :param data: data structured to be parsed; likely in the form of
-                     JSON, XML, BeautifulSoup, etc, depending on the MIXIN
+        This method must be implemented by subclasses to define how
+        the request is made (e.g., using requests, Selenium, etc.).
+
+        Parameters
+        ----------
+        url : str
+            The URL to request
+        **kwargs
+            Additional keyword arguments for the request
+
+        Returns
+        -------
+        any
+            The response data
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
+
+        Examples
+        --------
+        Implement in subclass:
+            >>> def request(self, url, **kwargs):
+            ...     response = requests.get(url, **kwargs)
+            ...     return response.text
         """
         raise NotImplementedError
 
-    def scrape(self):
-        """Scrape a website."""
+    @abstractmethod
+    def parse(self, data: Any) -> Any:
+        """
+        Parse the retrieved data.
 
-        def do_scrape(url):
-            """
-            Scrape a website and parse the data.
+        This method must be implemented by subclasses to define how
+        the retrieved data should be parsed and processed.
 
-            :param url: URL to scrape
-            :type url: str
-            :return: parsed data
-            :rtype: dict
-            """
-            data = None  # set from self.request()
+        Parameters
+        ----------
+        data : any
+            The data to parse
 
-            for retry in range(self.SCRAPER_MAX_RETRIES):
-                try:
-                    data = self.request(url, **self.request_args)
-                    break
-                except requests.exceptions.SSLError as error:
-                    self.log.critical(error)
-                    self.log.critical(
-                        f"Failed to connect to url: {url}, due to an \n"
-                        " SSL issue. Check the request params "
-                        " and fix the resulting issue."
-                    )
-                    break
-                except (
-                    requests.exceptions.ConnectionError,
-                    requests.exceptions.ReadTimeout,
-                    urllib.error.HTTPError,
-                    urllib.error.URLError,
-                    urllib3.exceptions.HTTPError,
-                    ConnectionError,
-                ) as error:
-                    self.log.warning(error)
-                    self.log.warning("Connection timeout ... retry %d" % retry - 1)
-                    time.sleep(self.SCRAPER_TIMEOUT)
-                    continue
-                except requests.exceptions.RequestException as error:
-                    self.log.critical("An unknown request exception occurred" + " %s" % error)
-                    break
-            else:
-                # retries are exhausted
-                msg = (
-                    f"{__class__.__name__} - Max numer of retries, "
-                    + f"{self.SCRAPER_MAX_RETRIES} exceeded for URL: "
-                    + f"{self.url}."
-                )
-                self.log.critical(msg)
-                data = None  # signal we did not get any data
+        Returns
+        -------
+        any
+            The parsed data
 
-            try:
-                results = self.parse(data)
-                return results
-            except (
-                selenium.common.exceptions.NoSuchAttributeException,
-                selenium.common.exceptions.NoSuchFrameException,
-                selenium.common.exceptions.NoSuchWindowException,
-                selenium.common.exceptions.NoSuchAttributeException,
-            ) as error:
-                msg = "Selenium expected something to exist that did not: " + f"{error}"
-                self.log.critical(msg)
-            except (
-                selenium.common.exceptions.ElementClickInterceptedException,
-                selenium.common.exceptions.ElementNotInteractableException,
-                selenium.common.exceptions.ElementNotSelectableException,
-                selenium.common.exceptions.StaleElementReferenceException,
-                selenium.common.exceptions.UnexpectedTagNameException,
-            ) as err:
-                # selenium interaction object broken
-                msg = "Selenium workflow logic interrupted by exception."
-                self.log.critical(msg + "\n:---:\n" + err)
-            except Exception as error:
-                msg = f"An {error} has occurred.\n"
-                if hasattr(error, "__class__"):
-                    msg += f"Of {error.__class__} classinessy\n"
-                    if hasattr(error.__class__, "__name__"):
-                        msg += "Named {error.__class__.__name__}"
-                self.log.critical(msg)
-            # end of do_scrape
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses
 
+        Examples
+        --------
+        Implement in subclass:
+            >>> def parse(self, data):
+            ...     soup = BeautifulSoup(data, 'html.parser')
+            ...     return soup.find('title').text
+        """
+        raise NotImplementedError
+
+    def scrape(self) -> Any:
+        """
+        Perform the complete scraping operation.
+
+        This method combines the request and parse operations to
+        perform a complete scraping operation.
+
+        Returns
+        -------
+        any
+            The final parsed result
+
+        Examples
+        --------
+        >>> scraper = MyScraper("https://example.com")
+        >>> result = scraper.scrape()
+        >>> print(result)
+        'Example Domain'
+        """
         self.scrape_end_time = datetime.utcnow()
-        self.log.info(f"Scraping {self.url}")
+        self.logger.info(f"Scraping {self.url}")
         if isinstance(self.url, str):
-            do_scrape(self.url)
+            return self.scrape_single(self.url)
         elif isinstance(self.url, list):
+            results = []
             for url in self.url:
-                do_scrape(url)
+                results.append(self.scrape_single(url))
+            return results
         elif isinstance(self.url, collections.abc.Sequence):
+            results = []
             for url in self.url:
-                do_scrape(url)
+                results.append(self.scrape_single(url))
+            return results
         else:
             sys.exit(1)
+
+    def scrape_single(self, url: str) -> Any:
+        """Scrape a single website."""
+        data = None  # set from self.request()
+
+        for retry in range(self.SCRAPER_MAX_RETRIES):
+            try:
+                data = self.request(url, **self.request_args)
+                break
+            except requests.exceptions.SSLError as error:
+                self.logger.critical(error)
+                self.logger.critical(
+                    f"Failed to connect to url: {url}, due to an \n"
+                    " SSL issue. Check the request params "
+                    " and fix the resulting issue."
+                )
+                break
+            except (
+                requests.exceptions.ConnectionError,
+                requests.exceptions.ReadTimeout,
+                urllib.error.HTTPError,
+                urllib.error.URLError,
+                urllib3.exceptions.HTTPError,
+                ConnectionError,
+            ) as error:
+                self.logger.warning(error)
+                self.logger.warning("Connection timeout ... retry %d" % retry - 1)
+                time.sleep(self.SCRAPER_TIMEOUT)
+                continue
+            except requests.exceptions.RequestException as error:
+                self.logger.critical("An unknown request exception occurred" + " %s" % error)
+                break
+        else:
+            # retries are exhausted
+            msg = (
+                f"{__class__.__name__} - Max numer of retries, "
+                + f"{self.SCRAPER_MAX_RETRIES} exceeded for URL: "
+                + f"{self.url}."
+            )
+            self.logger.critical(msg)
+            data = None  # signal we did not get any data
+
+        try:
+            results = self.parse(data)
+            return results
+        except (
+            selenium.common.exceptions.NoSuchAttributeException,
+            selenium.common.exceptions.NoSuchFrameException,
+            selenium.common.exceptions.NoSuchWindowException,
+            selenium.common.exceptions.NoSuchAttributeException,
+        ) as error:
+            msg = "Selenium expected something to exist that did not: " + f"{error}"
+            self.logger.critical(msg)
+        except (
+            selenium.common.exceptions.ElementClickInterceptedException,
+            selenium.common.exceptions.ElementNotInteractableException,
+            selenium.common.exceptions.ElementNotSelectableException,
+            selenium.common.exceptions.StaleElementReferenceException,
+            selenium.common.exceptions.UnexpectedTagNameException,
+        ) as err:
+            # selenium interaction object broken
+            msg = "Selenium workflow logic interrupted by exception."
+            self.logger.critical(msg + "\n:---:\n" + err)
+        except Exception as error:
+            msg = f"An {error} has occurred.\n"
+            if hasattr(error, "__class__"):
+                msg += f"Of {error.__class__} classinessy\n"
+                if hasattr(error.__class__, "__name__"):
+                    msg += "Named {error.__class__.__name__}"
+            self.logger.critical(msg)
+        # end of scrape_single
 
     def save_raw_pages(self, raw_page_text, override=False):
         """Save the raw page to a gzipped file."""
@@ -209,10 +324,169 @@ class Scraper(ABC):
         datestamp = str(datetime.strftime(datetime.utcnow(), "%Y-%m-%d"))
         archive_dir = self.SCRAPER_RAW_DATA / datestamp
         if not archive_dir.exists():
-            self.log.info(f"Creating {str(archive_dir)}.")
+            self.logger.info(f"Creating {str(archive_dir)}.")
             archive_dir.mkdir(parents=True, exist_ok=True)
         filename = RE_DOMAIN.search(self.url) + "-" + timestamp + "-rawpage.gz"
         filename = archive_dir / filename
         binary_str = str(raw_page_text).encode("utf-8")
         with gzip.open(str(filename), "wb") as f:
             f.write(binary_str)
+
+
+class HTMLMixin:
+    """
+    Mixin class for HTML scraping.
+
+    This mixin provides HTML-specific functionality for scrapers.
+    It includes methods for working with HTML data and BeautifulSoup objects.
+
+    Examples
+    --------
+    Use with Scraper base class:
+        >>> class MyHTMLScraper(Scraper, HTMLMixin):
+        ...     def request(self, url, **kwargs):
+        ...         response = requests.get(url, **kwargs)
+        ...         return response.text
+        ...     
+        ...     def parse(self, data):
+        ...         soup = BeautifulSoup(data, 'html.parser')
+        ...         return soup.find('h1').text
+    """
+
+    def request(self, url: str, **kwargs) -> str:
+        """
+        Make an HTTP request and return HTML content.
+
+        Parameters
+        ----------
+        url : str
+            The URL to request
+        **kwargs
+            Additional keyword arguments for requests
+
+        Returns
+        -------
+        str
+            The HTML content as a string
+
+        Examples
+        --------
+        >>> scraper = MyHTMLScraper("https://example.com")
+        >>> html = scraper.request("https://example.com")
+        >>> print(html[:100])
+        <!DOCTYPE html>...
+        """
+        try:
+            response = requests.get(url, **kwargs)
+            response.raise_for_status()
+            return response.text
+        except requests.RequestException as e:
+            self.logger.error(f"Request failed: {e}")
+            return None
+
+
+class XMLMixin:
+    """
+    Mixin class for XML scraping.
+
+    This mixin provides XML-specific functionality for scrapers.
+    It includes methods for working with XML data and ElementTree objects.
+
+    Examples
+    --------
+    Use with Scraper base class:
+        >>> class MyXMLScraper(Scraper, XMLMixin):
+        ...     def request(self, url, **kwargs):
+        ...         response = requests.get(url, **kwargs)
+        ...         return response.text
+        ...     
+        ...     def parse(self, data):
+        ...         import xml.etree.ElementTree as ET
+        ...         root = ET.fromstring(data)
+        ...         return root.find('title').text
+    """
+
+    def request(self, url: str, **kwargs) -> str:
+        """
+        Make an HTTP request and return XML content.
+
+        Parameters
+        ----------
+        url : str
+            The URL to request
+        **kwargs
+            Additional keyword arguments for requests
+
+        Returns
+        -------
+        str
+            The XML content as a string
+
+        Examples
+        --------
+        >>> scraper = MyXMLScraper("https://api.example.com/feed.xml")
+        >>> xml = scraper.request("https://api.example.com/feed.xml")
+        >>> print(xml[:100])
+        <?xml version="1.0" encoding="UTF-8"?>...
+        """
+        try:
+            response = requests.get(url, **kwargs)
+            response.raise_for_status()
+            return response.text
+        except requests.RequestException as e:
+            self.logger.error(f"Request failed: {e}")
+            return None
+
+
+class JSONMixin:
+    """
+    Mixin class for JSON scraping.
+
+    This mixin provides JSON-specific functionality for scrapers.
+    It includes methods for working with JSON data and dictionaries.
+
+    Examples
+    --------
+    Use with Scraper base class:
+        >>> class MyJSONScraper(Scraper, JSONMixin):
+        ...     def request(self, url, **kwargs):
+        ...         response = requests.get(url, **kwargs)
+        ...         return response.json()
+        ...     
+        ...     def parse(self, data):
+        ...         return data['results']
+    """
+
+    def request(self, url: str, **kwargs) -> Dict[str, Any]:
+        """
+        Make an HTTP request and return JSON content.
+
+        Parameters
+        ----------
+        url : str
+            The URL to request
+        **kwargs
+            Additional keyword arguments for requests
+
+        Returns
+        -------
+        dict
+            The JSON content as a dictionary
+
+        Examples
+        --------
+        >>> scraper = MyJSONScraper("https://api.example.com/data")
+        >>> data = scraper.request("https://api.example.com/data")
+        >>> print(data)
+        {'key': 'value', 'results': [...]}
+        """
+        try:
+            response = requests.get(url, **kwargs)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            self.logger.error(f"Request failed: {e}")
+            return None
+        except ValueError as e:
+            self.logger.error(f"Invalid JSON response: {e}")
+            return None
