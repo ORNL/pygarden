@@ -312,44 +312,75 @@ class Database(ABC):
         db_timeout=None,
     ):
         """
-        Create a connection info dictionary from parameters or environment variables.
+        Create the complete connection_info dictionary to use for database connection.
 
-        :param db_name: Database name (default: from environment).
+        This method generates a dictionary containing all the necessary information for
+        establishing a connection to a database. It constructs the connection URI based
+        on the provided parameters and defaults to certain values if parameters are not
+        provided.
+
+        :param db_name: The name of the database. Defaults to Database.DEFAULT_DB.
         :type db_name: str, optional
-        :param db_user: Database user (default: from environment).
+        :param db_user: The database user. Defaults to Database.DEFAULT_USER.
         :type db_user: str, optional
-        :param db_password: Database password (default: from environment).
+        :param db_password: The password for the database user. Defaults to Database.DEFAULT_PW.
         :type db_password: str, optional
-        :param db_host: Database host (default: from environment).
+        :param db_host: The host where the database is located. Defaults to Database.DEFAULT_HOST.
         :type db_host: str, optional
-        :param db_port: Database port (default: from environment).
+        :param db_port: The port on which the database is listening. Defaults to Database.DEFAULT_PORT.
         :type db_port: int, optional
-        :param db_schema: Database schema (default: from environment).
+        :param db_schema: The schema to use within the database. Defaults to Database.DEFAULT_SCHEMA.
         :type db_schema: str, optional
-        :param db_type: Database type (default: from environment).
+        :param db_type: The type of the database (e.g., 'postgres', 'mssql'). Used to infer db_engine.
         :type db_type: str, optional
-        :param db_engine: Database engine (default: from environment).
+        :param db_engine: The SQLAlchemy database engine string (e.g., 'postgresql', 'mssql+pymssql').
+                          If not provided, it is inferred from db_type or defaults to Database.DEFAULT_ENGINE.
         :type db_engine: str, optional
-        :param db_timeout: Connection timeout (default: from environment).
+        :param db_timeout: The timeout setting for the database connection. Defaults to Database.DEFAULT_TIMEOUT.
         :type db_timeout: int, optional
-        :return: Dictionary containing connection parameters.
+        :return: A dictionary containing all connection information.
         :rtype: dict
         :note:
-            If any parameter is None, uses the corresponding environment variable.
-            All parameters are optional and have sensible defaults.
+            If db_type is provided but db_engine is not, the engine is automatically inferred.
+            Supported db_type prefixes: 'postgres'/'pg', 'mssql', 'influx', 'sqlite'.
+            For SQLite databases, a simplified URI format is used.
+            All parameters default to environment variables if not provided.
         :example:
-            >>> info = Database.create_connection_info(db_host='localhost', db_port=5432)
-            >>> print(info['host'])
-            localhost
+            >>> info = Database.create_connection_info(db_type='postgres', db_name='mydb')
+            >>> print(info['dbEngine'])
+            postgresql
+            >>> print(info['uri'])
+            postgresql://postgres:postgres@localhost:5432/mydb
         """
-        return {
-            "db_name": db_name or Database.DEFAULT_DB,
-            "db_user": db_user or Database.DEFAULT_USER,
-            "db_password": db_password or Database.DEFAULT_PW,
-            "db_host": db_host or Database.DEFAULT_HOST,
-            "db_port": db_port or Database.DEFAULT_PORT,
-            "db_schema": db_schema or Database.DEFAULT_SCHEMA,
-            "db_type": db_type or Database.DEFAULT_ENGINE,
-            "db_engine": db_engine or Database.DEFAULT_ENGINE,
-            "db_timeout": db_timeout or Database.DEFAULT_TIMEOUT,
+        if db_type and not db_engine:
+            if db_type.startswith("postgres") or db_type.startswith("pg"):
+                db_engine = "postgresql"
+            elif db_type.startswith("mssql"):
+                db_engine = "mssql+pymssql"
+            elif db_type.startswith("influx"):
+                db_engine = "influxdb"
+            elif db_type.startswith("sqlite"):
+                db_engine = "sqlite"
+        if db_engine is not None and db_engine.startswith("sqlite"):
+            uri = f"{db_engine}://{db_name}"
+        else:
+            engine = db_engine or Database.DEFAULT_ENGINE
+            user = db_user or Database.DEFAULT_USER
+            password = db_password or Database.DEFAULT_PW
+            host = db_host or Database.DEFAULT_HOST
+            port = db_port or Database.DEFAULT_PORT
+            name = db_name or Database.DEFAULT_DB
+            uri = f"{engine}://{user}:{password}@{host}:{port}/{name}"
+
+        connection_info = {
+            "dbName": db_name if db_name is not None else Database.DEFAULT_DB,
+            "dbUser": db_user if db_user is not None else Database.DEFAULT_USER,
+            "dbPassword": db_password if db_password is not None else Database.DEFAULT_PW,
+            "dbHost": db_host if db_host is not None else Database.DEFAULT_HOST,
+            "dbPort": db_port if db_port is not None else Database.DEFAULT_PORT,
+            "dbTimeout": db_timeout if db_timeout is not None else Database.DEFAULT_TIMEOUT,
+            "dbSchema": db_schema if db_schema is not None else Database.DEFAULT_SCHEMA,
+            "dbEngine": db_engine if db_engine is not None else Database.DEFAULT_ENGINE,
+            "uri": uri,
         }
+        return connection_info
