@@ -40,6 +40,33 @@ class Database(ABC):
     automatic configuration from environment variables. It supports connection
     management, logging, and context manager functionality.
 
+    **Connection info stored in system environment variables:**
+
+    * DATABASE_TIMEOUT, PG_TIMEOUT: an integer representing the seconds to wait
+                    before deciding a timeout occurred.
+    * DATABASE_DB, PG_DATABASE: a string representing the database to connect to
+    * DATABASE_USER, PG_USER: a string representing the user to connect to the
+                     database as
+    * DATABASE_PW, PG_PASSWORD: a string representing the password for the
+                   DATABASE_USER
+    * DATABASE_HOST, PG_HOST: a string representing the hostname or IP address
+                     hosting the database
+    * DATABASE_PORT, PG_PORT: an integer representing the port to connect to the
+                     database on
+    * DATABASE_SCHEMA, PG_SCHEMA: a string representing the schema to default to
+                       when creating a database connection
+
+    **Log file info stored in system environment variables:**
+
+    * DATABASE_LOG_PATH: a string representing the file path to record
+                        all logged data. defaults to, ""
+    * DATABASE_LOG_MODE: a string representing the mode to open the log
+                         file. Standard convention for file modes are
+                         used. defaults to, "a"
+    * DATABASE_LOG_ENCODING: a string representing the type of encoding
+                             to use when handling the log file.
+                             defaults to, "utf-8"
+
     **Attributes:**
         connection_info (dict): Database connection parameters.
         logger: Logger instance for database operations.
@@ -51,6 +78,11 @@ class Database(ABC):
         - Connection is not opened automatically on initialization.
         - All operations are logged if logging is configured.
         - Subclasses must implement the abstract 'open' method.
+        - It is best practice to use `with` to enter the database rather
+          than explicitly calling the `open` function, as database connection
+          will be created and destroyed behind the scenes, preventing lingering
+          database connections.
+        - File logging is disabled by default.
 
     **Example:**
         >>> class PostgreSQLDatabase(Database):
