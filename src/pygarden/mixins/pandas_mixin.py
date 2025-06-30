@@ -16,25 +16,34 @@ except ImportError:
 
 
 class PandasMixin:
-    """Group together all pandas logic."""
+    """
+    Group together all pandas logic.
+
+    This mixin provides pandas DataFrame functionality for database operations.
+    """
 
     def query_pandas(self, query=None, table=None, schema=None, log_df=False, log_query=False):
         """
         Return a query as a pandas table.
 
-        Provided a query, uses the default cursor assumming a
+        Provided a query, uses the default cursor assuming a
         PostgreSQL connection.
 
-        :param query: a query string to return as a table
-        :param table: the table name to retrieve data from
-        :param schema: the schema to select the table from
-        :param log_df: should the dataframe be logged? defaults to False
-        :param log_query: should the query be logged? defaults to False
-        :returns: a pandas.DataFframe object
+        :param query: A query string to return as a table.
+        :param table: The table name to retrieve data from.
+        :param schema: The schema to select the table from.
+        :param log_df: Should the dataframe be logged? (default: False).
+        :param log_query: Should the query be logged? (default: False).
+        :return: A pandas.DataFrame object.
         """
 
         def make_dataframe(query):
-            """Create a pandas dataframe from a query."""
+            """
+            Create a pandas dataframe from a query.
+
+            :param query: The SQL query to execute.
+            :return: A pandas DataFrame containing the query results.
+            """
             if self.cursor is None:
                 # TODO raise an appropriate error here
                 self.logger.error("Cursor is not open, please create one.")

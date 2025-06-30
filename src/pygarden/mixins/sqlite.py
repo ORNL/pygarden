@@ -12,7 +12,7 @@ logger = create_logger()
 
 class SQLiteMixin:
     """
-    Serve common connection method for sqlite.
+    Serve common connection method for SQLite.
 
     The default `search_path` is not applicable here since SQLite does not use schemas.
     """
@@ -21,9 +21,9 @@ class SQLiteMixin:
 
     def open(self):
         """
-        Explicitly open the database connection
+        Explicitly open the database connection.
 
-        :return: True if connection established, else False
+        :return: True if connection established, else False.
         """
         db_name = self.connection_info.get("dbName", SQLiteMixin.DEFAULT_DB)
         self.logger.debug(f"Opening Database Connection to {db_name}")
@@ -42,7 +42,7 @@ class SQLiteMixin:
         Query the database.
 
         :param query: A valid SQL statement to send to the database.
-        :return: None if query's cursor does not have a description, otherwise return the results of using `fetchall()`
+        :return: None if query's cursor does not have a description, otherwise return the results of using `fetchall()`.
         """
         if not self.is_open():
             self.logger.info("Database not open, opening now.")
@@ -70,5 +70,9 @@ class SQLiteMixin:
         return None
 
     def is_open(self):
-        """Check if the database connection is open."""
+        """
+        Check if the database connection is open.
+
+        :return: True if both connection and cursor exist, False otherwise.
+        """
         return self.connection and self.cursor

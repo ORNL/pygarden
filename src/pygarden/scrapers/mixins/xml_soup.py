@@ -9,16 +9,36 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class XmlSoupMixin(object):
-    """Group together all XML logic into a single Mixin."""
+    """
+    Group together all XML logic into a single Mixin.
+
+    This mixin provides XML parsing capabilities using BeautifulSoup
+    for web scraping operations.
+    """
 
     @staticmethod
     def request_html(url, method="GET", **kwargs):
-        """Return the request as JSON."""
+        """
+        Return the request as text.
+
+        :param url: The URL to request.
+        :param method: The HTTP method to use (default: "GET").
+        :param kwargs: Additional keyword arguments for the request.
+        :return: The response text content.
+        """
         request_list = {"stream": True, "allow_redirects": True, "verify": False}
         if len(**kwargs) > 0:
             request_list.update(**kwargs)
         return requests.request(method=method.upper(), url=url, **request_list).text
 
     def request(self, url, method, parser="lxml", **kwargs):
-        """Request the URL and return the parsed content."""
+        """
+        Request the URL and return the parsed content.
+
+        :param url: The URL to request.
+        :param method: The HTTP method to use.
+        :param parser: The parser to use for BeautifulSoup (default: "lxml").
+        :param kwargs: Additional keyword arguments for the request.
+        :return: A BeautifulSoup object containing the parsed XML.
+        """
         return Soup(self.request_html(url, method, **kwargs), parser)

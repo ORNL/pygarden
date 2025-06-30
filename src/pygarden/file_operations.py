@@ -1,4 +1,10 @@
-"""Provide common utilities for various file operations."""
+"""
+Provide common utilities for various file operations.
+
+This module provides utility functions for file and directory operations, including
+existence checks, creation, deletion, directory walking, and file reading/writing/appending.
+It supports both text and JSON files, and uses pathlib for path manipulations.
+"""
 import json
 from pathlib import Path
 from typing import Union
@@ -16,7 +22,13 @@ def path_exists(dirc_or_file):
     """
     Check if a directory or file exists.
 
-    :param dirc_or_file: Directory or file to check
+    :param dirc_or_file: Directory or file path to check.
+    :type dirc_or_file: str or Path
+    :return: True if the path exists, False otherwise.
+    :rtype: bool
+    :example:
+        >>> path_exists('/tmp')
+        True
     """
     return Path(dirc_or_file).exists()
 
@@ -25,8 +37,16 @@ def create_directory(dirc=None):
     """
     Create a directory if it doesn't exist.
 
-    :param dirc: Directory to create
-    :return: Success message or None
+    :param dirc: Directory path to create.
+    :type dirc: str or Path
+    :return: True if created, a message if already exists, or None on error.
+    :rtype: bool or str or None
+    :raises FileNotFoundError: If the parent directory does not exist.
+    :example:
+        >>> create_directory('mydir')
+        True
+    :note:
+        If the directory already exists, returns a message string.
     """
     if dirc is not None:
         try:
@@ -42,22 +62,29 @@ def create_directory(dirc=None):
 
 def delete_directory(dirc=None):
     """
-    Delete a directory and its contents.
+    Delete a directory and its contents (non-recursive).
 
-    :param dirc: Directory to delete
-    :return: Success message or None
+    :param dirc: Directory path to delete.
+    :type dirc: str or Path
+    :return: Success message if deleted, or None on error.
+    :rtype: str or None
+    :raises FileNotFoundError: If the directory does not exist.
+    :note:
+        Only deletes files and empty subdirectories directly under the given directory.
+        Does not recursively delete nested directories with contents.
+    :example:
+        >>> delete_directory('mydir')
+        'mydir deleted successfully.'
     """
     if dirc is not None:
         try:
             if path_exists(dirc):
                 directory_to_delete = Path(dirc)
-
                 for item in directory_to_delete.iterdir():
                     if item.is_file():
                         item.unlink()
                     if item.is_dir():
                         item.rmdir()
-
                 directory_to_delete.rmdir()
                 return f"{dirc} deleted successfully."
             else:
@@ -69,10 +96,19 @@ def delete_directory(dirc=None):
 
 def tree(dirc=None):
     """
-    Walk a directory and print the contents.
+    Walk a directory and print the contents (non-recursive).
 
-    :param dirc: Directory to walk
-    :return: None
+    :param dirc: Directory path to walk.
+    :type dirc: str or Path
+    :return: None or error message if directory does not exist.
+    :rtype: None or str
+    :side effects: Prints file and directory names to stdout.
+    :example:
+        >>> tree('.')
+        File: ./file1.txt
+        Directory: ./subdir
+    :note:
+        Only lists files and directories directly under the given directory.
     """
     if dirc is not None:
         try:
@@ -91,10 +127,19 @@ def tree(dirc=None):
 
 def read_file(file_name):
     """
-    Read a file into a python object
+    Read a file into a Python object.
 
-    :param file_name: Name of the file
-    :return: File contents or None
+    :param file_name: Name or path of the file to read.
+    :type file_name: str or Path
+    :return: File contents (str for text files, object for JSON files), or None on error.
+    :rtype: str or object or None
+    :raises FileNotFoundError: If the file does not exist.
+    :raises json.JSONDecodeError: If the file is JSON but invalid.
+    :example:
+        >>> read_file('data.txt')
+        'hello world\n'
+        >>> read_file('data.json')
+        {'foo': 'bar'}
     """
     try:
         with open(f"{file_name}", "r+") as file:
@@ -112,11 +157,19 @@ def read_file(file_name):
 
 def append_file(file_name, file_data):
     """
-    Append data to a file
+    Append data to a file.
 
-    :param file_name: Name of the file
-    :param file_data: Data to append to the file
-    :return: Success message or None
+    :param file_name: Name or path of the file to append to.
+    :type file_name: str or Path
+    :param file_data: Data to append to the file (must be a string).
+    :type file_data: str
+    :return: Success message if appended, or None on error.
+    :rtype: str or None
+    :raises FileNotFoundError: If the file does not exist.
+    :raises TypeError: If file_data is not a string.
+    :example:
+        >>> append_file('log.txt', 'new line\n')
+        'Contents successfully appended to the file'
     """
     try:
         with open(f"{file_name}", "a+") as file:
@@ -131,10 +184,19 @@ def append_file(file_name, file_data):
 
 def write_file(file_name, file_data=""):
     """
-    Write data to a file
+    Write data to a file (overwrites existing content).
 
-    :param file_name: Name of the file
-    :param file_data: Data to write to the file
+    :param file_name: Name or path of the file to write to.
+    :type file_name: str or Path
+    :param file_data: Data to write to the file. For JSON files, must be a dict.
+    :type file_data: str or dict
+    :return: None
+    :raises FileNotFoundError: If the file cannot be created.
+    :raises TypeError: If file_data is not a string for text files, or not a dict for JSON files.
+    :side effects: Overwrites the file if it exists.
+    :example:
+        >>> write_file('output.txt', 'hello')
+        >>> write_file('output.json', {'foo': 'bar'})
     """
     try:
         if Path(file_name).suffix == ".json":
@@ -158,9 +220,16 @@ def write_file(file_name, file_data=""):
 
 def delete_file(file_name: Union[str, Path]):
     """
-    Delete a file
+    Delete a file.
 
-    :param file_name: Name of the file to delete
+    :param file_name: Name or path of the file to delete.
+    :type file_name: str or Path
+    :return: Success message if deleted, or error message if not found.
+    :rtype: str
+    :side effects: Removes the file from the filesystem.
+    :example:
+        >>> delete_file('old.txt')
+        'File: old.txt deleted successfully.'
     """
     if Path(file_name).exists():
         Path(file_name).unlink()

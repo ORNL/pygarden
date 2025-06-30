@@ -9,10 +9,22 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class CfscrapeMixin:
-    """Group together CFSCRAPE methods."""
+    """
+    Group together CFSCRAPE methods.
+
+    This mixin provides CAPTCHA bypass capabilities using cfscrape
+    for web scraping operations that may encounter Cloudflare protection.
+    """
 
     def request(self, url, verify=False, **kwargs):
-        """Fetch data from `url` and return that in a Soup object."""
+        """
+        Fetch data from `url` and return that as a BeautifulSoup object.
+
+        :param url: The URL to request.
+        :param verify: Whether to verify SSL certificates (default: False).
+        :param kwargs: Additional keyword arguments for cfscrape.
+        :return: A BeautifulSoup object containing the parsed HTML.
+        """
         scrape = cfscrape.create_scraper(**kwargs)
         scrape.verify = verify
         html_text = scrape.get(url).text

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Provide a class is responsible for initiating a webdriver."""
+"""Provide a class responsible for initiating a webdriver."""
 import logging
 import traceback
 from typing import Optional
@@ -28,20 +28,20 @@ install()
 
 class WebDriver:
     """
-    Provide a wrapper for interacting with selenium's webdriver or requests
+    Provide a wrapper for interacting with selenium's webdriver or requests.
 
-    :note:
-        chrome requires Google Chrome and chromedriver
-        firefox requires geckodriver
-    :param url: the URL being requested
-    :param driver: the type of driver to use to connect
-    :param output: 'text' or 'json'
-    :param options: list of options to be passed to selenium
-    :param service_args: a list of service arguments to be passed to driver
-    :param timeout: how long to wait for an element to appear before timing
-                   out
-    :param implicit_wait: set how long to wait on a DOM object
+    **Notes:**
 
+    * chrome requires Google Chrome and chromedriver
+    * firefox requires geckodriver
+
+    :param url: The URL being requested.
+    :param driver: The type of driver to use to connect.
+    :param output: 'text' or 'json'.
+    :param options: List of options to be passed to selenium.
+    :param service_args: A list of service arguments to be passed to driver.
+    :param timeout: How long to wait for an element to appear before timing out.
+    :param implicit_wait: Set how long to wait on a DOM object.
     """
 
     def __init__(
@@ -58,15 +58,14 @@ class WebDriver:
         """
         Initialize a webdriver object.
 
-        :param url: to connect to
-        :param driver: underlying driver to use; can be 'chromedriver' or ...
-        :param output: what kind of output we want; can be 'text' or ...
-        :param options: for the underlying driver
-        :param service_args: some more parameters
-        :param script: a script to run
-        :param timeout: for connecting?
-        :param implicit_wait: for getting desired components to render?
-        :param logger: for logging
+        :param url: URL to connect to.
+        :param driver: Underlying driver to use; can be 'chromedriver' or others.
+        :param output: What kind of output we want; can be 'text' or others.
+        :param options: Options for the underlying driver.
+        :param service_args: Additional parameters for the driver.
+        :param script: A script to run.
+        :param timeout: Timeout for connecting.
+        :param implicit_wait: Time to wait for desired components to render.
         """
         if options is None:
             options = [
@@ -118,7 +117,11 @@ class WebDriver:
             self.logger.info("Connected to %s" % self.url)
 
     def __str__(self):
-        """Creates a simple string object"""
+        """
+        Create a simple string representation of the WebDriver object.
+
+        :return: A string describing the WebDriver object and its attributes.
+        """
         msg = "WebDriver() Class with the following attributes:\n\tURL:"
         msg = msg + "%s\n\tDriver: %s\n" % (self.url, self.driver_type)
         if hasattr(self, "driver") and self.driver is not None:
@@ -126,19 +129,37 @@ class WebDriver:
         return msg
 
     def __enter__(self):
-        """Return self upon entry via with"""
+        """
+        Return self upon entry via with statement.
+
+        :return: The WebDriver instance.
+        """
         return self
 
     def __exit__(self, wd_type, wd_value, wd_traceback):
-        """Handle exiting the with"""
+        """
+        Handle exiting the with statement.
+
+        :param wd_type: The exception type.
+        :param wd_value: The exception value.
+        :param wd_traceback: The exception traceback.
+        """
         self.close()
 
     def __del__(self):
-        """Delete the webDriver object"""
+        """
+        Delete the webDriver object.
+
+        This method ensures proper cleanup when the object is garbage collected.
+        """
         self.close()
 
     def close(self):
-        """Close the webdriver class"""
+        """
+        Close the webdriver class.
+
+        This method properly closes the driver and cleans up resources.
+        """
         if hasattr(self, "driver"):
             if self.driver is not None:
                 try:
@@ -151,7 +172,11 @@ class WebDriver:
         del self
 
     def request_url(self):
-        """Use requests to parse the url"""
+        """
+        Use requests to parse the URL.
+
+        :return: The response content (text or JSON) or the raw response object.
+        """
         try:
             response = requests.get(self.url, timeout=10)
             response.raise_for_status()
@@ -169,7 +194,11 @@ class WebDriver:
         return response
 
     def request_chrome(self):
-        """Method to create driver based on chrome"""
+        """
+        Create driver based on Chrome.
+
+        This method sets up a Chrome WebDriver with the specified options and service arguments.
+        """
         self.logger.info(f"Using chrome to connect to {self.url}")
         self.options = webdriver.ChromeOptions()
         try:
@@ -199,7 +228,12 @@ class WebDriver:
             self.logger.warning(f"Unknown exception while creating driver  {e}")
 
     def get_xpath(self, xpath):
-        """Get by an xpath."""
+        """
+        Get element by xpath.
+
+        :param xpath: The xpath expression to locate the element.
+        :return: The found element or None if not found.
+        """
         self.wait_for_element(xpath, "xpath")
         try:
             target = self.driver.find_element_by_xpath(xpath)
@@ -212,7 +246,12 @@ class WebDriver:
             self.logger.error(f"Element {xpath} seems stale: {e}")
 
     def get_tag(self, tag):
-        """Get element by tag."""
+        """
+        Get element by tag name.
+
+        :param tag: The tag name to locate the element.
+        :return: The found element or None if not found.
+        """
         self.wait_for_element(tag, "tag")
         try:
             target = self.driver.find_element_by_tag_name(tag)
@@ -225,7 +264,12 @@ class WebDriver:
             self.logger.error(f"Element seems stale: {e}")
 
     def get_id(self, id_name):
-        """Get element by id."""
+        """
+        Get element by ID.
+
+        :param id_name: The ID attribute to locate the element.
+        :return: The found element or None if not found.
+        """
         self.wait_for_element(id_name, "id")
         try:
             target = self.driver.find_element_by_id(id_name)
@@ -238,7 +282,12 @@ class WebDriver:
             self.logger.error(f"Element seems stale: {e}")
 
     def get_class(self, class_name):
-        """Get element by class."""
+        """
+        Get element by class name.
+
+        :param class_name: The class name to locate the element.
+        :return: The found element or None if not found.
+        """
         self.wait_for_element(class_name, "class")
         try:
             target = self.driver.find_element_by_class_name(class_name)
@@ -251,7 +300,11 @@ class WebDriver:
             self.logger.error(f"Element seems stale: {e}")
 
     def move_to_element(self, target):
-        """Perform action chains move to element and click"""
+        """
+        Perform action chains move to element and click.
+
+        :param target: The element to move to and click.
+        """
         try:
             action_chains = ActionChains(self.driver).move_to_element(target)
             action_chains.click(target).perform()
@@ -265,19 +318,38 @@ class WebDriver:
             self.logger.error(f"Element seems stale: {e}")
 
     def request_phantomjs(self):
-        """Method to create driver based on PhantomJS"""
+        """
+        Create driver based on PhantomJS.
+
+        This method sets up a PhantomJS WebDriver with the specified service arguments.
+        """
         self.driver = webdriver.PhantomJS(service_args=self.service_args)
 
     def dump_out(self):
-        """Dump self.out attribute"""
+        """
+        Dump the self.out attribute.
+
+        :return: The value of the out attribute.
+        """
         return self.out
 
     def driver_out(self):
-        """Dump self.driver attribute"""
+        """
+        Dump the self.driver attribute.
+
+        :return: The value of the driver attribute.
+        """
         return self.driver
 
     def wait_for_element(self, elem, elem_type, wait=None):
-        """Wait for element is available in the page"""
+        """
+        Wait for element to be available on the page.
+
+        :param elem: The element identifier (xpath, id, class, etc.).
+        :param elem_type: The type of element locator ('xpath', 'id', 'class', etc.).
+        :param wait: The timeout in seconds (default: self.timeout).
+        :raises ParserError: If the element type is not supported or element is not found.
+        """
         if wait is None:
             wait = self.timeout
         try:

@@ -27,15 +27,16 @@ class Scraper(ABC):
     """
     Abstract base class for all your scraping and parsing needs.
 
-    Environmental variables that alter behavior:
-        * `DRY_RUN`: if True, do not write to any files
-        * `SAVE_RAW_PAGES`: if True, save the raw data from the website for
-                            later inspection
-        * `SCRAPER_MAX_RETRIES`: how many times to try before giving up
-        * `SCRAPER_TIMEOUT`: how long in seconds do we wait for a site to
-                             respond?
-        * `SCRAPER_DATA_PATH`: path to save retrieved data to
-        * `SCRAPER_RAW_PATH`: path to save raw webpage to
+    **Environmental variables that alter behavior:**
+
+    * `DRY_RUN`: if True, do not write to any files
+    * `SAVE_RAW_PAGES`: if True, save the raw data from the website for
+                        later inspection
+    * `SCRAPER_MAX_RETRIES`: how many times to try before giving up
+    * `SCRAPER_TIMEOUT`: how long in seconds do we wait for a site to
+                         respond?
+    * `SCRAPER_DATA_PATH`: path to save retrieved data to
+    * `SCRAPER_RAW_PATH`: path to save raw webpage to
     """
 
     # Is this a dry run?
@@ -55,15 +56,15 @@ class Scraper(ABC):
         """
         Initialize the scraper object and assign internal states.
 
-        The `**kwargs` is a generic way to tailor `request()`..
+        The `**kwargs` is a generic way to tailor `request()`.
 
         If `url` is a sequence, the individual URLs will be iteratively
-        processed indenedent of one another.
+        processed independent of one another.
 
-        :param url: one or more URLs to be parsed by this scraper. Accepts
-                    types of `str` or `list`
-        :param **kwargs: optional keyword arguments that are passed to
-                         `request`
+        :param url: One or more URLs to be parsed by this scraper. Accepts
+                    types of `str` or `list`.
+        :param kwargs: Optional keyword arguments that are passed to
+                       `request`.
         """
         self.log = create_logger()
         self.log.debug("Setting url to %s", url)
@@ -97,21 +98,26 @@ class Scraper(ABC):
         """
         Parse method for the inherited classes to use for logic.
 
-        :param data: data structured to be parsed; likely in the form of
-                     JSON, XML, BeautifulSoup, etc, depending on the MIXIN
+        :param data: Data structured to be parsed; likely in the form of
+                     JSON, XML, BeautifulSoup, etc, depending on the MIXIN.
         """
         raise NotImplementedError
 
     def scrape(self):
-        """Scrape a website."""
+        """
+        Scrape a website.
+
+        This method handles the main scraping logic including retries,
+        error handling, and data parsing.
+        """
 
         def do_scrape(url):
             """
             Scrape a website and parse the data.
 
-            :param url: URL to scrape
+            :param url: URL to scrape.
             :type url: str
-            :return: parsed data
+            :return: Parsed data.
             :rtype: dict
             """
             data = None  # set from self.request()
@@ -197,7 +203,12 @@ class Scraper(ABC):
             sys.exit(1)
 
     def save_raw_pages(self, raw_page_text, override=False):
-        """Save the raw page to a gzipped file."""
+        """
+        Save the raw page to a gzipped file.
+
+        :param raw_page_text: The raw page content to save.
+        :param override: Whether to override the SAVE_RAW_PAGES setting (default: False).
+        """
         if not self.SAVE_RAW_PAGES and not override:
             return
         timestamp = None

@@ -6,14 +6,22 @@ import click
 
 @click.group()
 def python_cli():
-    """Python related commands."""
+    """
+    Python related commands.
+
+    This group provides various utilities for Python project setup and management.
+    """
     pass
 
 
 @python_cli.command(name="mk-pymodule", help="Create a new Python module directory")
 @click.option("--name", "-n", required=True, help="Name of the module")
 def mk_pymodule(name):
-    """Create a new Python module directory with an __init__.py file."""
+    """
+    Create a new Python module directory with an __init__.py file.
+
+    :param name: The name of the module directory to create.
+    """
     if name:
         try:
             os.makedirs(name, exist_ok=True)
@@ -31,7 +39,12 @@ def mk_pymodule(name):
 
 @python_cli.command(name="mk-init", help="Create a new __init__.py file")
 def mk_init():
-    """Create a new __init__.py file."""
+    """
+    Create a new __init__.py file.
+
+    This function creates a standard __init__.py file with proper encoding
+    and module initialization docstring.
+    """
     with open("__init__.py", "w", encoding="utf-8") as f:
         f.write("#!/usr/bin/env python3\n")
         f.write("# -*- coding: utf-8 -*-\n")

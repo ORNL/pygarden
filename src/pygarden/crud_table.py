@@ -1,60 +1,100 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Provide an abstract base class that provides basic crud operations to database tables."""
+"""
+Provide an abstract base class that provides basic CRUD operations to database tables.
+
+This module defines the CRUDTable abstract base class, which provides standard
+Create, Read, Update, and Delete operations for database tables, as well as
+helper functions for SQL clause construction. It is designed to be subclassed
+for specific table implementations.
+"""
 
 from abc import ABC
-
 from pygarden.logz import create_logger
 
 
 def convert_to_where(dictionary):
     """
-    convert's the dictionary to an SQL where clause
+    Convert a dictionary to an SQL WHERE clause and parameter tuple.
 
-    :param dictionary: key value mapping for where clause
+    :param dictionary: Key-value mapping for the WHERE clause (e.g., {'id': 1, 'name': 'foo'}).
+    :type dictionary: dict
+    :return: A list where index 0 is the WHERE clause string (e.g., 'WHERE id = %s AND name = %s')
+             and index 1 is a tuple of parameter values (e.g., (1, 'foo')).
+    :rtype: list
+    :raises ValueError: If the dictionary is empty.
+    :example:
+        >>> convert_to_where({'id': 1, 'name': 'foo'})
+        ['WHERE id = %s AND name = %s', (1, 'foo')]
     """
-    # result is the where clause in index 0 and the tuple for params in index 1
+    if not dictionary:
+        raise ValueError("Dictionary for WHERE clause cannot be empty.")
     result = ["WHERE ", []]
-    # iterate the keys of the dictionary
     for item in dictionary.keys():
-        # use the keys to build out the where clause
         result[0] += f"{item} = %s AND "
-    # remove the last ' AND ' from the clause
     result[0] = result[0][:-5]
-    # build the tuple for params from the dictionary's values
     result[1] = tuple(dictionary.values())
-    # return the result
     return result
 
 
 def convert_to_update(dictionary):
     """
-    convert's the dictionary to an SQL update clause
+    Convert a dictionary to an SQL UPDATE clause and parameter tuple.
 
-    :param dictionary:
+    :param dictionary: Key-value mapping for the UPDATE clause (e.g., {'name': 'foo'}).
+    :type dictionary: dict
+    :return: A list where index 0 is the UPDATE clause string (e.g., 'name = %s')
+             and index 1 is a tuple of parameter values (e.g., ('foo',)).
+    :rtype: list
+    :raises ValueError: If the dictionary is empty.
+    :example:
+        >>> convert_to_update({'name': 'foo'})
+        ['name = %s', ('foo',)]
     """
-    # index 0 is the update clause where index 1 is the tuple of params
+    if not dictionary:
+        raise ValueError("Dictionary for UPDATE clause cannot be empty.")
     result = ["", []]
-    # iterate the dictionary's keys
     for item in dictionary.keys():
-        # use the keys to build out the update clause
         result[0] += f"{item} = %s, "
-    # remove the last ', ' from the clause
     result[0] = result[0][:-2]
-    # construct the params tuple
     result[1] = tuple(dictionary.values())
-    # return the result
     return result
 
 
 class CRUDTable(ABC):
-    """Defines a database table with standard CRUD operations"""
+    """
+    Abstract base class for a database table with standard CRUD operations.
+
+    This class provides methods for creating, reading, updating, and deleting
+    entries in a database table. It is intended to be subclassed for specific
+    table implementations.
+
+    **Attributes:**
+        columns (dict): Mapping of column names to types (e.g., {'id': int, 'email': str}).
+        db: Database connection object (must implement .is_open(), .open(), .close(), .cursor, .connection).
+        schema (str): Database schema name.
+        name (str): Table name (defaults to lowercase class name if not provided).
+        logger: Logger instance for query logging.
+
+    **Usage Notes:**
+        - All CRUD operations are logged.
+        - All methods close the database connection after execution.
+        - Asserts are used for argument validation; consider replacing with exceptions in production.
+        - Subclasses may override methods for custom behavior.
+    """
 
     def __init__(self, columns, schema, db, table_name=None):
         """
-        __init__.
+        Initialize the CRUDTable instance.
 
-        :param columns: dictionary like {'id': int, 'email': str}
+        :param columns: Dictionary mapping column names to types.
+        :type columns: dict
+        :param schema: Database schema name.
+        :type schema: str
+        :param db: Database connection object.
+        :type db: object
+        :param table_name: Optional table name (defaults to lowercase class name).
+        :type table_name: str, optional
         """
         self.columns = columns
         self.db = db
@@ -64,38 +104,32 @@ class CRUDTable(ABC):
 
     def create(self, **kwargs):
         """
-        creates an entry in the table
+        Insert a new entry into the table.
 
-        :param kwargs: column_name=value for every column
+        :param kwargs: Column name-value pairs for every column to insert.
+        :raises AssertionError: If any provided column is not in self.columns.
+        :return: None
+        :side effects: Commits the transaction and closes the database connection.
+        :example:
+            >>> table.create(id=1, email='foo@bar.com')
         """
-        # assure that all columns are defined
-        # FIXME - asserts should only be used inside tests
         assert all(arg in self.columns.keys() for arg in kwargs.keys()), (
             "Must supply values for all columns to create an entry. " + f"Columns: {self.columns}"
         )
-        # get a 'pretty' string of column names
         column_names = str(list(kwargs.keys()))[1:-1].replace("'", "")
-        # build the query with the class's name and the kwargs that were passed
         query = (
             f"INSERT INTO {self.schema}.{self.name} "
             f"({column_names}) "
             f"VALUES ({', '.join(['%s']*len(kwargs.keys()))})"
         )
-        # tell the user that we are executing an insert query
         self.logger.info(f"Executing query: {query} " + f"params: {tuple(kwargs.values())}")
         try:
-            # if the db is not open..
             if not self.db.is_open():
-                # open the database connection
                 self.db.open()
-            # get the cursor from the database
             curr = self.db.cursor
-            # execute the query we built
             curr.execute(query, tuple(kwargs.values()))
-            # commit the changes to the database
             self.db.connection.commit()
         except Exception as err:
-            # close the connection to the database
             self.logger.error(
                 "Exception occured when trying to execute "
                 + f"query: {query} with "
@@ -107,92 +141,62 @@ class CRUDTable(ABC):
 
     def read(self, columns: list = None, json: bool = False, **kwargs):
         """
-        Reads an entry from the table
+        Read entries from the table.
 
-        :param columns: columns to select
-        :type columns: list
-        :param json: if output should be in json format
-        :type json: bool
-        :param kwargs: where clause keyword arguments
+        :param columns: Columns to select (list or str). If None, selects all columns.
+        :type columns: list or str, optional
+        :param json: If True, returns output in JSON format; otherwise, returns list of tuples.
+        :type json: bool, optional
+        :param kwargs: Where clause keyword arguments (e.g., id=1).
+        :raises AssertionError: If specified columns or where keys are not in self.columns.
+        :raises TypeError: If columns is not a list or string.
+        :return: Query results as list of tuples or JSON/dict if json=True.
+        :side effects: Closes the database connection after execution.
+        :example:
+            >>> table.read(columns=['id', 'email'], id=1)
+            [(1, 'foo@bar.com')]
         """
-        # define the select clause (this will remain the same unless we are
-        # selecting specific columns
         select_clause = "*"
-        # define the where clause (again this will change the same unless some
-        # kwargs are defined
         where_clause = None
-        # initialize the query
         query = None
-        # initialize the data to return
         data = None
-        # if the caller specified any kwargs (we know that we are going to
-        # have a where clause)
         if len(kwargs) > 0:
-            # assure that every column specified in kwargs are define in
-            # self.columns
             assert all(column in self.columns for column in kwargs), (
                 "Column(s) specified in kwargs could not be found. " + "Please check kwargs definition and try again."
             )
-            # construct and assign the where clause with the
-            # conversion function
             where_clause = convert_to_where(kwargs)
-        # if the caller specified some columns to select...
         if columns is not None:
-            # check if columns is a list
             if isinstance(columns, list):
-                # assure that every specfied column in columns are defined in
-                # self.columns
                 assert all(column in self.columns for column in columns), (
                     "Column(s) specified in columns could not be found. "
                     + "Please check columns definition and try again."
                 )
-                # construct a 'select' clause from the list
                 select_clause = str(columns)[1:-1].replace("'", "")
-            # is columns is a string...
             elif isinstance(columns, str):
-                # assure that the column specified is defined in self.columns
                 assert columns in self.columns, (
                     "Could not find column " + f"{columns} in self.columns definition: {self.columns}"
                 )
-                # use the column specified as the select clause
                 select_clause = columns
-            # if columns is of any other type...
             else:
-                # raise an exception as we do not know what to do
                 raise TypeError("column argument should be of type list or" + f" str not {type(columns)}")
-        # if the where clause was not set/specified
         if where_clause is None:
             try:
-                # make a query to select the columns with no where clause
                 query = f"SELECT {select_clause} " + f"FROM {self.schema}.{self.name}"
-                # inform the user we are executing the query..
                 self.logger.info(f"Executing query: {query}")
-                # if the db is not already opened..
                 if not self.db.is_open():
-                    # open the connection to the database
                     self.db.open()
-                # get the cursor from the database
                 curr = self.db.cursor
-                # execute the query
                 curr.execute(query)
             except Exception as err:
                 self.logger.error("Exception occured when trying to execute " + f"query: {query}")
                 self.logger.error(f"Exception Message: {err}")
-
-        # if there is a where clause...
         else:
             try:
-                # make a query to select the columns with the where clause
                 query = f"SELECT {select_clause} " + f"FROM {self.schema}.{self.name} " + f"{where_clause[0]}"
-                # tell the user we are executing their query
                 self.logger.info(f"Executing query: {query} " + f"params: {where_clause[1]}")
-                # if the db is not already opened..
                 if not self.db.is_open():
-                    # open the connection to the database
                     self.db.open()
-                # get the cursor from the database
                 curr = self.db.cursor
-                # execute the query with the where clause params
                 curr.execute(query, where_clause[1])
             except Exception as err:
                 self.logger.error(
@@ -201,17 +205,11 @@ class CRUDTable(ABC):
                     + f"parameters: {where_clause[1]}"
                 )
                 self.logger.error(f"Exception Message: {err}")
-                # close the connection to the database
                 self.db.close()
         try:
-            # if the user wants json output..
             if json is not None and json:
-                # use the fetch_json method to get json output from the
-                # database
                 data = self.fetch_json(curr)
-            # if the user doesn't want json..
             else:
-                # simply fetch the results from the db
                 data = curr.fetchall()
         except Exception as err:
             self.logger.error(
@@ -220,48 +218,37 @@ class CRUDTable(ABC):
                 + f"parameters: {where_clause[1]}"
             )
             self.logger.error(f"Exception Message: {err}")
-            # return the results from the database
         finally:
-            # close the connection to the database
             self.db.close()
-            # return the data (will be none if query failed)
         return data
 
     def update(self, where: dict, **kwargs):
         """
-        update.
+        Update entries in the table matching the WHERE clause.
 
-        :param where: dictionary to define the where clause
+        :param where: Dictionary to define the WHERE clause (e.g., {'id': 1}).
         :type where: dict
-        :param kwargs: keys and values to update in the database
+        :param kwargs: Keys and values to update in the database (e.g., name='foo').
+        :raises AssertionError: If no where clause or update fields are provided.
+        :return: None
+        :side effects: Commits the transaction and closes the database connection.
+        :example:
+            >>> table.update(where={'id': 1}, name='bar')
         """
-        # ensure there is a where clause
-        assert where is not None and len(where) > 0, "No where clause found." + "\nUpdate must have a where clause!"
-        # ensure that some update was specified in the kwargs
+        assert where is not None and len(where) > 0, "No where clause found.\nUpdate must have a where clause!"
         assert kwargs is not None and len(kwargs) > 0, (
-            "No keyword arguments supplied." + "\nUpdate must have a field to update!"
+            "No keyword arguments supplied.\nUpdate must have a field to update!"
         )
-
         try:
-            # construct the where clause with the conversion method
             where_clause = convert_to_where(where)
-            # construct the update clause with the conversion method
             update_clause = convert_to_update(kwargs)
-            # construct the parms for the update statement
             params = (*update_clause[1], *where_clause[1])
-            # build a query to update the specified values in the db
             query = f"UPDATE {self.schema}.{self.name} " + f"SET {update_clause[0]} " + f"{where_clause[0]}"
-            # tell the user we are executing their query
             self.logger.info(f"Executing query: {query} params: {params}")
-            # if the db is not open..
             if not self.db.is_open():
-                # open a connection to the db
                 self.db.open()
-            # get the cursor from the db
             curr = self.db.cursor
-            # execute the query we constructed
             curr.execute(query, params)
-            # commit the changes to the database
             self.db.connection.commit()
         except Exception as err:
             self.logger.error(
@@ -269,35 +256,30 @@ class CRUDTable(ABC):
             )
             self.logger.error(f"Exception Message: {err}")
         finally:
-            # close the connection to the database
             self.db.close()
 
     def delete(self, **kwargs):
         """
-        delete.
+        Delete entries from the table matching the WHERE clause.
 
-        :param kwargs: where clause to delete on
+        :param kwargs: Where clause to delete on (e.g., id=1).
+        :raises AssertionError: If no where clause is provided.
+        :return: None
+        :side effects: Commits the transaction and closes the database connection.
+        :example:
+            >>> table.delete(id=1)
         """
-        # ensure that some kwargs were passed
         assert kwargs is not None and len(kwargs) > 0, (
-            "No keyword arguments supplied." + "\nDelete must have a where clause!"
+            "No keyword arguments supplied.\nDelete must have a where clause!"
         )
         try:
-            # construct the where clause with the conversion method
             where_clause = convert_to_where(kwargs)
-            # build a delete query with the specified values
             query = f"DELETE FROM {self.schema}.{self.name} " + f"{where_clause[0]}"
-            # tell the user that we are executing their query
             self.logger.info(f"Executing query: {query}, " + f"params: {where_clause[1]}")
-            # if the db is not open..
             if not self.db.is_open():
-                # open a connection to the database
                 self.db.open()
-            # get the cursor from the database
             curr = self.db.cursor
-            # execute the query
             curr.execute(query, where_clause[1])
-            # commit the changes to the database
             self.db.connection.commit()
         except Exception as err:
             self.logger.error(
@@ -305,35 +287,29 @@ class CRUDTable(ABC):
             )
             self.logger.error(f"Exception Message: {err}")
         finally:
-            # close the connection
             self.db.close()
 
     def fetch_json(self, cursor):
         """
-        fetches json/diction data from the database
+        Fetch query results from the database cursor as a JSON/dict object.
 
-        :param cursor: database cursor to fetch from
+        :param cursor: Database cursor to fetch from (must have .description and .fetchall()).
+        :type cursor: object
+        :return: Dictionary containing the query results in JSON format, where each key is a row index as a string.
+        :rtype: dict
+        :example:
+            >>> table.fetch_json(cursor)
+            {'0': {'id': '1', 'name': 'foo'}, '1': {'id': '2', 'name': 'bar'}}
         """
-        # initialize local vars
         columns = {}
         result = {}
         index = 0
-
-        # iterate the cursor's description to get the column names in question
         for d in cursor.description:
             columns[str(index)] = d[0]
             index = index + 1
-
-        # restart the index back to 0
         index = 0
-        # iterate the result of the query
         for row in cursor.fetchall():
-            # init a place for the json object for this row to exist
             result[str(index)] = {}
-            # iterate the length of the result
             for i in range(0, len(row)):
-                # assign the json object to the result from the database
                 result[str(index)][columns[str(i)]] = str(row[i])
-
-        # return the result
         return result

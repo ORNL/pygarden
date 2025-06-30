@@ -18,7 +18,12 @@ except ImportError:
 
 @click.group()
 def common_cli():
-    """PyGARDEN (General Application Resource Development Environment Network) CLI."""
+    """
+    PyGARDEN (General Application Resource Development Environment Network) CLI.
+
+    This function provides the main CLI interface for PyGARDEN, allowing access
+    to various command-line tools and utilities.
+    """
     pass
 
 

@@ -9,7 +9,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class ArcgisMixin:
     """
-    Adds support for ArcGIS related websites by standardizing a query
+    Add support for ArcGIS related websites by standardizing a query.
 
     These ArcGIS parameters specify that we want JSON output, don't want
     geometry, and all the regions that intersect the areas of interest.  It
@@ -26,14 +26,15 @@ class ArcgisMixin:
 
     This can be modified with the `query_parameters` dictionary.
     For example, to set the `outFields` to just `name` and `id`, you can do:
-    ```python
-    from pygarden.scrapers.scraper import Scraper
-    from pygarden.scrapers.mixins.arcgis import ArcgisMixin
-    class MyScraper(ArcgisMixin, Scraper):
-        def __init__(self, url):
-            super().__init__(url)
-            self.query_parameters["params"]["outFields"] = "name,id"
-    ```
+
+    .. code-block:: python
+
+        from pygarden.scrapers.scraper import Scraper
+        from pygarden.scrapers.mixins.arcgis import ArcgisMixin
+        class MyScraper(ArcgisMixin, Scraper):
+            def __init__(self, url):
+                super().__init__(url)
+                self.query_parameters["params"]["outFields"] = "name,id"
     """
 
     query_parameters = {
@@ -48,10 +49,11 @@ class ArcgisMixin:
 
     def request(self, url, **kwargs):
         """
-        Fetch data from `url` and return that in a Soup object
+        Fetch data from `url` and return that as JSON.
 
-        :param url: of the remote host
-        :param kwargs: optional requests keyword arguments
+        :param url: The URL of the remote host.
+        :param kwargs: Optional requests keyword arguments.
+        :return: The JSON response data.
         """
         combined_parameters = {**self.query_parameters, **kwargs}
         r = requests.request(url=url, **combined_parameters)
