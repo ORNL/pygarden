@@ -32,19 +32,20 @@ class SeleniumScraper(Scraper):
         """
         Initialize the selenium scraper.
 
-        :param url: to connect to
-        :param kwargs: optional keyword arguments for requests/webdriver
+        :param url: URL to connect to.
+        :param kwargs: Optional keyword arguments for requests/webdriver.
         """
         super().__init__(url, **kwargs)
 
     def request(self, url, soup_parser="html.parser", **kwargs):
         """
-        Fetch data from `url` and return that in a Soup object
+        Fetch data from `url` and return that in a Soup object.
 
-        :param url: of the remote host
+        :param url: URL of the remote host.
         :param soup_parser: 'html.parser', 'xml', 'lxml', 'html5lib', or other
-            valid BeautifulSoup parser
-        :param kwargs: optional requests keyword arguments
+            valid BeautifulSoup parser.
+        :param kwargs: Optional requests keyword arguments.
+        :returns: BeautifulSoup object or None.
         """
         with WebDriver(url=url) as wd:
             # Do the fake mouse clicks to get the outage data, if any
@@ -60,9 +61,9 @@ class SeleniumScraper(Scraper):
         """
         Interact with the web driver to retrieve data.
 
-        Over-ride this method with the actual mouse clicks needed to retrieve your data.
+        Override this method with the actual mouse clicks needed to retrieve your data.
 
-        :param web_driver: selenium webdriver from request() call
-        :returns: raw data structure, or None if no outages
+        :param web_driver: Selenium webdriver from request() call.
+        :returns: Raw data structure, or None if no data.
         """
         raise NotImplementedError

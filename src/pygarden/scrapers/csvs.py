@@ -11,9 +11,11 @@ def get_csv(csv, **kwargs):
     """
     Retrieve a CSV with standard defaults using Pandas.
 
-    read in a pandas csv with optional arguments
-    :param csv: the csv to import
+    Read in a pandas csv with optional arguments.
+    :param csv: The csv to import.
+    :param kwargs: Additional arguments to pass to pandas.read_csv.
     :returns: pandas.DataFrame
+    :rtype: pandas.DataFrame
     """
     logger = create_logger()
     if not os.path.exists(csv):
@@ -32,7 +34,13 @@ def get_csv(csv, **kwargs):
 
 
 def glob_csvs(directory, logger=create_logger()):
-    """Globs for all CSVs in a directory."""
+    """Glob for all CSVs in a directory.
+
+    :param directory: Directory to search for CSV files.
+    :param logger: Logger instance to use.
+    :returns: List of CSV file paths.
+    :rtype: list
+    """
     dir_path = Path(directory)
 
     if not dir_path.exists():

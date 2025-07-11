@@ -12,10 +12,11 @@ class JsonMixin:
 
     def request(self, url, method="GET", **kwargs):
         """
-        Fetch data from `url` and return that in a Soup object
+        Fetch data from `url` and return that in a JSON object.
 
-        :param url: of the remote host
-        :param kwargs: optional requests keyword arguments
+        :param url: URL of the remote host.
+        :param kwargs: Optional requests keyword arguments.
+        :returns: JSON response data.
         """
         r = requests.request(method=method, url=url, **kwargs)
         return r.json()

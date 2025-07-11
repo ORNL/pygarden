@@ -13,11 +13,12 @@ class HtmlMixin:
 
     def request(self, url, method="GET", **kwargs):
         """
-        Fetch data from `url` and return that in a Soup object
+        Fetch data from `url` and return that in a Soup object.
 
-        :param url: of the remote host
-        :param method: one of GET, OPTIONS, HEAD, POST, PUT, PATCH, or DELETE
-        :param kwargs: optional requests keyword arguments
+        :param url: URL of the remote host.
+        :param method: One of GET, OPTIONS, HEAD, POST, PUT, PATCH, or DELETE.
+        :param kwargs: Optional requests keyword arguments.
+        :returns: BeautifulSoup object.
         """
         r = requests.request(method=method.upper(), url=url, **kwargs)
 

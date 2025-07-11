@@ -55,15 +55,15 @@ class Scraper(ABC):
         """
         Initialize the scraper object and assign internal states.
 
-        The `**kwargs` is a generic way to tailor `request()`..
+        The `**kwargs` is a generic way to tailor `request()`.
 
         If `url` is a sequence, the individual URLs will be iteratively
-        processed indenedent of one another.
+        processed independent of one another.
 
-        :param url: one or more URLs to be parsed by this scraper. Accepts
-                    types of `str` or `list`
-        :param **kwargs: optional keyword arguments that are passed to
-                         `request`
+        :param url: One or more URLs to be parsed by this scraper. Accepts
+                    types of `str` or `list`.
+        :param kwargs: Optional keyword arguments that are passed to
+                       `request`.
         """
         self.log = create_logger()
         self.log.debug("Setting url to %s", url)
@@ -97,8 +97,8 @@ class Scraper(ABC):
         """
         Parse method for the inherited classes to use for logic.
 
-        :param data: data structured to be parsed; likely in the form of
-                     JSON, XML, BeautifulSoup, etc, depending on the MIXIN
+        :param data: Data structured to be parsed; likely in the form of
+                     JSON, XML, BeautifulSoup, etc, depending on the MIXIN.
         """
         raise NotImplementedError
 
@@ -109,9 +109,9 @@ class Scraper(ABC):
             """
             Scrape a website and parse the data.
 
-            :param url: URL to scrape
+            :param url: URL to scrape.
             :type url: str
-            :return: parsed data
+            :returns: Parsed data.
             :rtype: dict
             """
             data = None  # set from self.request()
@@ -197,7 +197,11 @@ class Scraper(ABC):
             sys.exit(1)
 
     def save_raw_pages(self, raw_page_text, override=False):
-        """Save the raw page to a gzipped file."""
+        """Save the raw page to a gzipped file.
+
+        :param raw_page_text: Raw page content to save.
+        :param override: Whether to override existing files.
+        """
         if not self.SAVE_RAW_PAGES and not override:
             return
         timestamp = None

@@ -7,7 +7,12 @@ from pygarden.env import check_environment as ce
 
 
 def create_uri(logger=logging.getLogger(ce("ETL_LOGGER", "main"))):
-    """Create a URI for a connection to the Postgresql database."""
+    """Create a URI for a connection to the Postgresql database.
+
+    :param logger: Logger instance to use.
+    :returns: PostgreSQL connection URI.
+    :rtype: str
+    """
     user = ce("DB_USER", "guest")
     pwd = ce("DB_PASS", "abc123")
     host = ce("DB_HOST", "db")

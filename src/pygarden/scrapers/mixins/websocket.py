@@ -16,9 +16,10 @@ class WebsocketMixin:
         """
         Create a websocket handshake with optional payload dictionary.
 
-        :param  url: wss schema url
-        :param send_dict: Python Dictionary to send during connection
-        :param kwargs: optional parameters for create_connection
+        :param url: WSS schema URL.
+        :param send_dict: Python Dictionary to send during connection.
+        :param kwargs: Optional parameters for create_connection.
+        :returns: WebSocket response data.
         """
         if self.send_dict is not None:
             assert isinstance(self.send_dict, dict)  # make sure we pass a dict

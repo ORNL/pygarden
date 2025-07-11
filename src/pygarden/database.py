@@ -80,9 +80,8 @@ class Database(ABC):
 
         This *does not* open a connection to the database.  Use open() or `with` to establish a database connection.
 
-        :param log_file_info: a dictionary containing log file info
-        :param connection_info: a dictionary containing connection info
-
+        :param log_file_info: A dictionary containing log file info.
+        :param connection_info: A dictionary containing connection info.
         """
         if log_file_info is None:
             log_file_info = {
@@ -104,7 +103,7 @@ class Database(ABC):
 
     def __del__(self):
         """
-        Make any pending database commits and close the connection
+        Make any pending database commits and close the connection.
 
         Note that you *should not* rely on this to close connection; you
         should explicitly use close() to sever database connections.  That
@@ -116,12 +115,12 @@ class Database(ABC):
         self.close()
 
     def __enter__(self):
-        """Allow database to be entered via with"""
+        """Allow database to be entered via with."""
         self.silent_open()
         return self
 
     def __exit__(self, err_type, err_value, err_traceback):
-        """Hande database closing when leaving with"""
+        """Handle database closing when leaving with."""
         self.close()
 
     def silent_open(self):
@@ -141,9 +140,9 @@ class Database(ABC):
 
     def close(self):
         """
-        Explicitly close the connection
+        Explicitly close the connection.
 
-        :return: None
+        :returns: None
         """
         if self.cursor:
             self.cursor.close()
@@ -155,7 +154,11 @@ class Database(ABC):
             self.connection = None
 
     def is_open(self):
-        """Determine if the database is open or not."""
+        """Determine if the database is open or not.
+
+        :returns: True if database is open, False otherwise.
+        :rtype: bool
+        """
         if self.cursor is not None and self.connection is not None:
             return True  # If both are on, return True
         # If one or both connection and cursor are missing, return False
@@ -167,7 +170,7 @@ class Database(ABC):
 
         This is useful for using other connections than `psycopg2` for downstream development.
 
-        :param connection: any type of database connection object.
+        :param connection: Any type of database connection object.
         """
         self.connection = connection
 
@@ -175,8 +178,8 @@ class Database(ABC):
         """
         Modify a `variable` and set it to `value` in the connection_info attribute.
 
-        :param variable: the connection variable to set
-        :param value: the value for the connection variable
+        :param variable: The connection variable to set.
+        :param value: The value for the connection variable.
         """
         self.connection_info[variable] = value
 
@@ -210,6 +213,8 @@ class Database(ABC):
         :param db_engine: The SQLAlchemy database engine string (e.g., 'postgresql', 'mssql+pymssql').
                           If not provided, it is inferred from db_type or defaults to Database.DEFAULT_ENGINE.
         :param db_timeout: The timeout setting for the database connection. Defaults to Database.DEFAULT_TIMEOUT.
+        :returns: A dictionary containing connection information.
+        :rtype: dict
         """
         if db_type and not db_engine:
             if db_type.startswith("postgres") or db_type.startswith("pg"):

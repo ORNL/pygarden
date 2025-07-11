@@ -12,9 +12,10 @@ class RequestMixin:
 
     def request(self, url, **kwargs):
         """
-        Fetch data from `url` and return that in a Soup object
+        Fetch data from `url` and return the response.
 
-        :param url: of the remote host
-        :param kwargs: optional requests keyword arguments
+        :param url: URL of the remote host.
+        :param kwargs: Optional requests keyword arguments.
+        :returns: Requests response object.
         """
         return requests.request(url=url, **kwargs)
