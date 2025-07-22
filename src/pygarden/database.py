@@ -191,6 +191,7 @@ class Database(ABC):
         db_type=None,
         db_engine=None,
         db_timeout=None,
+        **kwargs,
     ):
         """
         Creates the complete connection_info dictionary to use for database connection.
@@ -210,6 +211,7 @@ class Database(ABC):
         :param db_engine: The SQLAlchemy database engine string (e.g., 'postgresql', 'mssql+pymssql').
                           If not provided, it is inferred from db_type or defaults to Database.DEFAULT_ENGINE.
         :param db_timeout: The timeout setting for the database connection. Defaults to Database.DEFAULT_TIMEOUT.
+        :param kwargs: Additional keyword arguments that may be used.
         """
         if db_type and not db_engine:
             if db_type.startswith("postgres") or db_type.startswith("pg"):
@@ -241,5 +243,6 @@ class Database(ABC):
             "dbSchema": db_schema if db_schema is not None else Database.DEFAULT_SCHEMA,
             "dbEngine": db_engine if db_engine is not None else Database.DEFAULT_ENGINE,
             "uri": uri,
+            "applicationName": ce("DATABASE_APPLICATION_NAME", "pygarden"),
         }
         return connection_info

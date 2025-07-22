@@ -36,6 +36,7 @@ class PostgresMixin:
     DEFAULT_SCHEMA = ce("DATABASE_SCHEMA_PG", ce("DATABASE_SCHEMA", ce("PG_SCHEMA", "public")))
     DEFAULT_ENGINE = ce("DATABASE_ENGINE_PG", ce("DATABASE_ENGINE", "postgresql"))
     DEFAULT_SEARCH_PATH = ce("DATABASE_SEARCH_PATH", "public")
+    DEFAULT_APPLICATION_NAME = ce("DATABASE_APPLICATION_NAME", "pygarden")
 
     # define a URI string if URI is perferred to connect
     DEFAULT_URI = DEFAULT_ENGINE + "://" + DEFAULT_USER + ":" + str(DEFAULT_PW) + "@" + DEFAULT_HOST + "/" + DEFAULT_DB
@@ -54,6 +55,7 @@ class PostgresMixin:
         db_host = self.connection_info.get("dbHost", PostgresMixin.DEFAULT_HOST)
         db_port = self.connection_info.get("dbPort", PostgresMixin.DEFAULT_PORT)
         db_timeout = self.connection_info.get("dbTimeout", PostgresMixin.DEFAULT_TIMEOUT)
+        application_name = self.connection_info.get("applicationName", PostgresMixin.DEFAULT_APPLICATION_NAME)
 
         self.logger.debug("Opening Database Connection and creating Cursor")
         self.logger.debug(self.connection_info)
@@ -65,6 +67,7 @@ class PostgresMixin:
                 host=db_host,
                 port=db_port,
                 connect_timeout=db_timeout,
+                application_name=application_name,
             )
             self.connection.set_client_encoding("UTF8")
             self.logger.debug("Successfully opened connection to database")
