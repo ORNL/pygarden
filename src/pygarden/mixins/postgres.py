@@ -41,7 +41,7 @@ class PostgresMixin:
     # define a URI string if URI is perferred to connect
     DEFAULT_URI = DEFAULT_ENGINE + "://" + DEFAULT_USER + ":" + str(DEFAULT_PW) + "@" + DEFAULT_HOST + "/" + DEFAULT_DB
 
-    def open(self, search_path=DEFAULT_SEARCH_PATH):
+    def open(self, search_path=DEFAULT_SEARCH_PATH, application_name=DEFAULT_APPLICATION_NAME):
         """
         Explicitly open the database connection
 
@@ -55,7 +55,6 @@ class PostgresMixin:
         db_host = self.connection_info.get("dbHost", PostgresMixin.DEFAULT_HOST)
         db_port = self.connection_info.get("dbPort", PostgresMixin.DEFAULT_PORT)
         db_timeout = self.connection_info.get("dbTimeout", PostgresMixin.DEFAULT_TIMEOUT)
-        application_name = self.connection_info.get("applicationName", PostgresMixin.DEFAULT_APPLICATION_NAME)
 
         self.logger.debug("Opening Database Connection and creating Cursor")
         self.logger.debug(self.connection_info)
