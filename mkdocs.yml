@@ -1,0 +1,62 @@
+site_name: pyGARDEN Documentation
+nav:
+- INDEX:
+  - index: pygarden/index.md
+  - auth: pygarden/auth.md
+  - cli:
+    - docker_cli: pygarden/cli/docker_cli.md
+    - gen_cli: pygarden/cli/gen_cli.md
+    - python_cli: pygarden/cli/python_cli.md
+  - crud_table: pygarden/crud_table.md
+  - database: pygarden/database.md
+  - env: pygarden/env.md
+  - error_codes: pygarden/error_codes.md
+  - exceptions: pygarden/exceptions.md
+  - file_operations: pygarden/file_operations.md
+  - gen: pygarden/gen.md
+  - logz: pygarden/logz.md
+  - mail: pygarden/mail.md
+  - mixins:
+    - influx: pygarden/mixins/influx.md
+    - minio_mixin: pygarden/mixins/minio_mixin.md
+    - mssql: pygarden/mixins/mssql.md
+    - multiple: pygarden/mixins/multiple.md
+    - pandas_mixin: pygarden/mixins/pandas_mixin.md
+    - postgres: pygarden/mixins/postgres.md
+    - postgres_logger: pygarden/mixins/postgres_logger.md
+    - sqlite: pygarden/mixins/sqlite.md
+  - scrapers:
+    - connections: pygarden/scrapers/connections.md
+    - csvs: pygarden/scrapers/csvs.md
+    - mixins:
+      - arcgis: pygarden/scrapers/mixins/arcgis.md
+      - cfscrape: pygarden/scrapers/mixins/cfscrape.md
+      - cloudscraper: pygarden/scrapers/mixins/cloudscraper.md
+      - html: pygarden/scrapers/mixins/html.md
+      - html_soup: pygarden/scrapers/mixins/html_soup.md
+      - json: pygarden/scrapers/mixins/json.md
+      - request: pygarden/scrapers/mixins/request.md
+      - websocket: pygarden/scrapers/mixins/websocket.md
+      - xml: pygarden/scrapers/mixins/xml.md
+      - xml_soup: pygarden/scrapers/mixins/xml_soup.md
+    - scraper: pygarden/scrapers/scraper.md
+    - seleniumscraper: pygarden/scrapers/seleniumscraper.md
+    - static: pygarden/scrapers/static.md
+    - webdriver: pygarden/scrapers/webdriver.md
+plugins:
+- search
+- mkdocstrings:
+    handlers:
+      python:
+        paths:
+        - .
+markdown_extensions:
+- mkdocs-click
+theme:
+  name: material
+  features:
+  - navigation.sections
+  - navigation.tracking
+  - navigation.path
+  - navigation.tabs
+  - navigation.indexes

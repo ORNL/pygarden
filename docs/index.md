@@ -1,0 +1,45 @@
+# Welcome to the pyGARDEN documentation.
+
+Browse the modules and packages below:
+
+- [Auth](auth.md)
+- Cli
+    - [Docker Cli](cli/docker_cli.md)
+    - [Gen Cli](cli/gen_cli.md)
+    - [Python Cli](cli/python_cli.md)
+- [Crud Table](crud_table.md)
+- [Database](database.md)
+- [Env](env.md)
+- [Error Codes](error_codes.md)
+- [Exceptions](exceptions.md)
+- [File Operations](file_operations.md)
+- [Gen](gen.md)
+- [Logz](logz.md)
+- [Mail](mail.md)
+- Mixins
+    - [Influx](mixins/influx.md)
+    - [Minio Mixin](mixins/minio_mixin.md)
+    - [Mssql](mixins/mssql.md)
+    - [Multiple](mixins/multiple.md)
+    - [Pandas Mixin](mixins/pandas_mixin.md)
+    - [Postgres](mixins/postgres.md)
+    - [Postgres Logger](mixins/postgres_logger.md)
+    - [Sqlite](mixins/sqlite.md)
+- Scrapers
+    - [Connections](scrapers/connections.md)
+    - [Csvs](scrapers/csvs.md)
+    - Mixins
+        - [Arcgis](scrapers/mixins/arcgis.md)
+        - [Cfscrape](scrapers/mixins/cfscrape.md)
+        - [Cloudscraper](scrapers/mixins/cloudscraper.md)
+        - [Html](scrapers/mixins/html.md)
+        - [Html Soup](scrapers/mixins/html_soup.md)
+        - [Json](scrapers/mixins/json.md)
+        - [Request](scrapers/mixins/request.md)
+        - [Websocket](scrapers/mixins/websocket.md)
+        - [Xml](scrapers/mixins/xml.md)
+        - [Xml Soup](scrapers/mixins/xml_soup.md)
+    - [Scraper](scrapers/scraper.md)
+    - [Seleniumscraper](scrapers/seleniumscraper.md)
+    - [Static](scrapers/static.md)
+    - [Webdriver](scrapers/webdriver.md)
