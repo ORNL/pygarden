@@ -1,4 +1,5 @@
 """Provide a logger mixin for PostgreSQL."""
+
 from pygarden.database import Database
 from pygarden.mixins.postgres import PostgresMixin
 

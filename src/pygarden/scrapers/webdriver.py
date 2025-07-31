@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Provide a class is responsible for initiating a webdriver."""
+
 import logging
 import traceback
 from typing import Optional

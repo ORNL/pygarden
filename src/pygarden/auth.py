@@ -1,4 +1,4 @@
-"""Provide authentication methods."""
+"""Provide authentication methods for user authentication."""
 
 import hashlib
 import importlib.util
@@ -27,7 +27,7 @@ def authenticate_ldap_user(uid: str, password: str) -> Any:
     credentials. If the binding is successful, it searches for the user's entry and returns it.
 
     Environment Variables:
-    - LDAP_SERVER: URL of the LDAP server. .
+    - LDAP_SERVER: URL of the LDAP server.
     - LDAP_ROOT_DN: The root distinguished name (DN) for LDAP queries.
     - LDAP_USER_DN: Template for constructing the user's DN. Default is "uid={uid},ou=Users".
     - LDAP_USER_SEARCH_FILTER: LDAP search filter to find the user. Default is "(uid={uid})".
@@ -43,7 +43,7 @@ def authenticate_ldap_user(uid: str, password: str) -> Any:
     :param password: The password of the user to authenticate.
     :raises ldap3.core.exceptions.LDAPException: If there is an issue connecting
     to the LDAP server or during the search.
-    :return: The user's LDAP entry if authentication is successful, None otherwise.
+    :returns: The user's LDAP entry if authentication is successful, None otherwise.
     """
     ldap_server = ce("LDAP_SERVER")
     root_dn = ce("LDAP_ROOT_DN")
@@ -60,7 +60,11 @@ def authenticate_ldap_user(uid: str, password: str) -> Any:
 
 
 def generate_salt() -> str:
-    """Generate a random salt for password hashing."""
+    """Generate a random salt for password hashing.
+
+    :returns: A random salt string.
+    :rtype: str
+    """
     return str(os.urandom(32)).replace("\\", "").replace("b", "")
 
 
@@ -79,5 +83,7 @@ def hash_password(
     :param hash_algorithm: The hashing algorithm to use (default: PBKDF2-HMAC-SHA256).
     :param args: Additional arguments for the hashing algorithm.
     :param kwargs: Additional keyword arguments for the hashing algorithm.
+    :returns: The hashed password as a hexadecimal string.
+    :rtype: str
     """
     return hash_algorithm(password.encode(), salt.encode(), *args, **kwargs).hex()

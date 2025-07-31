@@ -9,9 +9,11 @@ from pygarden.logz import create_logger
 
 def convert_to_where(dictionary):
     """
-    convert's the dictionary to an SQL where clause
+    Convert a dictionary to an SQL where clause.
 
-    :param dictionary: key value mapping for where clause
+    :param dictionary: Key value mapping for where clause.
+    :returns: A tuple containing the WHERE clause string and parameters tuple.
+    :rtype: tuple
     """
     # result is the where clause in index 0 and the tuple for params in index 1
     result = ["WHERE ", []]
@@ -29,9 +31,11 @@ def convert_to_where(dictionary):
 
 def convert_to_update(dictionary):
     """
-    convert's the dictionary to an SQL update clause
+    Convert a dictionary to an SQL update clause.
 
-    :param dictionary:
+    :param dictionary: Key value mapping for update clause.
+    :returns: A tuple containing the UPDATE clause string and parameters tuple.
+    :rtype: tuple
     """
     # index 0 is the update clause where index 1 is the tuple of params
     result = ["", []]
@@ -52,9 +56,12 @@ class CRUDTable(ABC):
 
     def __init__(self, columns, schema, db, table_name=None):
         """
-        __init__.
+        Initialize the CRUD table.
 
-        :param columns: dictionary like {'id': int, 'email': str}
+        :param columns: Dictionary like {'id': int, 'email': str}.
+        :param schema: Database schema name.
+        :param db: Database connection object.
+        :param table_name: Optional table name, defaults to class name in lowercase.
         """
         self.columns = columns
         self.db = db
@@ -64,9 +71,9 @@ class CRUDTable(ABC):
 
     def create(self, **kwargs):
         """
-        creates an entry in the table
+        Create an entry in the table.
 
-        :param kwargs: column_name=value for every column
+        :param kwargs: Column name and value pairs for every column.
         """
         # assure that all columns are defined
         # FIXME - asserts should only be used inside tests
@@ -107,13 +114,13 @@ class CRUDTable(ABC):
 
     def read(self, columns: list = None, json: bool = False, **kwargs):
         """
-        Reads an entry from the table
+        Read entries from the table.
 
-        :param columns: columns to select
+        :param columns: Columns to select.
         :type columns: list
-        :param json: if output should be in json format
+        :param json: If output should be in json format.
         :type json: bool
-        :param kwargs: where clause keyword arguments
+        :param kwargs: Where clause keyword arguments.
         """
         # define the select clause (this will remain the same unless we are
         # selecting specific columns
@@ -229,11 +236,11 @@ class CRUDTable(ABC):
 
     def update(self, where: dict, **kwargs):
         """
-        update.
+        Update entries in the table.
 
-        :param where: dictionary to define the where clause
+        :param where: Dictionary to define the where clause.
         :type where: dict
-        :param kwargs: keys and values to update in the database
+        :param kwargs: Keys and values to update in the database.
         """
         # ensure there is a where clause
         assert where is not None and len(where) > 0, "No where clause found." + "\nUpdate must have a where clause!"
@@ -274,9 +281,9 @@ class CRUDTable(ABC):
 
     def delete(self, **kwargs):
         """
-        delete.
+        Delete entries from the table.
 
-        :param kwargs: where clause to delete on
+        :param kwargs: Where clause keyword arguments.
         """
         # ensure that some kwargs were passed
         assert kwargs is not None and len(kwargs) > 0, (
@@ -310,9 +317,9 @@ class CRUDTable(ABC):
 
     def fetch_json(self, cursor):
         """
-        fetches json/diction data from the database
+        Fetch JSON/dictionary data from the database.
 
-        :param cursor: database cursor to fetch from
+        :param cursor: Database cursor to fetch from.
         """
         # initialize local vars
         columns = {}
