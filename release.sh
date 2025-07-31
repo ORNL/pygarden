@@ -33,7 +33,7 @@ if [[ $? -ne 0 ]]; then
   echo "Version was not bumped, exiting"
   exit 1
 fi
-uv build && uv publish --token "$UV_PUBLISH_TOKEN" --index "code.ornl"
+uv build && uv publish --token "$UV_PUBLISH_TOKEN"
 rm -rf dist/
 git push
 git push --tags

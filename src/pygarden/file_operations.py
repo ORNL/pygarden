@@ -1,4 +1,5 @@
 """Provide common utilities for various file operations."""
+
 import json
 from pathlib import Path
 from typing import Union
@@ -16,7 +17,9 @@ def path_exists(dirc_or_file):
     """
     Check if a directory or file exists.
 
-    :param dirc_or_file: Directory or file to check
+    :param dirc_or_file: Directory or file to check.
+    :returns: True if the path exists, False otherwise.
+    :rtype: bool
     """
     return Path(dirc_or_file).exists()
 
@@ -25,8 +28,8 @@ def create_directory(dirc=None):
     """
     Create a directory if it doesn't exist.
 
-    :param dirc: Directory to create
-    :return: Success message or None
+    :param dirc: Directory to create.
+    :returns: Success message or None.
     """
     if dirc is not None:
         try:
@@ -44,8 +47,8 @@ def delete_directory(dirc=None):
     """
     Delete a directory and its contents.
 
-    :param dirc: Directory to delete
-    :return: Success message or None
+    :param dirc: Directory to delete.
+    :returns: Success message or None.
     """
     if dirc is not None:
         try:
@@ -71,8 +74,8 @@ def tree(dirc=None):
     """
     Walk a directory and print the contents.
 
-    :param dirc: Directory to walk
-    :return: None
+    :param dirc: Directory to walk.
+    :returns: None.
     """
     if dirc is not None:
         try:
@@ -91,10 +94,10 @@ def tree(dirc=None):
 
 def read_file(file_name):
     """
-    Read a file into a python object
+    Read a file into a python object.
 
-    :param file_name: Name of the file
-    :return: File contents or None
+    :param file_name: Name of the file.
+    :returns: File contents or None.
     """
     try:
         with open(f"{file_name}", "r+") as file:
@@ -112,11 +115,11 @@ def read_file(file_name):
 
 def append_file(file_name, file_data):
     """
-    Append data to a file
+    Append data to a file.
 
-    :param file_name: Name of the file
-    :param file_data: Data to append to the file
-    :return: Success message or None
+    :param file_name: Name of the file.
+    :param file_data: Data to append to the file.
+    :returns: Success message or None.
     """
     try:
         with open(f"{file_name}", "a+") as file:
@@ -131,10 +134,10 @@ def append_file(file_name, file_data):
 
 def write_file(file_name, file_data=""):
     """
-    Write data to a file
+    Write data to a file.
 
-    :param file_name: Name of the file
-    :param file_data: Data to write to the file
+    :param file_name: Name of the file.
+    :param file_data: Data to write to the file.
     """
     try:
         if Path(file_name).suffix == ".json":
@@ -158,9 +161,10 @@ def write_file(file_name, file_data=""):
 
 def delete_file(file_name: Union[str, Path]):
     """
-    Delete a file
+    Delete a file.
 
-    :param file_name: Name of the file to delete
+    :param file_name: Name of the file to delete.
+    :returns: Success message or error message.
     """
     if Path(file_name).exists():
         Path(file_name).unlink()

@@ -1,4 +1,5 @@
 """Command line arguments for use setting up Python projects."""
+
 import os
 
 import click
@@ -13,7 +14,10 @@ def python_cli():
 @python_cli.command(name="mk-pymodule", help="Create a new Python module directory")
 @click.option("--name", "-n", required=True, help="Name of the module")
 def mk_pymodule(name):
-    """Create a new Python module directory with an __init__.py file."""
+    """Create a new Python module directory with an __init__.py file.
+
+    :param name: Name of the module to create.
+    """
     if name:
         try:
             os.makedirs(name, exist_ok=True)

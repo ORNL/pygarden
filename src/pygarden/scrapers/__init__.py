@@ -1,4 +1,5 @@
 """Initialize the scrapers module."""
+
 import importlib.util
 import warnings
 

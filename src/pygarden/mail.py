@@ -1,4 +1,5 @@
 """Provide functions to send emails."""
+
 import os
 import smtplib
 import ssl

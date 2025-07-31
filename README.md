@@ -1,24 +1,32 @@
 # pyGARDEN Package
 
-Code for the pyGARDEN (**G**eneral **A**pplication **R**esource **D**evelopment **E**nvironment **N**etwork) Python Package to include easy injectable and rich logging, environment checking, and database 
-connections and query. By default, only SQLite is available as a mixin, but other mixin types to the `Database` class 
+Code for the pyGARDEN (**G**eneral **A**pplication **R**esource **D**evelopment **E**nvironment **N**etwork) Python Package to include easy injectable and rich logging, environment checking, and database
+connections and query. By default, only SQLite is available as a mixin, but other mixin types to the `Database` class
 are Postgres (`[postgres]` extra) or Microsoft SQL Server (`[mssql]` extra). See the [extras](#Extras) section for more
 information on how to install these extras, when to choose them, and how to use them.
-Some highlights from `pyGARDEN`: 
+Some highlights from `pyGARDEN`:
 
-* This package contains an extensible `Database` metaclass with a generic query function that is usable out of the box. 
-* Everything is configurable with environmental variables -- including email sending, logging, and database connections.
+- This package contains an extensible `Database` metaclass with a generic query function that is usable out of the box.
+- Everything is configurable with environmental variables -- including email sending, logging, and database connections.
 
 ## Installation
 
 ### Installation via `uv`
+
 If you have a `uv venv`, you can run the following command in the root of the repo:
 
-`uv pip install -e ".[dev,cli,postgres]`
+`uv pip install -e ".[dev,cli,postgres]"`
 
 You may then need to source your `uv` environment to use the `pygarden` command line interface, e.g. `source .venv/bin/activate`.
 
 Replace the above extras with the extras of your choice.
+
+## Extras
+
+To enable support for specific databases, use the following extras:
+
+- `postgres`: Enables Postgres support via `psycopg2`
+- `mssql`: Enables MSSQL support via `pymssql`
 
 #### `pymssql` on MacOS
 
@@ -31,47 +39,50 @@ export CPPFLAGS="-I/opt/homebrew/opt/freetds/include -I/opt/homebrew/opt/openssl
 export PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@3.0/lib/pkgconfig"
 ```
 
-Then, install `pymssql` to your uv environment on its own using: 
+Then, install `pymssql` to your uv environment on its own using:
+
 ```bash
 uv pip install pymssql==2.2.11 --no-binary :all:
 ```
 
-After than, you can run `uv sync --extra mssql` or `uv sync --extra all` to get the rest of the dependencies in the group. 
-
+After than, you can run `uv sync --extra mssql` or `uv sync --extra all` to get the rest of the dependencies in the group.
 
 ### Installation via pip
 
 Run this command to install version 0.3.18 (latest) via pip:
 
-`python3 -m pip --no-cache-dir install common==0.3.18 --index-url https://code.ornl.gov/api/v4/projects/10568/packages/pypi/simple  --trusted-host code.ornl.gov`
+`python3 -m pip --no-cache-dir install pygarden==0.3.18`
+
 This will install latest (not recommended):
 
-`python3 -m pip --no-cache-dir install common --index-url https://code.ornl.gov/api/v4/projects/10568/packages/pypi/simple  --trusted-host code.ornl.gov`
-
+`python3 -m pip --no-cache-dir install pygarden`
 
 ## Getting the Image
+
 The Docker image for this project is hosted on [Savannah](https://savannah.ornl.gov/),
 and is tagged with `savannah.ornl.gov/common/pygarden:${PYTHON_VERSION:-3.12}-latest`,
 where `${PYTHON_VERSION:-3.12}` is the Python version you want to use. To pull the
 image, you can run:
+
 ```bash
 docker pull savannah.ornl.gov/common/pygarden:${PYTHON_VERSION:-3.12}-latest
 ```
 
 ## Saving the Image to a Tar File
+
 If you want to save the image to a tar file, you can run:
+
 ```bash
 docker save savannah.ornl.gov/common/pygarden:${PYTHON_VERSION:-3.12}-latest -o pygarden.tar
 gzip pygarden.tar  # optionally compress the tar file
 ```
+
 Now you can transport the image wherever you'd like!
 
-## Releases
-
-To initiate a release, increment the value in `COMMON_VERSION` run `./release.sh release`. This will force checkout develop and run the release process to push to the package registry and container registry.
-
 ### Configuration via Environment Variables
+
 Below is a list of environmental variables and what they do:
+
 - DATABASE_TIMEOUT, PG_TIMEOUT: an integer representing the seconds to wait before deciding a timeout occurred.
 - DATABASE_DB, PG_DATABASE: a string representing the database to connect to
 - DATABASE_USER, PG_USER: a string representing the user to connect to the database as
@@ -83,10 +94,11 @@ Below is a list of environmental variables and what they do:
 These environmental variables have been assigned default values for the Docker container in the file `envfile`, which is called in `docker-compose.yaml` and `docker-compose.test.yaml`
 
 ### Creating an extensible Database Python Class
+
 Some `Database` methods such as `query` and `open` rely on
 [python mixins](https://www.python.org/dev/peps/pep-0487/), which allow
 abstract classes to interact with different types of databases and provide
-additional functionality not provided by the `Database` class. Below is an 
+additional functionality not provided by the `Database` class. Below is an
 example of how to create a Database class that uses the PostgresMixin:
 
 ```python
@@ -103,6 +115,7 @@ with PostgresDatabase() as db:
 ```
 
 ### Creating a CRUD table with crud_table.py
+
 ```python
 from pygarden.mixins.postgres import PostgresMixin
 from pygarden.database import Database
@@ -123,9 +136,6 @@ class Users(CRUDTable):
         'id': int,
         'email': str,
         'password': str,
-        'roles': str,
-        'token': str,
-        'is_active': bool
     }
     # initialize the super class with the column definition, the schema that
     # the table is in, and the database object.
@@ -148,8 +158,7 @@ with PostgresDatabase() as db:
 
     # this will create a user in the database, with the specified fields and
     # null for the columns not specified
-    db.users.create(id=1337, email='admin@test.com', password='*****',
-                    is_active=True)
+    db.users.create(id=1337, email='admin@test.com', password='*****')
 
     # this will read the entire user's table 'SELECT * FROM public.users;'
     users_table = db.users.read()

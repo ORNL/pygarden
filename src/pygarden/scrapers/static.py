@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Provide static objects."""
+
 import re
 from dataclasses import dataclass
 

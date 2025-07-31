@@ -1,4 +1,5 @@
 """Test the MultiDatabase mixin."""
+
 import pytest
 from pygarden.mixins.multiple import MultiDatabase
 

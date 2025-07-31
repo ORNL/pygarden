@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Allow opening with a psycopg2 connection."""
+
 try:
     import psycopg2
     import psycopg2.extras
@@ -36,11 +37,12 @@ class PostgresMixin:
     DEFAULT_SCHEMA = ce("DATABASE_SCHEMA_PG", ce("DATABASE_SCHEMA", ce("PG_SCHEMA", "public")))
     DEFAULT_ENGINE = ce("DATABASE_ENGINE_PG", ce("DATABASE_ENGINE", "postgresql"))
     DEFAULT_SEARCH_PATH = ce("DATABASE_SEARCH_PATH", "public")
+    DEFAULT_APPLICATION_NAME = ce("DATABASE_APPLICATION_NAME", "pygarden")
 
     # define a URI string if URI is perferred to connect
     DEFAULT_URI = DEFAULT_ENGINE + "://" + DEFAULT_USER + ":" + str(DEFAULT_PW) + "@" + DEFAULT_HOST + "/" + DEFAULT_DB
 
-    def open(self, search_path=DEFAULT_SEARCH_PATH):
+    def open(self, search_path=DEFAULT_SEARCH_PATH, application_name=DEFAULT_APPLICATION_NAME):
         """
         Explicitly open the database connection
 
@@ -65,6 +67,7 @@ class PostgresMixin:
                 host=db_host,
                 port=db_port,
                 connect_timeout=db_timeout,
+                application_name=application_name,
             )
             self.connection.set_client_encoding("UTF8")
             self.logger.debug("Successfully opened connection to database")

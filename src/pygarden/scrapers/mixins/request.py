@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Provide a Request Mixin for attaching to Scraping classes."""
+
 import requests
 import urllib3
 
@@ -12,9 +13,10 @@ class RequestMixin:
 
     def request(self, url, **kwargs):
         """
-        Fetch data from `url` and return that in a Soup object
+        Fetch data from `url` and return the response.
 
-        :param url: of the remote host
-        :param kwargs: optional requests keyword arguments
+        :param url: URL of the remote host.
+        :param kwargs: Optional requests keyword arguments.
+        :returns: Requests response object.
         """
         return requests.request(url=url, **kwargs)
