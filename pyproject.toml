@@ -36,7 +36,7 @@ dependencies = [
 
 [project.optional-dependencies]
 postgres = ["psycopg2-binary==2.9.9", 'asyncpg']
-mssql = ["pymssql==2.2.11"]
+mssql = ["pymssql>=2.2.11"]
 influx = ["influxdb==5.3.1"]
 db-pandas = [
     "pandas==2.1.4",
@@ -65,7 +65,7 @@ minio = [
 ]
 all = [
     "psycopg2-binary==2.9.9",
-    "pymssql==2.2.11",
+    "pymssql>=2.2.11",
     "pandas==2.1.4",
     "urllib3~=1.26.9",
     "selenium~=4.1.3",
