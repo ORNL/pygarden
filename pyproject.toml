@@ -63,6 +63,10 @@ cli = [
 minio = [
     "minio~=7.1.0",
 ]
+analysis = [
+    "polars",
+    "polars-st",
+]
 all = [
     "psycopg2-binary==2.9.9",
     "pymssql>=2.2.11",
@@ -82,7 +86,9 @@ all = [
     "minio~=7.1.0",
     "pandas==2.1.4",
     "SQLAlchemy~=2.0.23",
-    'asyncpg'
+    "asyncpg",
+    "polars",
+    "polars-st",
 ]
 dev = [
     "ruff==0.5.4",

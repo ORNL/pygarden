@@ -16,6 +16,8 @@ except ImportError:
     sys.exit(1)
 
 
+logger = create_logger()
+
 @click.group()
 def common_cli():
     """PyGARDEN (General Application Resource Development Environment Network) CLI."""
@@ -25,6 +27,11 @@ def common_cli():
 common_cli.add_command(docker, name="docker")
 common_cli.add_command(python_cli, name="py")
 common_cli.add_command(gen_cli, name="gen")
+try:
+    from pygarden.cli.geoparquet_join import cli as geoparquet_join_cli
+    common_cli.add_command(geoparquet_join_cli, name="parquet_join")
+except ImportError:
+    logger.warn("geoparquet_join command not available. Please install the [analysis] extra.")
 
 
 if __name__ == "__main__":
