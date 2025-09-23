@@ -2,14 +2,14 @@
 
 try:
     import click
-
+    from pygarden.logz import create_logger
     from pygarden.cli.docker_cli import docker
     from pygarden.cli.gen_cli import gen_cli
     from pygarden.cli.python_cli import python_cli
 except ImportError:
     import sys
 
-    from pygarden.logz import create_logger
+
 
     logger = create_logger()
     logger.warn("the [cli] extra must be installed. ")

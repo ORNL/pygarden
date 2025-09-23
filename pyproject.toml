@@ -103,7 +103,7 @@ llama = [
 ]
 
 [project.scripts]
-garden = "pygarden.cli:common_cli"
+pygarden = "pygarden.cli:common_cli"
 
 [project.urls]
 Source = "https://code.ornl.gov/pygarden/pygarden"
