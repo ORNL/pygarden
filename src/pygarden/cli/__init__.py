@@ -31,7 +31,7 @@ try:
     from pygarden.cli.geoparquet_join import cli as geoparquet_join_cli
     common_cli.add_command(geoparquet_join_cli, name="parquet_join")
 except ImportError:
-    logger.warn("geoparquet_join command not available. Please install the [analysis] extra.")
+    logger.warn("parquet_join command not available. Please install the [analysis] extra.")
 
 
 if __name__ == "__main__":

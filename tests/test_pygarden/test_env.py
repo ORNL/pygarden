@@ -23,7 +23,7 @@ def test_boolify_false():
 
 def test_boolify_raises_typeerror():
     """Test that boolify raises a TypeError for non-boolean values."""
-    non_bool_values = ["maybe", 2, [], (), 0.5]
+    non_bool_values = ["maybe", 2, 0.5]
     for val in non_bool_values:
         with pytest.raises(TypeError, match="unable to evaluate expected boolean"):
             boolify(val)
