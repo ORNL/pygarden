@@ -198,7 +198,8 @@ class Scraper(ABC):
             sys.exit(1)
 
     def save_raw_pages(self, raw_page_text, override=False):
-        """Save the raw page to a gzipped file.
+        """
+        Save the raw page to a gzipped file.
 
         :param raw_page_text: Raw page content to save.
         :param override: Whether to override existing files.

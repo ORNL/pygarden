@@ -35,7 +35,8 @@ def get_csv(csv, **kwargs):
 
 
 def glob_csvs(directory, logger=create_logger()):
-    """Glob for all CSVs in a directory.
+    """
+    Glob for all CSVs in a directory.
 
     :param directory: Directory to search for CSV files.
     :param logger: Logger instance to use.

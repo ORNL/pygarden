@@ -155,7 +155,8 @@ class Database(ABC):
             self.connection = None
 
     def is_open(self):
-        """Determine if the database is open or not.
+        """
+        Determine if the database is open or not.
 
         :returns: True if database is open, False otherwise.
         :rtype: bool

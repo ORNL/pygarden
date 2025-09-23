@@ -16,6 +16,7 @@ class MinioMixin:
         minio: A Minio client instance.
         bucket_name: The name of the Minio bucket, defaults to the os environment variable "MINIO_BUCKET_NAME".
         logger: A logger instance, used for logging messages and is defined in the `pygarden.logz` module.
+
     """
 
     def __init__(self, bucket_name: str = None):

@@ -44,6 +44,7 @@ def authenticate_ldap_user(uid: str, password: str) -> Any:
     :raises ldap3.core.exceptions.LDAPException: If there is an issue connecting
     to the LDAP server or during the search.
     :returns: The user's LDAP entry if authentication is successful, None otherwise.
+
     """
     ldap_server = ce("LDAP_SERVER")
     root_dn = ce("LDAP_ROOT_DN")
@@ -60,7 +61,8 @@ def authenticate_ldap_user(uid: str, password: str) -> Any:
 
 
 def generate_salt() -> str:
-    """Generate a random salt for password hashing.
+    """
+    Generate a random salt for password hashing.
 
     :returns: A random salt string.
     :rtype: str

@@ -2,18 +2,19 @@
 # /// script
 # dependencies = ["polars>=1.5", "click>=8.1.7"]
 # ///
+import glob
+import json
 import os
 import re
-import json
-import glob
-import click
-import polars as pl
 from typing import Dict, List, Optional, Tuple
 
+import click
+import polars as pl
 
 # ---------------------------
 # Helpers (names are honest)
 # ---------------------------
+
 
 def _common_prefix_suffix(names: List[str]) -> Tuple[str, str]:
     """Return (common_prefix, common_suffix) for a list of basenames."""
@@ -23,6 +24,7 @@ def _common_prefix_suffix(names: List[str]) -> Tuple[str, str]:
     rev = [n[::-1] for n in names]
     suffix = os.path.commonprefix(rev)[::-1]
     return prefix, suffix
+
 
 def _derive_output_from_pattern(pattern: str, files: List[str]) -> str:
     """
@@ -41,6 +43,7 @@ def _derive_output_from_pattern(pattern: str, files: List[str]) -> str:
     out = os.path.join(out_dir, f"{base_no_ext or 'combined'}.parquet")
     return out
 
+
 def _load_schema(schema_path: Optional[str]) -> Optional[Dict[str, pl.DataType]]:
     if not schema_path:
         return None
@@ -48,11 +51,22 @@ def _load_schema(schema_path: Optional[str]) -> Optional[Dict[str, pl.DataType]]
         raw = json.load(f)
     # Map simple strings to Polars dtypes (extend as needed)
     lut = {
-        "int8": pl.Int8, "int16": pl.Int16, "int32": pl.Int32, "int64": pl.Int64,
-        "uint8": pl.UInt8, "uint16": pl.UInt16, "uint32": pl.UInt32, "uint64": pl.UInt64,
-        "float32": pl.Float32, "float64": pl.Float64, "bool": pl.Boolean,
-        "utf8": pl.Utf8, "string": pl.Utf8,
-        "date": pl.Date, "datetime": pl.Datetime, "time": pl.Time,
+        "int8": pl.Int8,
+        "int16": pl.Int16,
+        "int32": pl.Int32,
+        "int64": pl.Int64,
+        "uint8": pl.UInt8,
+        "uint16": pl.UInt16,
+        "uint32": pl.UInt32,
+        "uint64": pl.UInt64,
+        "float32": pl.Float32,
+        "float64": pl.Float64,
+        "bool": pl.Boolean,
+        "utf8": pl.Utf8,
+        "string": pl.Utf8,
+        "date": pl.Date,
+        "datetime": pl.Datetime,
+        "time": pl.Time,
     }
     out: Dict[str, pl.DataType] = {}
     for k, v in raw.items():
@@ -62,10 +76,9 @@ def _load_schema(schema_path: Optional[str]) -> Optional[Dict[str, pl.DataType]]
             raise click.ClickException(f"Unsupported dtype '{v}' for column '{k}'.")
     return out
 
+
 def _add_from_filename(lf: pl.LazyFrame, colname: str, regex: str, drop_path: bool) -> pl.LazyFrame:
-    lf = lf.with_columns(
-        pl.col("file_path").str.extract(regex).alias(colname)
-    )
+    lf = lf.with_columns(pl.col("file_path").str.extract(regex).alias(colname))
     if drop_path:
         lf = lf.drop("file_path")
     return lf
@@ -75,48 +88,60 @@ def _add_from_filename(lf: pl.LazyFrame, colname: str, regex: str, drop_path: bo
 # CLI
 # ---------------------------
 
+
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
 @click.argument("pattern", metavar="PATTERN")
 @click.option(
-    "-o", "--output", type=click.Path(dir_okay=False),
-    help="Output Parquet path. If omitted, derived from PATTERN by removing the wildcard piece."
+    "-o",
+    "--output",
+    type=click.Path(dir_okay=False),
+    help="Output Parquet path. If omitted, derived from PATTERN by removing the wildcard piece.",
 )
 @click.option(
-    "--relaxed/--strict", default=False, show_default=True,
-    help="Allow missing/extra columns across files (diagonal concat)."
+    "--relaxed/--strict",
+    default=False,
+    show_default=True,
+    help="Allow missing/extra columns across files (diagonal concat).",
 )
 @click.option(
-    "--schema", type=click.Path(exists=True, dir_okay=False),
-    help="JSON file mapping column -> dtype (e.g., {\"h3\":\"utf8\",\"value\":\"float64\"}). Locks schema."
+    "--schema",
+    type=click.Path(exists=True, dir_okay=False),
+    help='JSON file mapping column -> dtype (e.g., {"h3":"utf8","value":"float64"}). Locks schema.',
 )
 @click.option(
-    "--infer-length", type=int, default=1000, show_default=True,
-    help="Rows to scan for CSV type inference per file."
+    "--infer-length", type=int, default=1000, show_default=True, help="Rows to scan for CSV type inference per file."
 )
 @click.option(
-    "--compression", type=click.Choice(["zstd", "snappy", "lz4", "uncompressed"]), default="zstd", show_default=True,
-    help="Parquet compression."
+    "--compression",
+    type=click.Choice(["zstd", "snappy", "lz4", "uncompressed"]),
+    default="zstd",
+    show_default=True,
+    help="Parquet compression.",
 )
 @click.option(
-    "--row-group-size", type=int, default=512_000, show_default=True,
-    help="Approx rows per Parquet row group."
+    "--row-group-size", type=int, default=512_000, show_default=True, help="Approx rows per Parquet row group."
 )
 @click.option(
-    "--add-year", is_flag=True, default=False, show_default=True,
-    help="Extract a year from filename into a 'year' column."
+    "--add-year",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Extract a year from filename into a 'year' column.",
 )
 @click.option(
-    "--year-regex", default=r"(\d{4})", show_default=True,
-    help="Regex with one capture group to pull year from file path."
+    "--year-regex",
+    default=r"(\d{4})",
+    show_default=True,
+    help="Regex with one capture group to pull year from file path.",
 )
 @click.option(
-    "--keep-file-path", is_flag=True, default=False, show_default=True,
-    help="Keep the source file_path column in the output."
+    "--keep-file-path",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Keep the source file_path column in the output.",
 )
-@click.option(
-    "--has-header/--no-header", default=True, show_default=True,
-    help="Whether CSV files have header rows."
-)
+@click.option("--has-header/--no-header", default=True, show_default=True, help="Whether CSV files have header rows.")
 def cli(
     pattern: str,
     output: Optional[str],

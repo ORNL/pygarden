@@ -13,7 +13,8 @@ class CfscrapeMixin:
     """Group together CFSCRAPE methods."""
 
     def request(self, url, verify=False, **kwargs):
-        """Fetch data from `url` and return that in a Soup object.
+        """
+        Fetch data from `url` and return that in a Soup object.
 
         :param url: URL to fetch data from.
         :param verify: Whether to verify SSL certificates.
