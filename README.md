@@ -51,7 +51,7 @@ After than, you can run `uv sync --extra mssql` or `uv sync --extra all` to get 
 
 Run this command to install version 0.3.23 (latest) via pip:
 
-`python3 -m pip --no-cache-dir install pygarden==0.3.23`
+`python3 -m pip --no-cache-dir install pygarden==0.3.24`
 
 This will install latest (not recommended):
 
