@@ -69,7 +69,7 @@ def create_rich_logger(file_out=None, mode=None, encoding=None):
     logging.basicConfig(
         level=log_level,
         format="%(message)s",
-        datefmt="[%Y/%m/%d %H:%M;%S]",
+        datefmt="[%Y/%m/%d %H:%M:%S]",
         handlers=handlers,
     )
     # if there is a file_handler set, close it before leaving :)
@@ -85,7 +85,7 @@ def create_loguru_logger(file_out=None, mode=None, encoding=None):
     Create a loguru logger.
 
     create_loguru_logger:
-        Creates a Rich logger for all uses
+        Creates a `loguru` logger for all uses
 
     :param file_out: Path to file to output logs to, defaults to None
     :type file_out: str, optional
@@ -151,14 +151,14 @@ def create_python_logger(file_out=None, mode=None, encoding=None):
         logging.basicConfig(
             level=log_level,
             format="%(message)s",
-            datefmt="[%Y/%m/%d %H:%M;%S]",
+            datefmt="[%Y/%m/%d %H:%M:%S]",
             handlers=handlers,
         )
     else:
         logging.basicConfig(
             level=log_level,
             format="%(asctime)s" + "%(levelname)8s - " + " - %(message)s",
-            datefmt="[%Y/%m/%d %H:%M;%S]",
+            datefmt="[%Y/%m/%d %H:%M:%S]",
         )
     # if there is a file_handler set, close it before leaving :)
     # This prevents leaving open files
