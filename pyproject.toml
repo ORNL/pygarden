@@ -1,6 +1,6 @@
 [project]
 name = "pygarden"
-version = "0.3.25"
+version = "0.3.26"
 readme = "README.md"
 description = "Package to perform everyday tasks - logging, accessing database, etc."
 authors = [

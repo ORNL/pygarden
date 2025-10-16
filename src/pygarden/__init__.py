@@ -8,4 +8,4 @@ development of Python packages. It is designed to help developers create, test, 
  their packages more efficiently.
 """
 
-VERSION = "0.3.25"
+VERSION = "0.3.26"
