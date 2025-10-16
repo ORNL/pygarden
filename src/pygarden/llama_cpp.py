@@ -19,7 +19,7 @@ from llama_cpp import Llama
 from pygarden.env import check_environment as ce
 
 
-MAX_TOKENS = ce('MAX_TOKENS', 32)
+MAX_TOKENS = ce("MAX_TOKENS", 32)
 
 
 @contextmanager
@@ -71,7 +71,7 @@ class LlamaCPP:
         :return: The initialized instance of LlamaCPP.
         :rtype: LlamaCPP
         """
-        with (suppress_stderr()):
+        with suppress_stderr():
             self.llm = Llama(self.model_path)
             if self.max_tokens is None:
                 self.max_tokens = self.llm.n_ctx()
@@ -116,10 +116,10 @@ class LlamaCPP:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a prompt through a LLaMA GGUF model.")
-    parser.add_argument("--prompt", type=str, required=True,
-                        help="The prompt to send to the model.")
-    parser.add_argument("--tokens", type=int, default=None,
-                        help="The max number of tokens to generate. Defaults to n_ctx.")
+    parser.add_argument("--prompt", type=str, required=True, help="The prompt to send to the model.")
+    parser.add_argument(
+        "--tokens", type=int, default=None, help="The max number of tokens to generate. Defaults to n_ctx."
+    )
     args = parser.parse_args()
 
     with LlamaCPP(max_tokens=args.tokens) as llama:
