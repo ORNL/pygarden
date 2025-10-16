@@ -11,6 +11,7 @@ any type of connection through implementation of this abstract class.
 import traceback
 from abc import ABC
 from typing import Optional
+import time
 
 from pygarden.env import check_environment as ce
 from pygarden.logz import create_logger
@@ -74,6 +75,8 @@ class Database(ABC):
         self,
         log_file_info: Optional[dict] = None,
         connection_info: Optional[dict] = None,
+        retries: int = 3,
+        retry_interval: float = 60.0,
         **kwargs,
     ):
         """
@@ -96,6 +99,8 @@ class Database(ABC):
             self.logger = create_logger()
         else:
             self.logger = create_logger(log_file_info["path"], log_file_info["mode"], log_file_info["encoding"])
+        self.retries = retries
+        self.retry_interval = retry_interval
         self.connection_info = connection_info
         self.logger.debug(connection_info)
         self.connection = None
@@ -117,7 +122,14 @@ class Database(ABC):
 
     def __enter__(self):
         """Allow database to be entered via with."""
-        self.silent_open()
+        for retry in range(0, self.retries):
+            try:
+                self.silent_open()
+                return self
+            except BaseException as e:
+                time.sleep(self.retry_interval)
+                self.logger.debug(f"Error {e} occurred while entering Database, retry {retry+1}/{self.retries}")
+        self.logger.critical(f"Not possible to enter Database after {self.retries} retries")
         return self
 
     def __exit__(self, err_type, err_value, err_traceback):

@@ -107,7 +107,9 @@ class AsyncPostgresMixin:
             results = []
             data = False
             async with self.connection.transaction():
-                async for row in self.connection.cursor(query, *args, prefetch=int(AsyncPostgresMixin.DEFAULT_PREFETCH_AMOUNT)):
+                async for row in self.connection.cursor(
+                    query, *args, prefetch=int(AsyncPostgresMixin.DEFAULT_PREFETCH_AMOUNT)
+                ):
                     data = True
                     results.append(row)
             if not data:
