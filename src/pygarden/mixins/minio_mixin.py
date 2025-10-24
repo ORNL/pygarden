@@ -1,6 +1,5 @@
 """Provides a Minio Mixin"""
 
-
 from minio import Minio
 from minio.error import S3Error
 
@@ -33,11 +32,12 @@ class MinioMixin:
     @staticmethod
     def get_minio_client():
         """
-        Create a Minio client instance
+        Create a Minio client instance.
 
         Uses the os environment variables of MINIO_ENDPOINT, MINIO_ACCESS_KEY, and MINIO_SECRET_KEY
         to create the client.
-        :return: A Minio client instance.
+        :returns: A Minio client instance.
+        :rtype: Minio
         """
         return Minio(
             endpoint=ce("MINIO_ENDPOINT"),
@@ -51,7 +51,6 @@ class MinioMixin:
 
         :param file_path: The path to the file to be uploaded.
         :param object_name: The name of the object to be created in Minio.
-        :return: None
         """
         try:
             self.minio.fput_object(self.bucket_name, object_name, file_path)
@@ -64,7 +63,6 @@ class MinioMixin:
 
         :param object_name: The name of the object to be retrieved from Minio.
         :param file_path: The path to save the retrieved file.
-        :return: None
         """
         try:
             self.minio.fget_object(self.bucket_name, object_name, file_path)

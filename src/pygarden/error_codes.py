@@ -9,6 +9,7 @@ templating issues, and provides a default error code for general use. Each error
 integer values, making it easier to manage and identify errors consistently across different components of the
 application.
 """
+
 from dataclasses import dataclass
 
 

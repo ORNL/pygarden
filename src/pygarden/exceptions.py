@@ -6,6 +6,7 @@ validation. The 'ScraperError', 'DatabaseError', and 'TemplateError' classes inh
 their own error code validation methods to ensure that the error codes used are appropriate for their respective
 contexts.
 """
+
 from typing import Optional
 
 from pygarden.error_codes import ErrorCodes

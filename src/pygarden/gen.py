@@ -1,4 +1,5 @@
 """Provide generators for CSV and JSON files with random data."""
+
 import argparse
 import csv
 import json
@@ -8,12 +9,22 @@ import string
 
 
 def generate_gibberish(length=5):
-    """Generates a random string of alphabetic gibberish."""
+    """Generate a random string of alphabetic gibberish.
+
+    :param length: Length of the string to generate.
+    :returns: A random string of specified length.
+    :rtype: str
+    """
     return "".join(random.choices(string.ascii_letters, k=length))
 
 
 def generate_data_by_type(column_type):
-    """Generates data based on the specified column type."""
+    """Generate data based on the specified column type.
+
+    :param column_type: Type of data to generate ('int', 'float', 'string').
+    :returns: Generated data as a string.
+    :rtype: str
+    """
     if column_type == "int":
         return str(random.randint(0, 1000))
     elif column_type == "float":
@@ -25,7 +36,13 @@ def generate_data_by_type(column_type):
 
 
 def convert_size_to_bytes(size_str):
-    """Convert a human-readable file size (e.g., 512MB) into bytes."""
+    """Convert a human-readable file size (e.g., 512MB) into bytes.
+
+    :param size_str: Human-readable size string (e.g., '512MB', '1GB').
+    :returns: Size in bytes.
+    :rtype: int
+    :raises ValueError: If the size unit is invalid.
+    """
     size_str = size_str.upper()
     size_units = {"KB": 1024, "MB": 1024**2, "GB": 1024**3, "TB": 1024**4}
 
@@ -42,7 +59,15 @@ def convert_size_to_bytes(size_str):
 
 
 def generate_csv(file_path, n_columns=5, target_file_size=None, target_row_count=None, column_types={}):
-    """Generates a CSV file with either a target size or target row count."""
+    """Generate a CSV file with either a target size or target row count.
+
+    :param file_path: Path where the CSV file will be created.
+    :param n_columns: Number of columns in the CSV.
+    :param target_file_size: Target file size in bytes.
+    :param target_row_count: Target number of rows.
+    :param column_types: Dictionary mapping column names to data types.
+    :raises ValueError: If both target_file_size and target_row_count are specified.
+    """
     if target_file_size and target_row_count:
         raise ValueError("Please specify either target file size or target row count, not both.")
 
@@ -77,7 +102,11 @@ def generate_csv(file_path, n_columns=5, target_file_size=None, target_row_count
 
 
 def generate_json(file_path, target_file_size):
-    """Generates a JSON file with a target size."""
+    """Generate a JSON file with a target size.
+
+    :param file_path: Path where the JSON file will be created.
+    :param target_file_size: Target file size in bytes.
+    """
     data = {"data": []}
 
     current_file_size = 0

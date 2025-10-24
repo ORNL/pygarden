@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Provide a Mixin that supports ArcGIS-based sites for attaching to Scraping classes."""
+
 import requests
 import urllib3
 
@@ -48,10 +49,11 @@ class ArcgisMixin:
 
     def request(self, url, **kwargs):
         """
-        Fetch data from `url` and return that in a Soup object
+        Fetch data from `url` and return that in a JSON object.
 
-        :param url: of the remote host
-        :param kwargs: optional requests keyword arguments
+        :param url: URL of the remote host.
+        :param kwargs: Optional requests keyword arguments.
+        :returns: JSON response data.
         """
         combined_parameters = {**self.query_parameters, **kwargs}
         r = requests.request(url=url, **combined_parameters)

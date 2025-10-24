@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Provide common utilities for checking the environment."""
+
 import os
 from contextlib import contextmanager
 
@@ -12,7 +13,9 @@ def boolify(var):
     """
     Check if a variable should be a boolean and return.
 
-    :param var: the variable to check to see if it can be converted to bool
+    :param var: The variable to check to see if it can be converted to bool.
+    :returns: True if the variable represents a truthy value, False if falsy.
+    :raises TypeError: If the variable cannot be converted to a boolean.
     """
     if var in FALSE_SET:
         return False
@@ -28,11 +31,11 @@ def check_environment(env_var, default=None):
     Check if an environmental variable or variable is set, and if so,
     return that value, else return the default variable
 
-    :param env_var: the environmental variable to look for
-    :param default: the default value if the environmental variable is not
-                   found
-    :return: returns either the value in the environmental variable or the
-    default value passed to this function (default of None)
+    :param env_var: The environmental variable to look for.
+    :param default: The default value if the environmental variable is not
+                   found.
+    :returns: Returns either the value in the environmental variable or the
+    default value passed to this function (default of None).
     """
     if env_var in os.environ:
         if isinstance(default, bool):
@@ -60,10 +63,11 @@ def check_multi_environment(env_var_multi, multi_value, env_var, default=None):
     if so, return that. If not, check if the vanilla variable
     has been specified and return that value instead.
 
-    :param env_var_multi: the modified environment variable to look for
-    :param multi_value: the value of the modified environmental
-    :param env_var: the vanilla environment variable to look for
-    :param default: the vanilla environment variable default value
+    :param env_var_multi: The modified environment variable to look for.
+    :param multi_value: The value of the modified environmental variable.
+    :param env_var: The vanilla environment variable to look for.
+    :param default: The vanilla environment variable default value.
+    :returns: The value from the environment variable or default.
     """
     # check for existence of new var, if it exists, set environment
     # return multi value
@@ -78,7 +82,7 @@ def mock_env_vars(temp_vars: dict):
     """
     Mock environment variables.
 
-    :param temp_vars: a dictionary of the temporary variables in the form of key: name
+    :param temp_vars: A dictionary of the temporary variables in the form of key: name.
     """
     # store the original values
     original = {var: os.environ.get(var) for var in temp_vars}
