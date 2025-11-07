@@ -3,8 +3,9 @@
 """Allow opening with a psycopg2 connection."""
 
 try:
-    import psycopg2
-    import psycopg2.extras
+    import psycopg
+    from psycopg.rows import dict_row
+    from psycopg import errors
 except ImportError:
     import sys
 
@@ -60,19 +61,20 @@ class PostgresMixin:
         self.logger.debug("Opening Database Connection and creating Cursor")
         self.logger.debug(self.connection_info)
         try:
-            self.connection = psycopg2.connect(
-                database=db_name,
+            self.connection = psycopg.connect(
+                dbname=db_name,
                 user=db_user,
                 password=db_password,
                 host=db_host,
                 port=db_port,
                 connect_timeout=db_timeout,
                 application_name=application_name,
+                row_factory=dict_row,
+                options="-c client_encoding=UTF8",
             )
-            self.connection.set_client_encoding("UTF8")
             self.logger.debug("Successfully opened connection to database")
             self.cursor = self.connection.cursor()
-            self.dict_cursor = self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            self.dict_cursor = self.connection.cursor()
             self.logger.debug("Successfully created a cursor")
             if isinstance(search_path, list):
                 self.search_path = (",").join(search_path)
@@ -85,7 +87,7 @@ class PostgresMixin:
             self.cursor.execute(f"""SET search_path TO {self.search_path};""")
             self.connection.commit()
             self.logger.debug("Successfully set search_path")
-        except psycopg2.OperationalError as error:
+        except psycopg.OperationalError as error:
             self.logger.error(f"Database Error: {error}")
             return False
         return True
@@ -109,17 +111,17 @@ class PostgresMixin:
             if this_cursor.description is not None:
                 return this_cursor.fetchall()
             return None
-        except psycopg2.InterfaceError as error:
+        except errors.InterfaceError as error:
             self.logger.error(f"An unexpected InterfaceError occurred: {error}")
-        except psycopg2.DatabaseError as error:
+        except errors.DatabaseError as error:
             self.logger.error(f"An unexpected DatabaseError occurred: {error}")
-        except psycopg2.DataError as error:
+        except errors.DataError as error:
             self.logger.error(f"An unexpected DataError occurred: {error}")
-        except psycopg2.IntegrityError as error:
+        except errors.IntegrityError as error:
             self.logger.error(f"An unexpected IntegrityError occurred: {error}")
-        except psycopg2.ProgrammingError as error:
+        except errors.ProgrammingError as error:
             self.logger.error(f"An unexpected ProgrammingError occurred: {error}")
-        except psycopg2.NotSupportedError as error:
+        except errors.NotSupportedError as error:
             self.logger.error(f"An unexpected NotSupportedError occurred: {error}")
         except Exception as error:
             self.logger.error("There was an undetermined issue with the query process:" + f" {error}")

@@ -18,6 +18,7 @@ from llama_cpp import Llama
 
 from pygarden.env import check_environment as ce
 
+
 MAX_TOKENS = ce("MAX_TOKENS", 32)
 
 

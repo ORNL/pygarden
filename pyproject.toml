@@ -1,6 +1,6 @@
 [project]
 name = "pygarden"
-version = "0.3.24"
+version = "0.3.27"
 readme = "README.md"
 description = "Package to perform everyday tasks - logging, accessing database, etc."
 authors = [
@@ -14,7 +14,7 @@ authors = [
     {name = "Mitchell Broughton", email = "broxsonmr@ornl.gov" },
     {name = "Alec Hamaker"},
 ]
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.15"
 keywords = ["mixins", "logging", "database", "mysqlmixin", "postgresmixin", "pandasmixin"]
 license = {file = "LICENSE"}
 classifiers = [
@@ -24,6 +24,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Build Tools",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -32,11 +34,13 @@ classifiers = [
 dependencies = [
     "rich",
     "loguru",
+    "APScheduler",
+    "SQLAlchemy",
 ]
 
 [project.optional-dependencies]
-postgres = ["psycopg2-binary", 'asyncpg']
-mssql = ["pymssql"]
+postgres = ["psycopg[binary]>=3.0.0", "asyncpg"]
+mssql = ["pymssql>=2.2.11"]
 influx = ["influxdb"]
 db-pandas = [
     "pandas",
@@ -68,8 +72,8 @@ analysis = [
     "polars-st",
 ]
 all = [
-    "psycopg2-binary",
-    "pymssql",
+    "psycopg[binary]>=3.0.0",
+    "pymssql>2.2.11",
     "pandas",
     "urllib3",
     "selenium",
@@ -86,6 +90,8 @@ all = [
     "minio",
     "pandas",
     "SQLAlchemy",
+    "redis",
+    "celery",
     "asyncpg",
     "polars",
     "polars-st",
@@ -97,6 +103,9 @@ dev = [
     "moto",
     "python-hcl2",
     "bumpversion",
+    "pytest-posgresql",
+    "pytest-asyncio",
+    "testcontainers[mssql]",
 ]
 llama = [
     "llama-cpp-python>=0.2.74"
@@ -126,7 +135,7 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 
-[tool.ruff.mccabe]
+[lint.mccabe]
 max-complexity = 10
 
 [tool.bumpversion]
