@@ -103,7 +103,7 @@ dev = [
     "moto",
     "python-hcl2",
     "bumpversion",
-    "pytest-posgresql",
+    "pytest-postgresql",
     "pytest-asyncio",
     "testcontainers[mssql]",
 ]
