@@ -32,8 +32,10 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 dependencies = [
-    "rich>=13.7.1",
-    "loguru>=0.7.2"
+    "rich==13.7.1",
+    "loguru==0.7.2",
+    "APScheduler==3.10.0",
+    "SQLAlchemy~=2.0.23"
 ]
 
 [project.optional-dependencies]
