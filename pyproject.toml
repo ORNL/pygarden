@@ -100,6 +100,9 @@ dev = [
 llama = [
     "llama-cpp-python==0.2.74"
 ]
+api = [
+    "requests>=2.27.1",
+]
 
 [project.scripts]
 garden = "pygarden.cli:common_cli"
