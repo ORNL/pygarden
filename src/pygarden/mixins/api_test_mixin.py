@@ -54,6 +54,7 @@ class APITestMixin:
         """Constructor
         """
         self.api_base = api_base
+        self.verify_ssl = False
 
     @staticmethod
     def print_line_separator(width: int = 80):
@@ -82,7 +83,7 @@ class APITestMixin:
             headers["Authorization"] = f"Bearer {jwt_token}"
         if access_key != None:
             headers["access-token"] = access_key
-        response = requests.get(f"{self.api_base}/{uri}", headers=headers, verify=False)
+        response = requests.get(f"{self.api_base}/{uri}", headers=headers, verify=self.verify_ssl)
         response.raise_for_status()
         return response
 
@@ -108,7 +109,7 @@ class APITestMixin:
             headers["Authorization"] = f"Bearer {jwt_token}"
         if access_key != None:
             headers["access-token"] = access_key
-        response = requests.post(f"{self.api_base}/{uri}", data=data, headers=headers, verify=False)
+        response = requests.post(f"{self.api_base}/{uri}", data=data, headers=headers, verify=self.verify_ssl)
         response.raise_for_status()
         return response
 
