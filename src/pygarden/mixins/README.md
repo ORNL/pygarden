@@ -102,4 +102,45 @@ multi.query('SELECT 1;') # Queries all databases in multi
 
 multi.databases['pgdb1'].query('SELECT 1;') # query a specific database by id
 
-\```
+```
+
+### APITestMixin
+API GET/POST test helper.
+
+Example Usage:
+```python
+from pygarden.mixins.api_test_mixin import BooleanValue, APITestMixin
+
+class TestSuite(APITestMixin):
+    def __init__(self):
+        super().__init__("https://dog.ceo/api")
+        self.verify_ssl = True
+    
+    def get_random_image(self) -> dict:
+        return self.get("breeds/image/random").json()
+    
+    def is_status_successful(self, random_image_response) -> bool:
+        return random_image_response["status"] == "success"
+    
+    def is_status_unsuccessful(self, random_image_response) -> bool:
+        return random_image_response["status"] == "error"
+    
+    def run_full_tests(self):
+        rir = self.run_test(self.get_random_image, dict, "Got Random Image Response: {VAL}")
+        self.run_test(self.is_status_successful, BooleanValue(True), "Status is Successful", rir)
+        self.run_test(self.is_status_unsuccessful, BooleanValue(True), "Status is Unsuccessful", rir)
+
+if __name__ == "__main__":
+    ts = TestSuite()
+    print("Running API Tests...", flush=True)
+    TestSuite.print_line_separator()
+    ts.run_full_tests()
+```
+Example Output:
+```
+Running API Tests...
+████████████████████████████████████████████████████████████████████████████████
+Got Random Image Response: {'message': 'https://images.dog.ceo/breeds/terrier-silky/n02097658_4890.jpg', 'status': 'success'}
+Status is Successful
+is_status_unsuccessful did not return the right value, it returned False instead of True
+```
