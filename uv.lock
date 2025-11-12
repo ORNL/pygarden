@@ -1068,6 +1068,7 @@ all = [
     { name = "psycopg", extra = ["binary"] },
     { name = "pymssql" },
     { name = "requests" },
+    { name = "requests-toolbelt" },
     { name = "rich" },
     { name = "selenium" },
     { name = "sqlalchemy" },
@@ -1076,6 +1077,7 @@ all = [
 ]
 api = [
     { name = "requests" },
+    { name = "requests-toolbelt" },
 ]
 auth = [
     { name = "flask" },
@@ -1166,6 +1168,8 @@ requires-dist = [
     { name = "requests", marker = "extra == 'all'", specifier = "~=2.27.1" },
     { name = "requests", marker = "extra == 'api'", specifier = ">=2.27.1" },
     { name = "requests", marker = "extra == 'scrapers'", specifier = "~=2.27.1" },
+    { name = "requests-toolbelt", marker = "extra == 'all'", specifier = ">=1.0.0" },
+    { name = "requests-toolbelt", marker = "extra == 'api'", specifier = ">=1.0.0" },
     { name = "rich", specifier = ">=13.7.1" },
     { name = "rich", marker = "extra == 'all'", specifier = "==13.7.1" },
     { name = "rich", marker = "extra == 'cli'", specifier = "==13.7.1" },
