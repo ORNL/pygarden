@@ -14,7 +14,8 @@ class XmlSoupMixin(object):
 
     @staticmethod
     def request_html(url, method="GET", **kwargs):
-        """Return the request as text.
+        """
+        Return the request as text.
 
         :param url: URL to request.
         :param method: HTTP method to use.
@@ -23,12 +24,12 @@ class XmlSoupMixin(object):
         :rtype: str
         """
         request_list = {"stream": True, "allow_redirects": True, "verify": False}
-        if len(**kwargs) > 0:
-            request_list.update(**kwargs)
+        request_list.update(**kwargs)
         return requests.request(method=method.upper(), url=url, **request_list).text
 
     def request(self, url, method, parser="lxml", **kwargs):
-        """Request the URL and return the parsed content.
+        """
+        Request the URL and return the parsed content.
 
         :param url: URL to request.
         :param method: HTTP method to use.

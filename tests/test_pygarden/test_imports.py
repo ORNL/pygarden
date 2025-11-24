@@ -20,6 +20,7 @@ def test_all_modules_importable():
         "pygarden.mixins.multiple",  # requires psycopg, pymssql, etc.
         "pygarden.mixins.mssql",  # requires pymssql
         "pygarden.mixins.influx",  # requires influxdb-client
+        "pygarden.scrapers",  # optional scrapers dependencies (cfscrape, cloudscraper, etc.)
         "pygarden.scrapers.mixins.websocket",  # requires websockets
         "pygarden.scrapers.seleniumscraper",  # requires selenium
         "pygarden.scrpaers.webdriver",  # requires selenium

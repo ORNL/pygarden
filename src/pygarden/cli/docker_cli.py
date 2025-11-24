@@ -15,7 +15,8 @@ def docker():
 @docker.command(name="remove-volumes", help="Remove all docker volumes with a specific prefix.")
 @click.argument("prefix", required=False)
 def remove_volumes(prefix):
-    """Remove all docker volumes with a specific prefix.
+    """
+    Remove all docker volumes with a specific prefix.
 
     :param prefix: Prefix to filter volumes by.
     """
@@ -34,7 +35,8 @@ def remove_volumes(prefix):
 @click.option("--volume-mount", "-m", default="/tmp", help="Mount directory inside the container.")
 @click.option("--exec", "-e", "exec_cmd", default="bash", help="Command to execute.")
 def docker_execute_and_mount(image, volume_target, volume_mount, exec_cmd):
-    """Execute a command in a docker container with a /tmp as the pwd.
+    """
+    Execute a command in a docker container with a /tmp as the pwd.
 
     :param image: Docker image to use.
     :param volume_target: Target directory to mount.
