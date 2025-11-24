@@ -49,9 +49,9 @@ After than, you can run `uv sync --extra mssql` or `uv sync --extra all` to get 
 
 ### Installation via pip
 
-Run this command to install version 0.3.30 (latest) via pip:
+Run this command to install version 0.3.31 (latest) via pip:
 
-`python3 -m pip --no-cache-dir install pygarden==0.3.30`
+`python3 -m pip --no-cache-dir install pygarden==0.3.31`
 
 This will install latest (not recommended):
 
