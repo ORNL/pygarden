@@ -34,7 +34,7 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 sed -i '' "1 s/^.*$/Copyright $(date +%Y) ORNL/" LICENSE
-uv build && uv publish --token --user "__token__" "$UV_PUBLISH_TOKEN"
+uv build && uv publish --token --username "__token__" "$UV_PUBLISH_TOKEN"
 rm -rf dist/
 git push
 git push --tags
