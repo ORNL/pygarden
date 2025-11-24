@@ -1,0 +1,20 @@
+site_name: pyGARDEN Documentation
+nav:
+- INDEX:
+plugins:
+- search
+- mkdocstrings:
+    handlers:
+      python:
+        paths:
+        - .
+markdown_extensions:
+- mkdocs-click
+theme:
+  name: material
+  features:
+  - navigation.sections
+  - navigation.tracking
+  - navigation.path
+  - navigation.tabs
+  - navigation.indexes

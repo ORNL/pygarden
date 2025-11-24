@@ -83,8 +83,13 @@ class Scraper(ABC):
                 "verify": False,
             }
         self.request_args.update(**kwargs)
+        # Re-read paths from environment in case they changed since class definition
+        self.SCRAPER_DATA_PATH = Path(ce("SCRAPER_DATA_PATH", "/tmp/data"))
+        self.SCRAPER_RAW_DATA = Path(ce("SCRAPER_RAW_DATA", "/tmp/raw"))
+        # Check DRY_RUN from environment in case it changed since class definition
+        dry_run = ce("DRY_RUN", False)
         # if not a dry run, create the output directories
-        if not self.DRY_RUN:
+        if not dry_run:
             if not self.SCRAPER_DATA_PATH.exists():
                 self.SCRAPER_DATA_PATH.mkdir(parents=True)
             if not self.SCRAPER_RAW_DATA.exists():
@@ -138,7 +143,7 @@ class Scraper(ABC):
                     ConnectionError,
                 ) as error:
                     self.log.warning(error)
-                    self.log.warning("Connection timeout ... retry %d" % retry - 1)
+                    self.log.warning("Connection timeout ... retry %d" % (retry + 1))
                     time.sleep(self.SCRAPER_TIMEOUT)
                     continue
                 except requests.exceptions.RequestException as error:
@@ -198,12 +203,15 @@ class Scraper(ABC):
             sys.exit(1)
 
     def save_raw_pages(self, raw_page_text, override=False):
-        """Save the raw page to a gzipped file.
+        """
+        Save the raw page to a gzipped file.
 
         :param raw_page_text: Raw page content to save.
         :param override: Whether to override existing files.
         """
-        if not self.SAVE_RAW_PAGES and not override:
+        # Check SAVE_RAW_PAGES from environment in case it changed since class definition
+        save_raw_pages = ce("SAVE_RAW_PAGES", False)
+        if not save_raw_pages and not override:
             return
         timestamp = None
         if self.start_time is None:
@@ -216,7 +224,10 @@ class Scraper(ABC):
         if not archive_dir.exists():
             self.log.info(f"Creating {str(archive_dir)}.")
             archive_dir.mkdir(parents=True, exist_ok=True)
-        filename = RE_DOMAIN.search(self.url) + "-" + timestamp + "-rawpage.gz"
+        # Extract domain from URL, fallback to 'unknown' if no match
+        domain_match = RE_DOMAIN.search(self.url)
+        domain = domain_match.group(1) if domain_match else "unknown"
+        filename = f"{domain}-{timestamp}-rawpage.gz"
         filename = archive_dir / filename
         binary_str = str(raw_page_text).encode("utf-8")
         with gzip.open(str(filename), "wb") as f:

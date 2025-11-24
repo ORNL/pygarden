@@ -193,6 +193,7 @@ class MultiDatabase:
         ----
             db_id (str): the ID of the database to execute operations in SQL
             operations (list): A list of SQL operations to execute
+
         """
         with ThreadPoolExecutor(max_workers=1) as executor:
             futures = [executor.submit(self.databases[db_id].query, op) for op in operations]

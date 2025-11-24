@@ -20,4 +20,17 @@ for module_name in OPTIONAL_MODULES:
             UserWarning,
         )
     else:
-        importlib.import_module(module_name)
+        try:
+            importlib.import_module(module_name)
+        except ImportError as e:
+            # Handle cases where module exists but fails to import due to dependency issues
+            # (e.g., cfscrape/cloudscraper with urllib3 2.x)
+            if "DEFAULT_CIPHERS" in str(e) or "urllib3" in str(e).lower():
+                warnings.warn(
+                    f'Module {module_name} is installed but incompatible with current urllib3 version. '
+                    f'Error: {e}. Consider updating {module_name} or using urllib3<2.0.',
+                    UserWarning,
+                )
+            else:
+                # Re-raise if it's a different import error
+                raise

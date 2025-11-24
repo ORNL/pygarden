@@ -33,17 +33,20 @@ def test_postgres_query_select(postgresql):
         pass
 
     db = PGDB(
-        # connection_info=Database.create_connection_info(
-        #     db_name=db_name,
-        #     db_user=db_user,
-        #     db_password=db_password,
-        #     db_host=db_host,
-        #     db_port=db_port,
-        #     db_engine="postgresql",
-        # )
+        connection_info=Database.create_connection_info(
+            db_name=db_name,
+            db_user=db_user,
+            db_password=db_password,
+            db_host=db_host,
+            db_port=db_port,
+            db_engine="postgresql",
+        )
     )
     with db:
-        db.query("CREATE TABLE t(id INT PRIMARY KEY, name TEXT);")
-        db.query("INSERT INTO t(id,name) VALUES (1,'alice'),(2,'bob');")
-        rows = db.query("SELECT * FROM t ORDER BY id;", as_dict=True)
-        assert [tuple(r) for r in rows] == [(1, "alice"), (2, "bob")]
+        assert db.is_open() is True
+        db.query("CREATE TABLE t (id INT PRIMARY KEY, name TEXT);")
+        db.query("INSERT INTO t (id, name) VALUES (1,'alice'),(2,'bob');", as_dict=True)
+
+    with db:
+        rows = db.query("SELECT * FROM t ORDER BY id;")
+        assert rows == [{'id': 1, 'name': 'alice'}, {'id': 2, 'name': 'bob'}]

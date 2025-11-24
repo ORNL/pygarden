@@ -33,6 +33,7 @@ if [[ $? -ne 0 ]]; then
   echo "Version was not bumped, exiting"
   exit 1
 fi
+sed -i "1 s/^.*$/Copyright $(date +%Y) ORNL/" LICENSE
 uv build && uv publish --token "$UV_PUBLISH_TOKEN"
 rm -rf dist/
 git push

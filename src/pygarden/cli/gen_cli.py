@@ -16,7 +16,8 @@ def gen_cli():
 @click.option("--row", "-r", type=int, help="Number of rows in the CSV.")
 @click.option("--size", "-s", type=str, help="Target file size (e.g., 512MB or 1GB).")
 def csv(col, row, size):
-    """Generate a CSV file with the specified number of columns and rows or file size.
+    """
+    Generate a CSV file with the specified number of columns and rows or file size.
 
     :param col: Number of columns in the CSV.
     :param row: Number of rows in the CSV.
@@ -42,7 +43,8 @@ def csv(col, row, size):
 @gen_cli.command()
 @click.option("--size", "-s", type=str, required=True, help="Target file size (e.g., 512MB or 1GB).")
 def json(size):
-    """Create a JSON file with the specified target size.
+    """
+    Create a JSON file with the specified target size.
 
     :param size: Target file size (e.g., 512MB or 1GB).
     """

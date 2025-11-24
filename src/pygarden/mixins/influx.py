@@ -24,7 +24,8 @@ class InfluxMixin:
     DEFAULT_DB = ce("DATABASE_DB_IN", ce("DATABASE_DB", ce("INFLUX_DB", "cast")))
 
     def open(self):
-        """Create the InfluxDB client instance.
+        """
+        Create the InfluxDB client instance.
 
         :returns: True if connection successful, False otherwise.
         :rtype: bool
@@ -51,7 +52,8 @@ class InfluxMixin:
         return True
 
     def query(self, query):
-        """Query the InfluxDB.
+        """
+        Query the InfluxDB.
 
         :param query: Query string to execute.
         :returns: Query results or None if failed.
@@ -69,7 +71,8 @@ class InfluxMixin:
             return None
 
     def list_databases(self):
-        """List all databases in InfluxDB.
+        """
+        List all databases in InfluxDB.
 
         :returns: List of databases or None if failed.
         """

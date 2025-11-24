@@ -13,7 +13,8 @@ class HtmlSoupMixin(object):
     """Group together all HTML logic into a single Mixin."""
 
     def request_html(self, url, method="get", **kwargs):
-        """Return the request.
+        """
+        Return the request.
 
         :param url: URL to request.
         :param method: HTTP method to use.
@@ -22,12 +23,13 @@ class HtmlSoupMixin(object):
         :rtype: str
         """
         request_list = {"stream": True, "allow_redirects": True, "verify": False}
-        if len(**kwargs) > 0:
+        if len(kwargs) > 0:
             request_list.update(**kwargs)
         return requests.request(method=method.upper(), url=url, **request_list).text
 
     def request(self, url, method, parser="html.parser", **kwargs):
-        """Return a soup'd object.
+        """
+        Return a soup'd object.
 
         :param url: URL to request.
         :param method: HTTP method to use.
