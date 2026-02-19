@@ -5,17 +5,17 @@ This directory contains various mixins for database connections and other functi
 ## Database Mixins
 
 The pygarden database mixins make handling database connections much easier. When set up with ENV variables properly, a
-developer needs simply to worry about queries and spend less time managing connections and cursors.
+developer simply needs to worry about queries and spending less time managing connections and cursors.
 
 ### PostgresMixin
 Synchronous PostgreSQL connection using psycopg.
 
-To get started with the PostgreSQL mixin for pygaden, install pygarden with the PostgreSQL mixin:
+To get started with the PostgreSQL mixin for pygarden, install pygarden with the PostgreSQL mixin:
 
 ```bash
 uv pip install "pygarden[postgres,postgresql]"
 ```
-To make the proper database connection, the pygarden PostgreSQL mixin uses pygarden's `check_environemnt()` function to 
+To make the proper database connection, the pygarden PostgreSQL mixin uses pygarden's `check_environment()` function to 
 find the ENV variables for the different segments of a database connection string. If these are not provided, defaults are then used:
 
 ```bash
@@ -48,9 +48,9 @@ class TestDB(Database, PostgresMixin):
         super().__init__()
 ```
 
-Super Initializing the class takes care of the connection and cursor opening and closing.
+Calling `super().__init__()` the class takes care of the connection and cursor opening and closing.
 
-From here, you can write queries that can be called later. What is returned is a generator representing a list of Dictionairies 
+From here, you can write queries that can be called later. What is returned is a generator representing a list of dictionairies 
 corresponding to each row in the database. Likewise, you may write queries that insert as well:
 
 ```python
@@ -80,7 +80,7 @@ Now in your code, you can call these queries like so (given this test database f
 
 from test_database import TestDB
 
-with Test_DB() as db:
+with TestDB() as db:
     users = db.get_users()
 
 print(list(users))
@@ -88,7 +88,7 @@ print(list(users))
 # output
 [
     {'id': 1019, 'first_name': 'Mister', 'last_name': 'Man', 'email': 'some_email@email.com'},
-    {'id': 1016, 'first_name': 'That', 'last_name': 'Guy', 'email': 'That_guys_email@that_guy.com},
+    {'id': 1016, 'first_name': 'That', 'last_name': 'Guy', 'email': 'That_guys_email@that_guy.com'},
     {'id': 1132, 'first_name': 'Who', 'last_name': 'Dis', 'email': 'new_email@whodis.com}
 ]
 
