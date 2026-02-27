@@ -4,8 +4,99 @@ This directory contains various mixins for database connections and other functi
 
 ## Database Mixins
 
+The pygarden database mixins make handling database connections much easier. When set up with ENV variables properly, a
+developer simply needs to worry about queries and spending less time managing connections and cursors.
+
 ### PostgresMixin
-Synchronous PostgreSQL connection using psycopg2.
+Synchronous PostgreSQL connection using psycopg.
+
+To get started with the PostgreSQL mixin for pygarden, install pygarden with the PostgreSQL mixin:
+
+```bash
+uv pip install "pygarden[postgres,postgresql]"
+```
+To make the proper database connection, the pygarden PostgreSQL mixin uses pygarden's `check_environment()` function to 
+find the ENV variables for the different segments of a database connection string. If these are not provided, defaults are then used:
+
+```bash
+DEFAULT_DB = ce("DATABASE_DB_PG", ce("DATABASE_DB", ce("PG_DATABASE", "postgres")))
+DEFAULT_USER = ce("DATABASE_USER_PG", ce("DATABASE_USER", ce("PG_USER", "postgres")))
+DEFAULT_PW = ce("DATABASE_PW_PG", ce("DATABASE_PW", ce("PG_PASSWORD", "postgres")))
+DEFAULT_HOST = ce("DATABASE_HOST_PG", ce("DATABASE_HOST", ce("PG_HOST", "localhost")))
+DEFAULT_PORT = int(ce("DATABASE_PORT_PG", ce("DATABASE_PORT", ce("PG_PORT", 5432))))
+DEFAULT_TIMEOUT = ce("DATABASE_TIMEOUT", ce("PG_TIMEOUT", 60))
+DEFAULT_SCHEMA = ce("DATABASE_SCHEMA_PG", ce("DATABASE_SCHEMA", ce("PG_SCHEMA", "public")))
+DEFAULT_ENGINE = ce("DATABASE_ENGINE_PG", ce("DATABASE_ENGINE", "postgresql"))
+DEFAULT_SEARCH_PATH = ce("DATABASE_SEARCH_PATH", "public")
+DEFAULT_APPLICATION_NAME = ce("DATABASE_APPLICATION_NAME", "pygarden")
+```
+
+Generally these would be set in a Dockerfile, or a gitlab-ci.yml file, or another file proper for setting ENV variables.
+
+With ENV variables set up and postgres installed locally or in a container, make a simple Database class importing Database and 
+PostgresMixin from pygarden:
+
+```python
+from pygarden.database import Database
+from pygarden.mixins.postgres import PostgresMixin
+from pygarden.logz import create_logger
+
+logger = create_logger()
+
+class TestDB(Database, PostgresMixin):
+    def __init__(self, **kwargs):
+        super().__init__()
+```
+
+Calling `super().__init__()` the class takes care of the connection and cursor opening and closing.
+
+From here, you can write queries that can be called later. What is returned is a generator representing a list of dictionairies 
+corresponding to each row in the database. Likewise, you may write queries that insert as well:
+
+```python
+from pygarden.database import Database
+from pygarden.mixins.postgres import PostgresMixin
+from pygarden.logz import create_logger
+
+logger = create_logger()
+
+
+class TestDB(Database, PostgresMixin):
+    def __init__(self, **kwargs):
+        super().__init__()
+
+
+    def get_users(self):
+        return self.query("SELECT * FROM public.users;")
+
+    def insert_user(self, first_name, last_name, email):
+        self.cursor.execute("""INSERT INTO public.users (first_name, last_name, email)
+                        VALUES (%s, %s, %s);""")
+```
+
+Now in your code, you can call these queries like so (given this test database file is called test_database):
+
+```python
+
+from test_database import TestDB
+
+with TestDB() as db:
+    users = db.get_users()
+
+print(list(users))
+
+# output
+[
+    {'id': 1019, 'first_name': 'Mister', 'last_name': 'Man', 'email': 'some_email@email.com'},
+    {'id': 1016, 'first_name': 'That', 'last_name': 'Guy', 'email': 'That_guys_email@that_guy.com'},
+    {'id': 1132, 'first_name': 'Who', 'last_name': 'Dis', 'email': 'new_email@whodis.com}
+]
+
+# insert
+with TestDB() as db:
+    db.insert_user('Johnny', 'Rotten', 'god_save_the_queen@punk_rock.com')
+```
+
 
 ### AsyncPostgresMixin
 Asynchronous PostgreSQL connection using asyncpg. Provides async/await support for high-performance database operations.
