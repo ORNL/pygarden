@@ -42,6 +42,9 @@ dependencies = [
 postgres = ["psycopg[binary]>=3.0.0", "asyncpg"]
 mssql = ["pymssql>=2.2.11"]
 influx = ["influxdb"]
+sqlalchemy = [
+    "sqlalchemy>=2.0",
+]
 db-pandas = [
     "pandas",
     "SQLAlchemy"

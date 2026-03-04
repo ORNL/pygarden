@@ -133,8 +133,23 @@ class Database(ABC):
         return self
 
     def __exit__(self, err_type, err_value, err_traceback):
-        """Handle database closing when leaving with."""
-        self.close()
+        """Handle database closing when leaving a context manager.
+
+        Behavior:
+        - If no exception occurred, commit the current transaction.
+        - If an exception occurred, roll back the current transaction.
+        - In all cases, close the underlying connection and cursor.
+        """
+        if self.connection is not None:
+            try:
+                if err_type is None:
+                    self.connection.commit()
+                else:
+                    self.connection.rollback()
+            except Exception as e:
+                self.logger.error(f"Error during context manager transaction finalization: {e}")
+            finally:
+                self.close()
 
     def silent_open(self):
         """Open database silently without returning anything."""
@@ -162,7 +177,6 @@ class Database(ABC):
             self.cursor = None
 
         if self.connection:
-            self.connection.commit()
             self.connection.close()
             self.connection = None
 
