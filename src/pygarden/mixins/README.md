@@ -51,6 +51,74 @@ Synchronous SQLite connection.
 ### MSSQLMixin
 Synchronous Microsoft SQL Server connection.
 
+install with ` uv pip install "pygarden[mssql]"`
+
+Much like the PostgresMixin from above, here is a list of the ENV variables one needs to set:
+
+```python
+from pygarden.env import check_multi_environment as cme
+
+DEFAULT_DB = cme("DATABASE_DB_MS", "CommonDB", "DATABASE_DB", "postgres")
+DEFAULT_USER = cme("DATABASE_USER_MS", "sa", "DATABASE_USER", "postgres")
+DEFAULT_PW = cme("DATABASE_PW_MS", "5nowDog5", "DATABASE_PW", "postgres")
+DEFAULT_HOST = cme("DATABASE_HOST_MS", "mssql", "DATABASE_HOST", "localhost")
+DEFAULT_PORT = int(cme("DATABASE_PORT_MS", 1433, "DATABASE_PORT"))
+```
+
+You can then create a very basic base class for the MSSQL Mixing databse:
+
+```python
+from pygarden.database import Database
+from pygarden.mixins.mssql import MSSQLMixin
+from pygarden.logz import create_logger
+
+logger = create_logger()
+
+
+class TestDB(Database, MSSQLMixin):
+    def __init__(self, **kwargs):
+        super().__init__()
+
+    def access(self):
+        """ Test access to the db. """
+        if GenscapeDB.is_open(self):
+            return "Successfully accessed Database. "
+        else:
+            return "Did not access database. "
+
+    def get_users(self):
+        return self.query("SELECT * FROM public.users;")
+
+    def insert_user(self, first_name, last_name, email):
+        self.cursor.execute("""INSERT INTO public.users (first_name, last_name, email)
+                        VALUES (%s, %s, %s);""")
+
+```
+
+because all the database Mixins inherit Database, we can query the database just like the example above:
+
+```python
+from test_database import TestDB
+
+with TestDB() as db:
+    users = db.get_users()
+
+print(list(users))
+
+# output
+[
+    {'id': 1019, 'first_name': 'Mister', 'last_name': 'Man', 'email': 'some_email@email.com'},
+    {'id': 1016, 'first_name': 'That', 'last_name': 'Guy', 'email': 'That_guys_email@that_guy.com'},
+    {'id': 1132, 'first_name': 'Who', 'last_name': 'Dis', 'email': 'new_email@whodis.com}
+]
+
+# insert
+with TestDB() as db:
+    db.insert_user('Johnny', 'Rotten', 'god_save_the_queen@punk_rock.com')
+
+
+```
+
 ## Other Mixins
 
 ### PostgresLoggerMixin
@@ -81,6 +149,45 @@ Time-series database operations using InfluxDB.
 
 ### PandasMixin
 Data manipulation operations using pandas.
+
+install with ` uv pip install "pygarden[db-pandas]"`
+
+The PandasMixin nicely returns a dataframe from a database query. 
+
+import the PandasMixin:
+
+```from pygarden.mixins.pandas_mixin import PandasMixin```
+
+and add it to your class inheritance:
+
+```python
+class TestDB(Database, PostgresMixin, PandasMixin):
+    def __init__(self, **kwargs):
+        super().__init__()
+```
+
+with your Database class set, simply call `query_pandas`:
+
+```python
+def get_users_pandas(self):
+    return self.query_pandas(query="SELECT * from public.users")
+
+. . . 
+
+with TestDB() as tb:
+     p = tb.get_users_pandas()
+```
+
+output a nice dataframe:
+
+| id   | first_name | last_name   | email                                               | last_login_date                  | enabled |
+| ---- | ---------- | ----------- | --------------------------------------------------- | -------------------------------- | ------- |
+| 1019 | AlphaOne   | Testerson   | [alpha.one@fake.org](mailto:alpha.one@fake.org)     | 2023-11-29 20:21:39.470460+00:00 | True    |
+| 1016 | BetaTwo    | Placeholder | [beta.two@fake.org](mailto:beta.two@fake.org)       | 2024-04-18 19:26:42.909822+00:00 | True    |
+| 1132 | GammaThree | Mockdata    | [gamma.three@fake.org](mailto:gamma.three@fake.org) | 2024-03-04 14:14:04.182942+00:00 | True    |
+| 1316 | DeltaFour  | Exampleton  | [delta.four@fake.org](mailto:delta.four@fake.org)   | 2024-03-28 13:54:31.940848+00:00 | True    |
+| 1011 | OmegaFive  | NotReal     | [omega.five@fake.org](mailto:omega.five@fake.org)   | 2024-12-14 14:13:50.567000+00:00 | True    |
+
 
 ### MultipleMixin
 Support for multiple database connections.
