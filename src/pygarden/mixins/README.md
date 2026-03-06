@@ -51,9 +51,9 @@ Synchronous SQLite connection.
 ### MSSQLMixin
 Synchronous Microsoft SQL Server connection.
 
-install with ` uv pip install "pygarden[mssql]"`
+Install with ` uv pip install "pygarden[mssql]"`
 
-Much like the PostgresMixin from above, here is a list of the ENV variables one needs to set:
+Much like the PostgresMixin from above, here are the ENV variables that need to set:
 
 ```python
 from pygarden.env import check_multi_environment as cme
@@ -65,7 +65,7 @@ DEFAULT_HOST = cme("DATABASE_HOST_MS", "mssql", "DATABASE_HOST", "localhost")
 DEFAULT_PORT = int(cme("DATABASE_PORT_MS", 1433, "DATABASE_PORT"))
 ```
 
-You can then create a very basic base class for the MSSQL Mixing databse:
+You can then create a very basic base class for the MSSQLMixin database:
 
 ```python
 from pygarden.database import Database
@@ -81,21 +81,24 @@ class TestDB(Database, MSSQLMixin):
 
     def access(self):
         """ Test access to the db. """
-        if GenscapeDB.is_open(self):
+        if TestDB.is_open(self):
             return "Successfully accessed Database. "
         else:
             return "Did not access database. "
 
     def get_users(self):
-        return self.query("SELECT * FROM public.users;")
+        return self.query("SELECT * FROM dbo.users;")
 
     def insert_user(self, first_name, last_name, email):
-        self.cursor.execute("""INSERT INTO public.users (first_name, last_name, email)
-                        VALUES (%s, %s, %s);""")
+        self.cursor.execute(
+            """INSERT INTO dbo.users (first_name, last_name, email)
+               VALUES (%s, %s, %s);""",
+            (first_name, last_name, email),
+        )
 
 ```
 
-because all the database Mixins inherit Database, we can query the database just like the example above:
+Because all the database Mixins inherit Database, you can query the database just like the example above:
 
 ```python
 from test_database import TestDB
@@ -115,8 +118,6 @@ print(list(users))
 # insert
 with TestDB() as db:
     db.insert_user('Johnny', 'Rotten', 'god_save_the_queen@punk_rock.com')
-
-
 ```
 
 ## Other Mixins
@@ -150,11 +151,11 @@ Time-series database operations using InfluxDB.
 ### PandasMixin
 Data manipulation operations using pandas.
 
-install with ` uv pip install "pygarden[db-pandas]"`
+Install with ` uv pip install "pygarden[db-pandas]"`
 
-The PandasMixin nicely returns a dataframe from a database query. 
+The PandasMixin nicely returns a DataFrame from a database query. 
 
-import the PandasMixin:
+Import the PandasMixin:
 
 ```from pygarden.mixins.pandas_mixin import PandasMixin```
 
@@ -170,7 +171,7 @@ with your Database class set, simply call `query_pandas`:
 
 ```python
 def get_users_pandas(self):
-    return self.query_pandas(query="SELECT * from public.users")
+    return self.query_pandas(query="SELECT * FROM public.users")
 
 . . . 
 
