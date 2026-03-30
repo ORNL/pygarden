@@ -1714,6 +1714,15 @@ wheels = [
 ]
 
 [[package]]
+name = "paho-mqtt"
+version = "2.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/39/15/0a6214e76d4d32e7f663b109cf71fb22561c2be0f701d67f93950cd40542/paho_mqtt-2.1.0.tar.gz", hash = "sha256:12d6e7511d4137555a3f6ea167ae846af2c7357b10bc6fa4f7c3968fc1723834", size = 148848, upload-time = "2024-04-29T19:52:55.591Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c4/cb/00451c3cf31790287768bb12c6bec834f5d292eaf3022afc88e14b8afc94/paho_mqtt-2.1.0-py3-none-any.whl", hash = "sha256:6db9ba9b34ed5bc6b6e3812718c7e06e2fd7444540df2455d2c51bd58808feee", size = 67219, upload-time = "2024-04-29T19:52:48.345Z" },
+]
+
+[[package]]
 name = "pandas"
 version = "2.3.3"
 source = { registry = "https://pypi.org/simple" }
@@ -2075,7 +2084,7 @@ wheels = [
 
 [[package]]
 name = "pygarden"
-version = "0.3.27"
+version = "0.3.28"
 source = { editable = "." }
 dependencies = [
     { name = "apscheduler" },
@@ -2168,12 +2177,18 @@ llama = [
 minio = [
     { name = "minio" },
 ]
+mqtt = [
+    { name = "paho-mqtt" },
+]
 mssql = [
     { name = "pymssql" },
 ]
 postgres = [
     { name = "asyncpg" },
     { name = "psycopg", extra = ["binary"] },
+]
+redis = [
+    { name = "redis" },
 ]
 scrapers = [
     { name = "beautifulsoup4" },
@@ -2223,6 +2238,7 @@ requires-dist = [
     { name = "mkdocs-material", marker = "extra == 'dev'" },
     { name = "mkdocstrings", extras = ["python"], marker = "extra == 'dev'" },
     { name = "moto", marker = "extra == 'dev'" },
+    { name = "paho-mqtt", marker = "extra == 'mqtt'", specifier = ">=2.1.0" },
     { name = "pandas", marker = "extra == 'all'" },
     { name = "pandas", marker = "extra == 'db-pandas'" },
     { name = "pandas", marker = "extra == 'scrapers'" },
@@ -2242,6 +2258,7 @@ requires-dist = [
     { name = "python-hcl2", marker = "extra == 'dev'" },
     { name = "redis", marker = "extra == 'all'" },
     { name = "redis", marker = "extra == 'flask-api'" },
+    { name = "redis", marker = "extra == 'redis'", specifier = ">=7.0.1" },
     { name = "requests", marker = "extra == 'all'" },
     { name = "requests", marker = "extra == 'api'" },
     { name = "requests", marker = "extra == 'flask-api'" },
@@ -2263,7 +2280,7 @@ requires-dist = [
     { name = "websocket", marker = "extra == 'all'" },
     { name = "websocket", marker = "extra == 'scrapers'" },
 ]
-provides-extras = ["postgres", "mssql", "influx", "db-pandas", "auth", "flask-api", "scrapers", "cli", "minio", "analysis", "duckdb", "all", "dev", "llama", "api"]
+provides-extras = ["postgres", "mssql", "influx", "db-pandas", "auth", "flask-api", "scrapers", "cli", "minio", "analysis", "duckdb", "all", "dev", "llama", "api", "mqtt", "redis"]
 
 [[package]]
 name = "pygments"

@@ -135,6 +135,12 @@ api = [
     "requests",
     "requests-toolbelt",
 ]
+mqtt = [
+    "paho-mqtt>=2.1.0",
+]
+redis = [
+    "redis>=7.0.1",
+]
 
 [project.scripts]
 pygarden = "pygarden.cli:common_cli"
