@@ -67,7 +67,7 @@ class MqttBus:
         """Establish a connection to the MQTT broker and start the message loop."""
         self.client.on_connect = lambda c, u, f, rc: self.logger.info("MQTT connected rc=%s", rc)
         self.client.on_message = self._on_message
-        self.client.connect(self.host, self.port)
+        self.client.connect(self.host, self.port, keepalive=30)
         for t in self._routes:
             self.client.subscribe(t)
         threading.Thread(target=self.client.loop_forever, daemon=True).start()
