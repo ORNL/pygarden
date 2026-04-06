@@ -92,6 +92,10 @@ class MqttBus:
         payload = obj if isinstance(obj, (str, bytes)) else json.dumps(obj)
         self.client.publish(topic, payload=payload)
     
+    def publish(self, topic: str, obj: Any) -> None:
+        """Alias for pub() to publish a message to a specific MQTT topic."""
+        self.pub(topic, obj)
+    
     def loop_stop(self) -> None:
         """Stop the MQTT client's network loop."""
         self.client.loop_stop()
