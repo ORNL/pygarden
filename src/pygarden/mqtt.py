@@ -92,6 +92,10 @@ class MqttBus:
         payload = obj if isinstance(obj, (str, bytes)) else json.dumps(obj)
         self.client.publish(topic, payload=payload)
     
+    def loop_stop(self) -> None:
+        """Stop the MQTT client's network loop."""
+        self.client.loop_stop()
+    
     def disconnect(self) -> None:
         """Disconnect from the MQTT broker."""
         if self.client and self.client.is_connected():
