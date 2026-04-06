@@ -94,7 +94,8 @@ class MqttBus:
     
     def disconnect(self) -> None:
         """Disconnect from the MQTT broker."""
-        self.client.disconnect()
+        if self.client and self.client.is_connected():
+            self.client.disconnect()
         self.logger.info("MQTT disconnected")
     
     def __del__(self):
