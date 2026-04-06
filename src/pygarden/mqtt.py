@@ -38,14 +38,14 @@ class MqttBus:
         """
         if connection_info is None:
             connection_info = {}
-        self.host, self.port = connection_info.get("host", MQTT.DEFAULT_HOST), connection_info.get("port", MQTT.DEFAULT_PORT)
+        self.host, self.port = connection_info.get("host", MqttBus.DEFAULT_HOST), connection_info.get("port", MqttBus.DEFAULT_PORT)
         self.client = mqtt.Client(**kwargs)
         
         if log_file_info is None:
             log_file_info = {
-                "path": MQTT.DEFAULT_LOG_PATH,
-                "mode": MQTT.DEFAULT_LOG_MODE,
-                "encoding": MQTT.DEFAULT_LOG_ENCODING,
+                "path": MqttBus.DEFAULT_LOG_PATH,
+                "mode": MqttBus.DEFAULT_LOG_MODE,
+                "encoding": MqttBus.DEFAULT_LOG_ENCODING,
             }
         if log_file_info["path"] == "":
             self.logger = create_logger()
