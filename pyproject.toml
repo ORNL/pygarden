@@ -179,6 +179,6 @@ files = [
     "README.md",
 ]
 
-[[tool.uv.index]]
-url = "https://pypi.org/simple"
+#[[tool.uv.index]]
+#url = "https://pypi.org/simple"
 #explicit = true
