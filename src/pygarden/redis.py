@@ -6,7 +6,7 @@ Redis connection and message handling.
 
 import json
 from typing import Any, Dict, Optional
-from redis import Redis
+from redis import Redis as redis
 from dataclasses import asdict, is_dataclass
 from pygarden.env import check_environment as ce
 from pygarden.logz import create_logger
@@ -48,7 +48,7 @@ class Redis:
         self.url = connection_info.get("url", Redis.DEFAULT_URL)
         if self.url is None:
             self.url = f"redis://{connection_info.get('host', Redis.DEFAULT_HOST)}:{connection_info.get('port', Redis.DEFAULT_PORT)}"
-        self.client = Redis.from_url(self.url, **kwargs)
+        self.client = redis.from_url(self.url, **kwargs)
         
         if log_file_info is None:
             log_file_info = {
