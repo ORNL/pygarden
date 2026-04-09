@@ -100,9 +100,6 @@ class Udp:
         while self.stop_event is None or not self.stop_event.is_set():
             try:
                 data = self.send_queue.get(timeout=0.5)
-            except socket.timeout:
-                # Timeout is expected - allows checking stop_event
-                continue
             except queue.Empty:
                 continue
             if data:
@@ -129,6 +126,9 @@ class Udp:
                 self.logger.debug("Received UDP data from %s:%s", addr[0], addr[1])
                 if self.data_received is not None:
                     self.data_received(data, addr)
+            except socket.timeout:
+                # Timeout is expected - allows checking stop_event
+                continue
             except OSError as e:
                 self.logger.error("Error receiving UDP data: %s", e)
 
