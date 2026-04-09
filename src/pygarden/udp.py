@@ -100,6 +100,9 @@ class Udp:
         while self.stop_event is None or not self.stop_event.is_set():
             try:
                 data = self.send_queue.get(timeout=0.5)
+            except socket.timeout:
+                # Timeout is expected - allows checking stop_event
+                continue
             except queue.Empty:
                 continue
             if data:
