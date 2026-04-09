@@ -80,7 +80,7 @@ class MqttBus:
         if handler:
             handler(payload)
 
-    def pub(self, topic: str, obj: Any) -> None:
+    def pub(self, topic: str, obj: Any, **kwargs) -> None:
         """Publish a message to a specific MQTT topic.
 
         :param topic: The MQTT topic to publish to.
@@ -90,11 +90,11 @@ class MqttBus:
         """
         self.logger.debug("Publishing message for topic: %s", topic)
         payload = obj if isinstance(obj, (str, bytes)) else json.dumps(obj)
-        self.client.publish(topic, payload=payload)
+        self.client.publish(topic, payload=payload, **kwargs)
     
-    def publish(self, topic: str, obj: Any) -> None:
+    def publish(self, topic: str, obj: Any, **kwargs) -> None:
         """Alias for pub() to publish a message to a specific MQTT topic."""
-        self.pub(topic, obj)
+        self.pub(topic, obj, **kwargs)
     
     def loop_stop(self) -> None:
         """Stop the MQTT client's network loop."""
