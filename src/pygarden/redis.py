@@ -62,7 +62,7 @@ class Redis:
             self.logger = create_logger(log_file_info["path"], log_file_info["mode"], log_file_info["encoding"])
 
     @staticmethod
-    def from_url(url: str, **kwargs) -> "Redis":
+    def from_url(url: str, **kwargs):
         """Generate a Redis option from a connection URL.
 
         :param url: The Redis connection URL.
