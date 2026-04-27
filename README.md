@@ -13,20 +13,43 @@ Some highlights from `pyGARDEN`:
 
 ### Installation via `uv`
 
-If you have a `uv venv`, you can run the following command in the root of the repo:
+For local development from this repository, create or activate a `uv` virtual
+environment and install the package with the extras you need:
 
-`uv pip install -e ".[dev,cli,postgres]"`
+`uv pip install -e ".[dev,cli,postgres,s3]"`
 
-You may then need to source your `uv` environment to use the `pygarden` command line interface, e.g. `source .venv/bin/activate`.
+You may then need to source your `uv` environment to use the `pygarden`
+command line interface, e.g. `source .venv/bin/activate`.
 
-Replace the above extras with the extras of your choice.
+If you prefer `uv sync`, install extras by name:
+
+```bash
+uv sync --extra postgres --extra s3
+```
+
+Replace the extras above with the extras relevant to your environment.
 
 ## Extras
 
-To enable support for specific databases, use the following extras:
+Install optional features with `uv sync --extra <name>` or
+`python -m pip install "pygarden[<name>]"`.
 
-- `postgres`: Enables Postgres support via `psycopg2`
+Available extras include:
+
+- `postgres`: Enables PostgreSQL support via `psycopg` and `asyncpg`
 - `mssql`: Enables MSSQL support via `pymssql`
+- `duckdb`: Enables DuckDB support
+- `db-pandas`: Adds pandas helpers for database work
+- `influx`: Enables InfluxDB support
+- `auth`: Adds LDAP and Flask auth helpers
+- `flask-api`: Adds Flask API dependencies
+- `cli`: Installs CLI dependencies
+- `s3`: Installs the S3 client dependencies (`boto3`, `humanize`)
+- `scrapers`: Installs scraper-related dependencies
+- `analysis`: Installs analysis dependencies
+- `llama`: Installs llama.cpp support
+- `api`: Installs generic API helper dependencies
+- `all`: Installs all optional extras
 
 #### `pymssql` on MacOS
 
@@ -49,13 +72,17 @@ After than, you can run `uv sync --extra mssql` or `uv sync --extra all` to get 
 
 ### Installation via pip
 
-Run this command to install version 0.3.28 (latest) via pip:
-
-`python3 -m pip --no-cache-dir install pygarden==0.3.28`
-
-This will install latest (not recommended):
+Install the latest published package from PyPI:
 
 `python3 -m pip --no-cache-dir install pygarden`
+
+Install a specific extra from PyPI:
+
+`python3 -m pip --no-cache-dir install "pygarden[s3]"`
+
+You can combine extras as needed, for example:
+
+`python3 -m pip --no-cache-dir install "pygarden[postgres,s3]"`
 
 ## Getting the Image
 
@@ -107,7 +134,7 @@ from pygarden.database import Database
 
 
 class PostgresDatabase(Database, PostgresMixin):
-    """The class that allows Database to interact with psycopg2."""
+    """The class that allows Database to interact with psycopg."""
     # TODO add additional functions for your class here, specific to your needs
 
 with PostgresDatabase() as db:
@@ -145,7 +172,7 @@ class Users(CRUDTable):
 
 
 class PostgresDatabase(Database, PostgresMixin):
-    """The class that allows Database to interact with psycopg2."""
+    """The class that allows Database to interact with psycopg."""
     def __init__(self):
         super().__init__()
         # here we are assigning the CRUD table to the database's 'users'
