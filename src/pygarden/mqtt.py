@@ -100,6 +100,10 @@ class MqttBus:
         """Stop the MQTT client's network loop."""
         self.client.loop_stop()
     
+    def loop_start(self) -> None:
+        """Start the MQTT client's network loop."""
+        self.client.loop_start()
+    
     def disconnect(self) -> None:
         """Disconnect from the MQTT broker."""
         if self.client and self.client.is_connected():
