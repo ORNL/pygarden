@@ -106,7 +106,7 @@ class Redis:
         :param ttl_seconds: Time-to-live for the key in seconds, defaults to None
         :type ttl_seconds: Optional[int], optional
         """
-        data = json.dumps(payload, default=_default_serializer)
+        data = json.dumps(payload, default=_default_serializer) if not isinstance(payload, (str, bytes)) else payload
         if ttl_seconds:
             self.setex(name, ttl_seconds, data)
         else:
