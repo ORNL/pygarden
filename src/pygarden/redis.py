@@ -121,7 +121,7 @@ class Redis:
         :return: The raw value as a string, or None if the key does not exist or an error occurs.
         :rtype: Optional[str]
         """
-        return self.client.read(name)
+        return self.client.get(name)
 
     def read(self, name: str) -> Optional[str]:
         """Read a raw value from the redis store. (Alias of Redis.get)
@@ -141,10 +141,5 @@ class Redis:
         :return: The JSON-decoded value, or None if the key does not exist or an error occurs.
         :rtype: Optional[dict]
         """
-        try:
-            raw = self.get(name)
-            return json.loads(raw) if raw else None
-        except Exception as exc:
-            if self.on_error:
-                self.on_error(exc)
-            return None
+        raw = self.get(name)
+        return json.loads(raw) if raw else None
