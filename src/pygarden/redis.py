@@ -108,10 +108,8 @@ class Redis:
         """
         data = json.dumps(payload, default=_default_serializer) if not isinstance(payload, (str, bytes)) else payload
         if ttl_seconds:
-            self.logger.info("Publishing message for key: %s with TTL: %s seconds", name, ttl_seconds)
             self.setex(name, ttl_seconds, data)
         else:
-            self.logger.info("Publishing message for key: %s with no TTL", name)
             self.set(name, data)
 
     # Including this as to make it a drop in replace for redis.Redis
@@ -123,7 +121,7 @@ class Redis:
         :return: The raw value as a string, or None if the key does not exist or an error occurs.
         :rtype: Optional[str]
         """
-        return self.read(name)
+        return self.client.read(name)
 
     def read(self, name: str) -> Optional[str]:
         """Read a raw value from the redis store. (Alias of Redis.get)
