@@ -1,20 +1,35 @@
 site_name: pyGARDEN Documentation
 nav:
-- INDEX:
+  - Home: index.md
+  - Core:
+      - Configuration: configuration.md
+      - Logging: logging.md
+  - Database:
+      - Overview: database/index.md
+      - Mixins: database/mixins.md
+      - SQLAlchemy: database/sqlalchemy.md
+  - Scrapers:
+      - Overview: scrapers/index.md
+      - Mixins: scrapers/mixins.md
+  - Services:
+      - CLI: cli.md
+      - Scheduler: scheduler.md
+      - Mail: mail.md
+      - Auth: auth.md
+      - S3: s3.md
+      - File operations: file_operations.md
 plugins:
-- search
-- mkdocstrings:
-    handlers:
-      python:
-        paths:
-        - .
-markdown_extensions:
-- mkdocs-click
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - .
 theme:
   name: material
   features:
-  - navigation.sections
-  - navigation.tracking
-  - navigation.path
-  - navigation.tabs
-  - navigation.indexes
+    - navigation.sections
+    - navigation.tracking
+    - navigation.path
+    - navigation.tabs
+    - navigation.indexes

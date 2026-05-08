@@ -1,6 +1,6 @@
 [project]
 name = "pygarden"
-version = "0.3.28"
+version = "0.3.30"
 readme = "README.md"
 description = "Package to perform everyday tasks - logging, accessing database, etc."
 authors = [
@@ -62,55 +62,41 @@ flask-api = [
     "celery"
 ]
 
-scrapers = [
-    "pandas",
-    "urllib3>=2.0",
-    "selenium",
-    "requests",
-    "cfscrape",
-    "cloudscraper",
-    "beautifulsoup4",
-    "websocket",
-]
 cli = [
     "rich",
     "click",
 ]
-minio = [
-    "minio",
+s3 = [
+    "boto3",
+    "humanize",
 ]
 analysis = [
     "polars",
     "polars-st",
 ]
-duckdb = [
-    "duckdb>=0.8.1",
+llama = [
+    "llama-cpp-python>=0.2.74"
 ]
-all = [
-    "psycopg[binary]>=3.0.0",
-    "pymssql>2.2.11",
+api = [
+    "requests",
+    "requests-toolbelt",
+]
+
+scrapers = [
+    "pygarden[api]",
     "pandas",
     "urllib3>=2.0",
     "selenium",
-    "requests",
     "cfscrape",
     "cloudscraper",
     "beautifulsoup4",
     "websocket",
-    "influxdb",
-    "ldap3",
-    "flask",
-    "rich",
-    "click",
-    "minio",
-    "pandas",
-    "SQLAlchemy",
-    "redis",
-    "celery",
-    "asyncpg",
-    "polars",
-    "polars-st",
-    "requests-toolbelt",
+]
+duckdb = [
+    "duckdb>=0.8.1",
+]
+all = [
+    "pygarden[postgres,mssql,influx,db-pandas,auth,flask-api,scrapers,cli,s3,analysis,duckdb,llama,api]"
 ]
 dev = [
     "ruff",
@@ -128,6 +114,7 @@ dev = [
     "mkdocs-material",
     "mkdocs-click",
 ]
+<<<<<<< HEAD
 llama = [
     "llama-cpp-python>=0.2.74"
 ]
@@ -141,6 +128,8 @@ mqtt = [
 redis = [
     "redis>=7.0.1",
 ]
+=======
+>>>>>>> origin/main
 
 [project.scripts]
 pygarden = "pygarden.cli:common_cli"
@@ -179,6 +168,6 @@ files = [
     "README.md",
 ]
 
-#[[tool.uv.index]]
-#url = "https://pypi.org/simple"
-#explicit = true
+[[tool.uv.index]]
+url = "https://pypi.org/simple"
+explicit = false
