@@ -1,0 +1,39 @@
+stages:
+  - build
+  - test
+  - publish
+
+before_script:
+  - python --version
+  - pip install --upgrade pip
+  - pip install build twine
+
+build:
+  stage: build
+  image: python:3.11
+  script:
+    - python -m build
+  artifacts:
+    paths:
+      - dist/*
+  only:
+    - pypi
+
+test:
+  stage: test
+  script:
+    - pip install pytest
+    - pip install dist/*.whl
+    - pytest
+  only:
+    - pypi
+
+publish:
+  stage: publish
+  image: python:3.11
+  script:
+    - python -m twine upload --username "$PYPI_USERNAME" --password "$PYPI_PASSWORD" dist/*
+  dependencies:
+    - test
+  only:
+    - pypi
