@@ -114,22 +114,6 @@ dev = [
     "mkdocs-material",
     "mkdocs-click",
 ]
-<<<<<<< HEAD
-llama = [
-    "llama-cpp-python>=0.2.74"
-]
-api = [
-    "requests",
-    "requests-toolbelt",
-]
-mqtt = [
-    "paho-mqtt>=2.1.0",
-]
-redis = [
-    "redis>=7.0.1",
-]
-=======
->>>>>>> origin/main
 
 [project.scripts]
 pygarden = "pygarden.cli:common_cli"
