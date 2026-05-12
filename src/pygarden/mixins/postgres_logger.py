@@ -9,26 +9,29 @@ class PostgresLoggerMixin(Database, PostgresMixin):
     Log Handler for easy logging.
 
     The intent of this handler is to have a common place to easily print logs
-    to the terminal and/or record them to the .log table of a schema. After
-    initializing the class, passing the w parameter to the log function will tell
-    the function to write the log to the database, for example:
+    to the terminal and/or record them to the database. After initializing the
+    class, passing the w parameter to the log function will tell the function
+    to write the log to the database, for example:
     db_logger.info("TEST MESSAGE", w=True)
 
     Attributes
     ----------
         schema (str): The name of the schema
+        table_name (str): The name of the log table
 
     """
 
-    def __init__(self, schema: str, **kwargs):
+    def __init__(self, schema: str = "public", table_name: str = "log", **kwargs):
         """
         The constructor for the PostgresLoggerMixin class.
 
         :param schema: The name of the schema
+        :param table_name: The name of the log table
         :param kwargs: Additional keyword arguments.
         """
         super().__init__()
         self.schema = schema
+        self.table_name = table_name
         self.log_collection = []
         self.logger = Database().logger
 
@@ -91,14 +94,25 @@ class PostgresLoggerMixin(Database, PostgresMixin):
         """Checks if log table exists for workspace."""
         self.open()
         self.cursor.execute(
-            f"CREATE TABLE IF NOT EXISTS {self.schema}.log (levelname TEXT, message TEXT, ts timestamp default now());"
+            f"""
+            CREATE TABLE IF NOT EXISTS {self.schema}.{self.table_name} (
+                levelname TEXT,
+                message TEXT,
+                ts timestamp default now()
+            );
+            """
         )
         self.close()
 
     def log_to_database(self, loglevel, message):
         """Logs log message to database."""
         self.open()
-        self.cursor.execute(f"INSERT INTO {self.schema}.log (levelname, message) VALUES('{loglevel}', '{message}');")
+        self.cursor.execute(
+            f"""
+            INSERT INTO {self.schema}.{self.table_name} (levelname, message)
+            VALUES('{loglevel}', '{message}');
+            """
+        )
         self.close()
 
     def collect_logs(self, level, message):
@@ -109,16 +123,31 @@ class PostgresLoggerMixin(Database, PostgresMixin):
     def write_log_collection_to_database(self, log_list=None):
         """Writes collection of logs to database and empties log list"""
         self.check_table_exists()
+
         # This keeps us from mucking up the internal list, even though we double
         # the code
         self.open()
+
         if log_list:
             for log_entry in log_list:
-                self.cursor.execute(f"INSERT INTO {self.schema}.log VALUES('{log_entry[0]}', '{log_entry[1]}');")
+                self.cursor.execute(
+                    f"""
+                    INSERT INTO {self.schema}.{self.table_name}
+                    VALUES('{log_entry[0]}', '{log_entry[1]}');
+                    """
+                )
+
         elif self.log_collection:
             for log_entry in self.log_collection:
-                self.cursor.execute(f"INSERT INTO {self.schema}.log VALUES('{log_entry[0]}', '{log_entry[1]}');")
+                self.cursor.execute(
+                    f"""
+                    INSERT INTO {self.schema}.{self.table_name}
+                    VALUES('{log_entry[0]}', '{log_entry[1]}');
+                    """
+                )
             self.log_collection = []
+
         else:
             self.warning("No logs recorded.")
+
         self.close()
