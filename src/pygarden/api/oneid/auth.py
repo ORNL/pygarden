@@ -1,33 +1,42 @@
-import os
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Core session setup and dependency helpers for the OneID auth plugin.
+
+Exposes FastAPI dependencies (:func:`get_user`, :func:`get_session_id`) and
+helpers (:func:`get_login_url`, :func:`get_public_base_url`) for use in route
+handlers.  All settings are read from :mod:`pygarden.api.oneid.config`.
+"""
+
 from uuid import UUID
 
 from fastapi import HTTPException, Request
 from fastapi_sessions.frontends.implementations import CookieParameters, SessionCookie
 
+from pygarden.mail import send_email
+
+from . import config
+from .auth_db import AuthDB
 from .basic_verifier import BasicVerifier
 from .db_backend import DBBackend
 from .session_data import SessionData
-from .simple_auth import AUTH_MODE_ONEID, get_auth_mode
-from .auth_db import AuthDB
-from pygarden.mail import send_email
-
-ONEID_CLIENT = os.getenv("ONEID_CLIENT", "ornlHEXUS")
-PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").strip().rstrip("/")
-SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY", "HexusSecretKey")
-SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "false").lower() in {"1", "true", "yes", "on"}
 
 
 class RequiresLoginException(Exception):
-    pass
+    """Raised when a protected route is accessed without a valid session."""
 
-### SESSION SETUP ###
-cookie_params = CookieParameters(secure=SESSION_COOKIE_SECURE, samesite="lax")
+
+# ---------------------------------------------------------------------------
+# Session setup — instantiated once at import time using config values
+# ---------------------------------------------------------------------------
+
+cookie_params = CookieParameters(secure=config.SESSION_COOKIE_SECURE, samesite="lax")
 
 cookie = SessionCookie(
-    cookie_name="cookie",
+    cookie_name=config.SESSION_COOKIE_NAME,
     identifier="general_verifier",
     auto_error=True,
-    secret_key=SESSION_SECRET_KEY,
+    secret_key=config.SESSION_SECRET_KEY,
     cookie_params=cookie_params,
 )
 
@@ -39,12 +48,26 @@ verifier = BasicVerifier(
     backend=backend,
     auth_http_exception=HTTPException(status_code=403, detail="invalid session"),
 )
-### ENF OF SESSION SETUP ###
+
+
+# ---------------------------------------------------------------------------
+# URL helpers
+# ---------------------------------------------------------------------------
 
 
 def get_public_base_url(request: Request) -> str:
-    if PUBLIC_BASE_URL:
-        return PUBLIC_BASE_URL
+    """
+    Return the canonical public base URL.
+
+    Uses ``PUBLIC_BASE_URL`` from config when set; otherwise reconstructs it
+    from ``x-forwarded-*`` headers or the request URL.
+
+    :param request: Incoming FastAPI request.
+    :returns: Base URL string without a trailing slash.
+    :rtype: str
+    """
+    if config.PUBLIC_BASE_URL:
+        return config.PUBLIC_BASE_URL
 
     forwarded_proto = request.headers.get("x-forwarded-proto")
     forwarded_host = request.headers.get("x-forwarded-host")
@@ -61,89 +84,141 @@ def get_public_base_url(request: Request) -> str:
 
 
 def get_oauth_redirect_uri(request: Request) -> str:
-    return f"{get_public_base_url(request)}/login/oauth2/code/oneid"
+    """
+    Build the full OAuth redirect URI from the base URL and configured path.
 
-async def send_new_user_email(new_user: SessionData, request: Request) -> None:
-    async with AuthDB() as adb:
-        admin_emails = await adb.get_admin_emails()
-        if not admin_emails:
-            return
-        send_email("New HEXUS User", f"""
-Hexus Admin,
-               
-A new user has registered for HEXUS with the following details:
-- Name: {new_user.first_name} {new_user.last_name}
-- Email: {new_user.email}
-- Affiliation: {new_user.affiliation}
-- U.S. Citizen: {"Yes" if new_user.us_citizen else "No"}
+    :param request: Incoming FastAPI request.
+    :returns: Full redirect URI string.
+    :rtype: str
+    """
+    return f"{get_public_base_url(request)}{config.OAUTH_REDIRECT_PATH}"
 
-If this user should be approved, please click the following link to approve their account:
-{get_public_base_url(request)}/api/approve-user?email={new_user.email}
-
-- Hexus System
-""", recipients=",".join(admin_emails))
-
-
-async def send_password_reset_request_email(email: str, request: Request, name: str = "") -> None:
-    async with AuthDB() as adb:
-        admin_emails = await adb.get_admin_emails()
-        if not admin_emails:
-            return
-
-        display_name = name.strip() or email
-        send_email("HEXUS Password Reset Request", f"""
-Hexus Admin,
-
-A user has requested a password reset for their HEXUS simple-login account.
-
-- Name: {display_name}
-- Email: {email}
-
-Please open the user administration page and issue a temporary password:
-{get_public_base_url(request)}/admin/users
-
-- Hexus System
-""", recipients=",".join(admin_emails))
 
 def get_login_url(request: Request) -> str:
-    if get_auth_mode() != AUTH_MODE_ONEID:
-        return f"{get_public_base_url(request)}/login"
+    """
+    Build the OneID authorization URL for the login redirect.
 
+    :param request: Incoming FastAPI request.
+    :returns: Full OneID authorization URL.
+    :rtype: str
+    """
+    redirect_uri = get_oauth_redirect_uri(request)
     return (
-        "https://eams-auth.oneid.energy.gov/as/authorization.oauth2"
-        f"?response_type=code&client_id={ONEID_CLIENT}&redirect_uri={get_oauth_redirect_uri(request)}"
+        f"{config.ONEID_AUTH_URL}"
+        f"?response_type=code"
+        f"&client_id={config.ONEID_CLIENT}"
+        f"&redirect_uri={redirect_uri}"
     )
 
-def get_session_id(redirect: bool = True) -> callable:
+
+# ---------------------------------------------------------------------------
+# Email notifications (optional — controlled by SEND_NEW_USER_EMAIL)
+# ---------------------------------------------------------------------------
+
+
+async def send_new_user_email(new_user: SessionData, request: Request) -> None:
+    """
+    Notify admins that a new user has registered and is awaiting approval.
+
+    Does nothing when ``SEND_NEW_USER_EMAIL`` is ``false`` or when there are
+    no admin users in the database.
+
+    :param new_user: Session data for the newly registered user.
+    :param request: Incoming FastAPI request (used to build approval URLs).
+    """
+    if not config.SEND_NEW_USER_EMAIL:
+        return
+    async with AuthDB() as adb:
+        admin_emails = await adb.get_admin_emails()
+        if not admin_emails:
+            return
+        base = get_public_base_url(request)
+        approval_url = f"{base}{config.AUTH_APPROVAL_PATH}?{config.COL_EMAIL}={new_user.email}"
+        send_email(
+            f"New {config.APP_NAME} User",
+            f"""{config.APP_NAME} Admin,
+
+A new user has registered for {config.APP_NAME}:
+- Name:        {new_user.first_name} {new_user.last_name}
+- Email:       {new_user.email}
+- Affiliation: {new_user.affiliation or "N/A"}
+
+To approve their account, visit:
+{approval_url}
+
+- {config.APP_NAME} System
+""",
+            recipients=",".join(admin_emails),
+        )
+
+
+# ---------------------------------------------------------------------------
+# FastAPI dependency helpers
+# ---------------------------------------------------------------------------
+
+
+def get_session_id(redirect: bool = True):
+    """
+    Return a FastAPI dependency that resolves the current session ID.
+
+    :param redirect: If ``True``, raise :exc:`RequiresLoginException` on
+        missing/invalid sessions (triggers a login redirect).  If ``False``,
+        raise a 401 HTTP exception instead.
+    :returns: Async dependency callable.
+    """
+
     async def _get_session_id(request: Request) -> str:
         try:
             session_id = cookie.__call__(request)
             sd = await backend.read(session_id)
-            if sd.email:
+            if sd and sd.email:
                 async with AuthDB() as adb:
-                    email_status = await adb.getEmailStatus(sd.email)
-                    if email_status == "active":
+                    if await adb.getEmailStatus(sd.email) == "active":
                         return str(session_id)
-        except:
-            if redirect:
-                raise RequiresLoginException()
-            raise HTTPException(status_code=401, detail="Not authorized")
+        except Exception:
+            pass
+        if redirect:
+            raise RequiresLoginException()
+        raise HTTPException(status_code=401, detail="Not authorized")
+
     return _get_session_id
 
+
 async def get_user(request: Request) -> SessionData:
+    """
+    FastAPI dependency that returns the authenticated :class:`~pygarden.api.oneid.session_data.SessionData`.
+
+    Raises :exc:`RequiresLoginException` for missing sessions and appropriate
+    HTTP redirects for disabled or unapproved accounts.
+
+    :param request: Incoming FastAPI request.
+    :returns: Validated session data for the active user.
+    :rtype: SessionData
+    :raises RequiresLoginException: When no valid session exists.
+    :raises HTTPException: For disabled (302) or unapproved (302) accounts.
+    """
     email_status = "unknown"
     try:
         session_id = cookie.__call__(request)
         sd = await backend.read(session_id)
-        if sd.email:
+        if sd and sd.email:
             async with AuthDB() as adb:
                 email_status = await adb.getEmailStatus(sd.email)
-    except:
+    except Exception:
         raise RequiresLoginException()
+
     if email_status == "active":
         return sd
-    elif email_status == "disabled":
-        raise HTTPException(status_code=302, detail="Not authorized", headers = {"Location": "/account-status?status=disabled"} )
-    elif email_status == "unapproved":
-        raise HTTPException(status_code=302, detail="Not authorized", headers = {"Location": "/account-status?status=unapproved"} )
+    if email_status == "disabled":
+        raise HTTPException(
+            status_code=302,
+            detail="Not authorized",
+            headers={"Location": config.AUTH_REDIRECT_DISABLED},
+        )
+    if email_status == "unapproved":
+        raise HTTPException(
+            status_code=302,
+            detail="Not authorized",
+            headers={"Location": config.AUTH_REDIRECT_UNAPPROVED},
+        )
     raise RequiresLoginException()
