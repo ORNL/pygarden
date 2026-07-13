@@ -102,7 +102,7 @@ oneid = [
     "requests",
 ]
 all = [
-    "pygarden[postgres,mssql,influx,db-pandas,auth,flask-api,scrapers,cli,s3,analysis,duckdb,llama,api]"
+    "pygarden[postgres,mssql,influx,db-pandas,auth,flask-api,scrapers,cli,s3,analysis,duckdb,llama,api,oneid]"
 ]
 dev = [
     "ruff",
