@@ -1,5 +1,7 @@
-from .auth_db import AuthDB
+"""Session backend adapter that persists OneID sessions via AuthDB."""
+
 from typing import Generic
+
 from fastapi_sessions.backends.session_backend import (
     BackendError,
     SessionBackend,
@@ -7,10 +9,14 @@ from fastapi_sessions.backends.session_backend import (
 )
 from fastapi_sessions.frontends.session_frontend import ID
 
+from .auth_db import AuthDB
+
+
 class DBBackend(Generic[ID, SessionModel], SessionBackend[ID, SessionModel]):
+    """Implement FastAPI session backend CRUD using the OneID auth database."""
+
     def __init__(self) -> None:
-        # self.adb = AuthDB()
-        pass
+        """Create a backend instance."""
 
     async def create(self, session_id: ID, data: SessionModel):
         """Create a new session entry."""

@@ -22,8 +22,12 @@ from .db_backend import DBBackend
 from .session_data import SessionData
 
 
-class RequiresLoginException(Exception):
+class RequiresLoginError(Exception):
     """Raised when a protected route is accessed without a valid session."""
+
+
+# Backwards-compatible alias used by existing imports and docs.
+RequiresLoginException = RequiresLoginError
 
 
 # ---------------------------------------------------------------------------
@@ -103,12 +107,7 @@ def get_login_url(request: Request) -> str:
     :rtype: str
     """
     redirect_uri = get_oauth_redirect_uri(request)
-    return (
-        f"{config.ONEID_AUTH_URL}"
-        f"?response_type=code"
-        f"&client_id={config.ONEID_CLIENT}"
-        f"&redirect_uri={redirect_uri}"
-    )
+    return f"{config.ONEID_AUTH_URL}?response_type=code&client_id={config.ONEID_CLIENT}&redirect_uri={redirect_uri}"
 
 
 # ---------------------------------------------------------------------------
@@ -173,7 +172,7 @@ def get_session_id(redirect: bool = True):
             sd = await backend.read(session_id)
             if sd and sd.email:
                 async with AuthDB() as adb:
-                    if await adb.getEmailStatus(sd.email) == "active":
+                    if await adb.get_email_status(sd.email) == "active":
                         return str(session_id)
         except Exception:
             pass
@@ -203,7 +202,7 @@ async def get_user(request: Request) -> SessionData:
         sd = await backend.read(session_id)
         if sd and sd.email:
             async with AuthDB() as adb:
-                email_status = await adb.getEmailStatus(sd.email)
+                email_status = await adb.get_email_status(sd.email)
     except Exception:
         raise RequiresLoginException()
 

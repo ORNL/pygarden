@@ -18,16 +18,16 @@ All endpoint paths are configurable via environment variables (see
 - ``GET {AUTH_PATH_LOGIN_URL}``    — Returns the OneID login URL (default: ``/login-url``)
 """
 
+from uuid import UUID, uuid4
+
 import jwt
 import requests as http_requests
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 from jwt import PyJWKClient
-from uuid import UUID, uuid4
 
 from . import config
 from .auth import (
-    RequiresLoginException,
     backend,
     cookie,
     get_login_url,
@@ -105,7 +105,7 @@ async def login_oauth2_callback(code: str, request: Request) -> Response:
         if not email:
             raise HTTPException(status_code=401, detail="OneID response did not include an email address.")
 
-        email_status = await adb.getEmailStatus(email)
+        email_status = await adb.get_email_status(email)
 
         # Build the session data from JWT claims.  DOE-specific fields are
         # optional and fall back to their SessionData defaults when absent.
@@ -117,13 +117,13 @@ async def login_oauth2_callback(code: str, request: Request) -> Response:
             admin=False,
             us_citizen=bool(jwt_data.get("us_citizen", False)),
             affiliation=(
-                f"{jwt_data.get('doe_affiliation_level_1', '')}"
-                f"/{jwt_data.get('doe_affiliation_level_2', '')}"
-            ).strip("/") or "",
+                f"{jwt_data.get('doe_affiliation_level_1', '')}/{jwt_data.get('doe_affiliation_level_2', '')}"
+            ).strip("/")
+            or "",
         )
 
         if email_status == "active":
-            user = await adb.getUserByEmail(email)
+            user = await adb.get_user_by_email(email)
             session_data.user_id = user[config.COL_USER_ID]
             session_data.admin = user.get(config.COL_ADMIN, False)
             session = uuid4()
@@ -138,11 +138,11 @@ async def login_oauth2_callback(code: str, request: Request) -> Response:
 
         else:
             # New user — determine whether to auto-approve
-            is_first_user = (await adb.countUsers()) == 0
+            is_first_user = (await adb.count_users()) == 0
             should_approve = config.AUTO_APPROVE_USERS or is_first_user
             should_admin = is_first_user and config.FIRST_USER_AUTO_ADMIN
 
-            await adb.createUser(
+            await adb.create_user(
                 email=email,
                 first_name=session_data.first_name,
                 last_name=session_data.last_name,
@@ -154,7 +154,7 @@ async def login_oauth2_callback(code: str, request: Request) -> Response:
 
             if should_approve:
                 # User is immediately active — create a session and log them in
-                user = await adb.getUserByEmail(email)
+                user = await adb.get_user_by_email(email)
                 session_data.user_id = user[config.COL_USER_ID]
                 session_data.admin = should_admin
                 session = uuid4()
@@ -194,7 +194,7 @@ async def approve_user(email: str, user: SessionData = Depends(get_user)):
         return RedirectResponse(url=config.AUTH_REDIRECT_UNAUTHORIZED, status_code=302)
     async with AuthDB() as adb:
         normalized = normalize_email(email)
-        await adb.approveUser(normalized)
+        await adb.approve_user(normalized)
         return f"User {normalized} approved"
 
 

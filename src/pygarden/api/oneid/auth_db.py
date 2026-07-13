@@ -91,7 +91,7 @@ class AuthDB(AsyncPostgresMixin, Database):
         """
         await self.execute(query)
 
-    async def countUsers(self) -> int:
+    async def count_users(self) -> int:
         """
         Return the total number of registered users.
 
@@ -102,7 +102,7 @@ class AuthDB(AsyncPostgresMixin, Database):
         results = await self.query(query)
         return int(results[0][0]) if results else 0
 
-    async def getEmailStatus(self, email: str) -> str:
+    async def get_email_status(self, email: str) -> str:
         """
         Return the approval/enabled status for an email address.
 
@@ -123,7 +123,7 @@ class AuthDB(AsyncPostgresMixin, Database):
         results = await self.query(query, email, as_dict=True)
         return results[0]["status"] if results and len(results) == 1 else "unknown"
 
-    async def getUserByEmail(self, email: str) -> dict | None:
+    async def get_user_by_email(self, email: str) -> dict | None:
         """
         Fetch a user row by email address.
 
@@ -135,7 +135,7 @@ class AuthDB(AsyncPostgresMixin, Database):
         results = await self.query(query, email, as_dict=True)
         return results[0] if results and len(results) == 1 else None
 
-    async def createUser(
+    async def create_user(
         self,
         email: str,
         first_name: str,
@@ -175,7 +175,7 @@ class AuthDB(AsyncPostgresMixin, Database):
         """
         await self.execute(query, email, first_name, last_name, us_citizen, affiliation, approved, enabled, admin)
 
-    async def approveUser(self, email: str, admin: bool | None = None) -> None:
+    async def approve_user(self, email: str, admin: bool | None = None) -> None:
         """
         Approve a user account, optionally setting the admin flag simultaneously.
 
@@ -198,7 +198,7 @@ class AuthDB(AsyncPostgresMixin, Database):
         """
         await self.execute(query, email, admin)
 
-    async def setUserAdmin(self, email: str, admin: bool) -> None:
+    async def set_user_admin(self, email: str, admin: bool) -> None:
         """
         Set the admin flag for a user and propagate the change to any open sessions.
 
@@ -223,7 +223,7 @@ class AuthDB(AsyncPostgresMixin, Database):
         """
         await self.execute(query, email, admin)
 
-    async def listPendingUsers(self) -> list[dict]:
+    async def list_pending_users(self) -> list[dict]:
         """
         Return all users whose accounts are pending approval.
 
@@ -245,7 +245,7 @@ class AuthDB(AsyncPostgresMixin, Database):
         results = await self.query(query, as_dict=True)
         return results or []
 
-    async def listUsers(self) -> list[dict]:
+    async def list_users(self) -> list[dict]:
         """
         Return all users with a computed ``status`` field.
 

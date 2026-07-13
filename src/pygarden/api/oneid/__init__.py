@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 pygarden OneID auth plugin
+
 ==========================
 
 A self-contained FastAPI authentication plugin that integrates with the DOE
