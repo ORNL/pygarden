@@ -7,10 +7,26 @@ database.  Everything — including table names, column names, redirect URLs, an
 
 ## Installation
 
-Install the `oneid` extra along with the Postgres extras:
+The plugin needs both the `oneid` and `postgres` extras. To install a published
+release from PyPI, use either `uv` or `pip`:
 
 ```bash
 uv pip install "pygarden[postgres,oneid]"
+python -m pip install "pygarden[postgres,oneid]"
+```
+
+When working from a local checkout of this repository, use either editable
+install form:
+
+```bash
+uv pip install -e ".[postgres,oneid]"
+python -m pip install -e ".[postgres,oneid]"
+```
+
+Alternatively, `uv` can synchronize the project environment directly:
+
+```bash
+uv sync --extra postgres --extra oneid
 ```
 
 ## Quick-start

@@ -11,9 +11,18 @@ lifecycle backed by a Postgres database.
 
 Quick-start
 -----------
-Install the ``oneid`` extra::
+Install the ``oneid`` and ``postgres`` extras from PyPI with either ``uv`` or
+``pip``::
 
     uv pip install "pygarden[postgres,oneid]"
+    python -m pip install "pygarden[postgres,oneid]"
+
+When working from a local checkout, use an editable install with either
+installer, or let ``uv`` synchronize the extras::
+
+    uv pip install -e ".[postgres,oneid]"
+    python -m pip install -e ".[postgres,oneid]"
+    uv sync --extra postgres --extra oneid
 
 Set the required environment variables (see :mod:`pygarden.api.oneid.config`)::
 
