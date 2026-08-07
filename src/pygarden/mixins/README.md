@@ -3,8 +3,6 @@
 This directory contains various mixins for database connections and other functionality.
 
 ## Database Mixins
-<<<<<<< Updated upstream
-=======
 
 The pygarden database mixins make handling database connections much easier. When set up with ENV variables properly, a
 developer simply needs to worry about queries and spending less time managing connections and cursors.
@@ -40,85 +38,22 @@ uv pip install "pygarden[postgres]"
 ```
 To make the proper database connection, the pygarden PostgreSQL mixin uses pygarden's `check_environment()` function to 
 find the ENV variables for the different segments of a database connection string. If these are not provided, defaults are then used:
->>>>>>> Stashed changes
 
-### PostgresMixin
-Synchronous PostgreSQL connection using psycopg2.
-
-<<<<<<< Updated upstream
-### AsyncPostgresMixin
-=======
-Generally these would be set in a Dockerfile, or a gitlab-ci.yml file, or another file proper for setting ENV variables.
-
-With ENV variables set up and postgres installed locally or in a container, make a simple Database class importing Database and 
-PostgresMixin from pygarden:
-
-```python
-from pygarden.database import Database
-from pygarden.mixins.postgres import PostgresMixin
-from pygarden.logz import create_logger
-
-logger = create_logger()
-
-class TestDB(Database, PostgresMixin):
-    def __init__(self, **kwargs):
-        super().__init__()
+```bash
+DEFAULT_DB = ce("DATABASE_DB_PG", ce("DATABASE_DB", ce("PG_DATABASE", "postgres")))
+DEFAULT_USER = ce("DATABASE_USER_PG", ce("DATABASE_USER", ce("PG_USER", "postgres")))
+DEFAULT_PW = ce("DATABASE_PW_PG", ce("DATABASE_PW", ce("PG_PASSWORD", "postgres")))
+DEFAULT_HOST = ce("DATABASE_HOST_PG", ce("DATABASE_HOST", ce("PG_HOST", "localhost")))
+DEFAULT_PORT = int(ce("DATABASE_PORT_PG", ce("DATABASE_PORT", ce("PG_PORT", 5432))))
+DEFAULT_TIMEOUT = ce("DATABASE_TIMEOUT", ce("PG_TIMEOUT", 60))
+DEFAULT_SCHEMA = ce("DATABASE_SCHEMA_PG", ce("DATABASE_SCHEMA", ce("PG_SCHEMA", "public")))
+DEFAULT_ENGINE = ce("DATABASE_ENGINE_PG", ce("DATABASE_ENGINE", "postgresql"))
+DEFAULT_SEARCH_PATH = ce("DATABASE_SEARCH_PATH", "public")
+DEFAULT_APPLICATION_NAME = ce("DATABASE_APPLICATION_NAME", "pygarden")
 ```
-
-Calling `super().__init__()` the class takes care of the connection and cursor opening and closing.
-
-From here, you can write queries that can be called later. What is returned is a generator representing a list of dictionairies 
-corresponding to each row in the database. Likewise, you may write queries that insert as well:
-
-```python
-from pygarden.database import Database
-from pygarden.mixins.postgres import PostgresMixin
-from pygarden.logz import create_logger
-
-logger = create_logger()
-
-
-class TestDB(Database, PostgresMixin):
-    def __init__(self, **kwargs):
-        super().__init__()
-
-
-    def get_users(self):
-        return self.query("SELECT * FROM public.users;")
-
-    def insert_user(self, first_name, last_name, email):
-        self.cursor.execute("""INSERT INTO public.users (first_name, last_name, email)
-                        VALUES (%s, %s, %s);""")
-        self.connection.commit()
-```
-
-Now in your code, you can call these queries like so (given this test database file is called test_database):
-
-```python
-
-from test_database import TestDB
-
-with TestDB() as db:
-    users = db.get_users()
-
-print(list(users))
-
-# output
-[
-    {'id': 1019, 'first_name': 'Mister', 'last_name': 'Man', 'email': 'some_email@email.com'},
-    {'id': 1016, 'first_name': 'That', 'last_name': 'Guy', 'email': 'That_guys_email@that_guy.com'},
-    {'id': 1132, 'first_name': 'Who', 'last_name': 'Dis', 'email': 'new_email@whodis.com}
-]
-
-# insert
-with TestDB() as db:
-    db.insert_user('Johnny', 'Rotten', 'god_save_the_queen@punk_rock.com')
-```
-
 
 ### AsyncPostgresMixin
 
->>>>>>> Stashed changes
 Asynchronous PostgreSQL connection using asyncpg. Provides async/await support for high-performance database operations.
 
 **Features:**
@@ -157,13 +92,11 @@ asyncio.run(main())
 ```
 
 ### SQLiteMixin
-<<<<<<< Updated upstream
-Synchronous SQLite connection.
+Synchronous SQLite connection. No extra is required.
 
 ### MSSQLMixin
-Synchronous Microsoft SQL Server connection.
 
-Install with ` uv pip install "pygarden[mssql]"`
+Synchronous Microsoft SQL Server connection. Install with `pygarden[mssql]`.
 
 Much like the PostgresMixin from above, here are the ENV variables that need to set:
 
@@ -231,18 +164,10 @@ print(list(users))
 with TestDB() as db:
     db.insert_user('Johnny', 'Rotten', 'god_save_the_queen@punk_rock.com')
 ```
-=======
-
-Synchronous SQLite connection. No extra is required.
-
-### MSSQLMixin
-
-Synchronous Microsoft SQL Server connection. Install with `pygarden[mssql]`.
 
 ### DuckDBMixin
 
 Synchronous DuckDB connection. Install with `pygarden[duckdb]`.
->>>>>>> Stashed changes
 
 ## Other Mixins
 
@@ -270,13 +195,12 @@ This will log an INFO level log message and attempt to write it to the database.
 Object storage operations using MinIO.
 
 ### InfluxMixin
-<<<<<<< Updated upstream
+
 Time-series database operations using InfluxDB.
 
 ### PandasMixin
-Data manipulation operations using pandas.
 
-Install with ` uv pip install "pygarden[db-pandas]"`
+Data manipulation operations using pandas. Install with `pygarden[db-pandas]`.
 
 The PandasMixin nicely returns a DataFrame from a database query. 
 
@@ -313,15 +237,6 @@ output a nice dataframe:
 | 1132 | GammaThree | Mockdata    | [gamma.three@fake.org](mailto:gamma.three@fake.org) | 2024-03-04 14:14:04.182942+00:00 | True    |
 | 1316 | DeltaFour  | Exampleton  | [delta.four@fake.org](mailto:delta.four@fake.org)   | 2024-03-28 13:54:31.940848+00:00 | True    |
 | 1011 | OmegaFive  | NotReal     | [omega.five@fake.org](mailto:omega.five@fake.org)   | 2024-12-14 14:13:50.567000+00:00 | True    |
-
-=======
-
-Time-series database operations using InfluxDB.
-
-### PandasMixin
-
-Data manipulation operations using pandas. Install with `pygarden[db-pandas]`.
->>>>>>> Stashed changes
 
 ### MultipleMixin
 Support for multiple database connections.
@@ -384,8 +299,6 @@ Running API Tests...
 Got Random Image Response: {'message': 'https://images.dog.ceo/breeds/terrier-silky/n02097658_4890.jpg', 'status': 'success'}
 Status is Successful
 is_status_unsuccessful did not return the right value, it returned False instead of True
-<<<<<<< Updated upstream
 ```
-=======
 ```
->>>>>>> Stashed changes
+```
