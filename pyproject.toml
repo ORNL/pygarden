@@ -95,8 +95,14 @@ scrapers = [
 duckdb = [
     "duckdb>=0.8.1",
 ]
+oneid = [
+    "fastapi",
+    "fastapi-sessions",
+    "pyjwt[cryptography]",
+    "requests",
+]
 all = [
-    "pygarden[postgres,mssql,influx,db-pandas,auth,flask-api,scrapers,cli,s3,analysis,duckdb,llama,api]"
+    "pygarden[postgres,mssql,influx,db-pandas,auth,flask-api,scrapers,cli,s3,analysis,duckdb,llama,api,oneid]"
 ]
 dev = [
     "ruff",
