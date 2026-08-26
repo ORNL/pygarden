@@ -2,11 +2,6 @@
 
 import os
 
-import psycopg
-import pymssql
-import redis
-import requests
-from celery import Celery
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse, PlainTextResponse
 
@@ -22,6 +17,14 @@ def health_check():
 
 @router.get("/postgres_healthcheck", response_class=PlainTextResponse)
 def postgres_healthcheck():
+    try:
+        import psycopg
+    except ImportError:
+        return PlainTextResponse(
+            'PostgreSQL health check requires the "postgres" extra',
+            status_code=503,
+        )
+
     dbname = ce("DATABASE_DB_PG", ce("DATABASE_DB", ce("PG_DATABASE")))
     user = ce("DATABASE_USER", ce("DATABASE_USER_PG", ce("PG_USER")))
     password = ce("DATABASE_PW", ce("DATABASE_PW_PG", ce("PG_PASSWORD")))
@@ -80,6 +83,14 @@ def postgres_healthcheck():
 
 @router.get("/mssql_healthcheck", response_class=PlainTextResponse)
 def mssql_healthcheck():
+    try:
+        import pymssql
+    except ImportError:
+        return PlainTextResponse(
+            'MSSQL health check requires the "mssql" extra',
+            status_code=503,
+        )
+
     dbname = ce("DATABASE_DB_MS", ce("DATABASE_DB"))
     user = ce("DATABASE_USER_MS", ce("DATABASE_USER"))
     password = ce("DATABASE_PW_MS", ce("DATABASE_PW"))
@@ -138,6 +149,14 @@ def mssql_healthcheck():
 
 @router.get("/rabbitmq_healthcheck", response_class=PlainTextResponse)
 def rabbitmq_healthcheck():
+    try:
+        import requests
+    except ImportError:
+        return PlainTextResponse(
+            'RabbitMQ health check requires the "requests" package',
+            status_code=503,
+        )
+
     host = os.getenv("RABBIT_MQ_HOST")
     port = os.getenv("RABBIT_MQ_PORT")
 
@@ -160,6 +179,14 @@ def rabbitmq_healthcheck():
 
 @router.get("/redis_healthcheck", response_class=PlainTextResponse)
 def redis_healthcheck():
+    try:
+        import redis
+    except ImportError:
+        return PlainTextResponse(
+            'Redis health check requires the "redis" package',
+            status_code=503,
+        )
+
     host = os.getenv("REDIS_HOST")
     port = os.getenv("REDIS_PORT")
 
@@ -195,6 +222,8 @@ def redis_healthcheck():
 
 
 def make_celery():
+    from celery import Celery
+
     return Celery(broker=os.getenv("REDIS_BROKER"))
 
 
@@ -204,6 +233,14 @@ def celery_healthcheck():
         celery = make_celery()
         inspector = celery.control.inspect()
         active_workers = inspector.ping()
+    except ImportError:
+        return JSONResponse(
+            {
+                "status": "failure",
+                "message": 'Celery health check requires the "celery" package',
+            },
+            status_code=503,
+        )
     except Exception as exc:
         return JSONResponse(
             {"status": "failure", "message": str(exc)},

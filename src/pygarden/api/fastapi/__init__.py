@@ -3,11 +3,6 @@ import importlib.util
 import warnings
 
 OPTIONAL_MODULES = [
-    "psycopg",
-    "pymssql",
-    "requests",
-    "redis",
-    "celery",
     "fastapi"
 ]
 

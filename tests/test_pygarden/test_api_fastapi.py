@@ -40,7 +40,7 @@ class TestPostgresHealthCheck:
         'DATABASE_HOST': 'localhost',
         'DATABASE_PORT': '5432'
     })
-    @patch('pygarden.api.fastapi.routes.psycopg.connect')
+    @patch('psycopg.connect')
     def test_postgres_healthcheck_success(self, mock_connect, client):
         """Test successful PostgreSQL connection"""
         mock_conn = MagicMock()
@@ -67,7 +67,7 @@ class TestPostgresHealthCheck:
         'DATABASE_HOST': 'localhost',
         'DATABASE_PORT': '5432'
     })
-    @patch('pygarden.api.fastapi.routes.psycopg.connect')
+    @patch('psycopg.connect')
     def test_postgres_healthcheck_connection_error(self, mock_connect, client):
         """Test PostgreSQL connection error"""
         mock_connect.side_effect = psycopg.Error("Connection failed")
@@ -85,7 +85,7 @@ class TestMSSQLHealthCheck:
         'DATABASE_HOST_MS': 'localhost',
         'DATABASE_PORT_MS': '1433'
     })
-    @patch('pygarden.api.fastapi.routes.pymssql.connect')
+    @patch('pymssql.connect')
     def test_mssql_healthcheck_success(self, mock_connect, client):
         """Test successful MSSQL connection"""
         mock_conn = MagicMock()
@@ -112,7 +112,7 @@ class TestMSSQLHealthCheck:
         'DATABASE_HOST_MS': 'localhost',
         'DATABASE_PORT_MS': '1433'
     })
-    @patch('pygarden.api.fastapi.routes.pymssql.connect')
+    @patch('pymssql.connect')
     def test_mssql_healthcheck_connection_error(self, mock_connect, client):
         """Test MSSQL connection error"""
         mock_connect.side_effect = pymssql.Error("Connection failed")
@@ -127,7 +127,7 @@ class TestRedisHealthCheck:
         'REDIS_HOST': 'localhost',
         'REDIS_PORT': '6379'
     })
-    @patch('pygarden.api.fastapi.routes.redis.Redis')
+    @patch('redis.Redis')
     def test_redis_healthcheck_success(self, mock_redis, client):
         """Test successful Redis connection"""
         mock_redis_instance = MagicMock()
@@ -149,7 +149,7 @@ class TestRedisHealthCheck:
         'REDIS_HOST': 'localhost',
         'REDIS_PORT': '6379'
     })
-    @patch('pygarden.api.fastapi.routes.redis.Redis')
+    @patch('redis.Redis')
     def test_redis_healthcheck_connection_error(self, mock_redis, client):
         """Test Redis connection error"""
         mock_redis.side_effect = Exception("Connection failed")
@@ -164,7 +164,7 @@ class TestRabbitMQHealthCheck:
         'RABBIT_MQ_HOST': 'http://localhost:15672',
         'RABBIT_MQ_PORT': '15672'
     })
-    @patch('pygarden.api.fastapi.routes.requests.get')
+    @patch('requests.get')
     def test_rabbitmq_healthcheck_success(self, mock_get, client):
         """Test successful RabbitMQ health check"""
         mock_response = MagicMock()
@@ -185,7 +185,7 @@ class TestRabbitMQHealthCheck:
 
 class TestCeleryHealthCheck:
     @patch.dict(os.environ, {'REDIS_BROKER': 'redis://localhost:6379/0'})
-    @patch('pygarden.api.fastapi.routes.Celery')
+    @patch('celery.Celery')
     def test_celery_healthcheck_success(self, mock_celery, client):
         """Test successful Celery health check"""
         mock_celery_instance = MagicMock()
@@ -199,7 +199,7 @@ class TestCeleryHealthCheck:
         assert response.json()['status'] == 'success'
 
     @patch.dict(os.environ, {'REDIS_BROKER': 'redis://localhost:6379/0'})
-    @patch('pygarden.api.fastapi.routes.Celery')
+    @patch('celery.Celery')
     def test_celery_healthcheck_no_workers(self, mock_celery, client):
         """Test Celery health check with no active workers"""
         mock_celery_instance = MagicMock()
