@@ -10,15 +10,9 @@ from celery import Celery
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse, PlainTextResponse
 
+from pygarden.env import check_environment as ce
+
 router = APIRouter(tags=["health"])
-
-
-def _get_env(*names):
-    for name in names:
-        value = os.getenv(name)
-        if value is not None:
-            return value
-    return None
 
 
 @router.get("/healthcheck")
@@ -28,11 +22,11 @@ def health_check():
 
 @router.get("/postgres_healthcheck", response_class=PlainTextResponse)
 def postgres_healthcheck():
-    dbname = _get_env("DATABASE_DB_PG", "DATABASE_DB", "PG_DATABASE")
-    user = _get_env("DATABASE_USER", "DATABASE_USER_PG", "PG_USER")
-    password = _get_env("DATABASE_PW", "DATABASE_PW_PG", "PG_PASSWORD")
-    host = _get_env("DATABASE_HOST", "DATABASE_HOST_PG", "PG_HOST")
-    port = _get_env("DATABASE_PORT", "DATABASE_PORT_PG", "PG_PORT")
+    dbname = ce("DATABASE_DB_PG", ce("DATABASE_DB", ce("PG_DATABASE")))
+    user = ce("DATABASE_USER", ce("DATABASE_USER_PG", ce("PG_USER")))
+    password = ce("DATABASE_PW", ce("DATABASE_PW_PG", ce("PG_PASSWORD")))
+    host = ce("DATABASE_HOST", ce("DATABASE_HOST_PG", ce("PG_HOST")))
+    port = ce("DATABASE_PORT", ce("DATABASE_PORT_PG", ce("PG_PORT")))
 
     if dbname is None:
         return PlainTextResponse(
@@ -86,11 +80,11 @@ def postgres_healthcheck():
 
 @router.get("/mssql_healthcheck", response_class=PlainTextResponse)
 def mssql_healthcheck():
-    dbname = _get_env("DATABASE_DB_MS", "DATABASE_DB")
-    user = _get_env("DATABASE_USER_MS", "DATABASE_USER")
-    password = _get_env("DATABASE_PW_MS", "DATABASE_PW")
-    host = _get_env("DATABASE_HOST_MS", "DATABASE_HOST")
-    port = _get_env("DATABASE_PORT_MS", "DATABASE_PORT")
+    dbname = ce("DATABASE_DB_MS", ce("DATABASE_DB"))
+    user = ce("DATABASE_USER_MS", ce("DATABASE_USER"))
+    password = ce("DATABASE_PW_MS", ce("DATABASE_PW"))
+    host = ce("DATABASE_HOST_MS", ce("DATABASE_HOST"))
+    port = ce("DATABASE_PORT_MS", ce("DATABASE_PORT"))
 
     if dbname is None:
         return PlainTextResponse(
