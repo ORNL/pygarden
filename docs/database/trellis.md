@@ -1,5 +1,7 @@
 # Trellis
 
+**Trellis** stands for **Typed Result & Execution Layer for Lightweight Integrated SQL**.
+
 Trellis is pyGARDEN's async, external-SQL data mapper. It generates typed
 dataclasses and CRUD repositories from a live PostgreSQL schema while keeping
 custom SQL in ordinary `.sql` files.

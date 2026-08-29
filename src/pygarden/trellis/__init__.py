@@ -1,4 +1,4 @@
-"""Trellis: typed, external SQL mapping for pyGARDEN."""
+"""Typed Result & Execution Layer for Lightweight Integrated SQL."""
 
 from pygarden.trellis.compiler import CompiledSQL, compile_sql
 from pygarden.trellis.config import GenerationConfig, TableConfig, TrellisConfig
