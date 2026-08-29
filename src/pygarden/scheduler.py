@@ -16,17 +16,23 @@ Usage:
         print(sch.report_status())
     # on exiting the with-block, the scheduler is shut down by default
 """
+
 from __future__ import annotations
 
 import json
 from typing import Any, Callable, Dict, Iterable, Optional
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-from sqlalchemy import create_engine
 
-from pygarden.logz import create_logger
+try:
+    from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+    from sqlalchemy import create_engine
+except ImportError:  # optional persistent job-store dependency
+    SQLAlchemyJobStore = None
+    create_engine = None
+
 from pygarden.env import check_environment as ce
+from pygarden.logz import create_logger
 
 logger = create_logger()
 
@@ -48,6 +54,7 @@ class Scheduler:
     DEFAULT_DB_URL: str = ce("SCHEDULER_DB_URL", "sqlite:////tmp/jobs.sqlite")
 
     def __new__(cls, *args, **kwargs):
+        """Return the process-wide scheduler instance."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -60,6 +67,8 @@ class Scheduler:
         clear_on_exit: bool = True,
     ):
         """
+        Initialize the scheduler wrapper.
+
         :param db_url: SQLAlchemy URL for job store. Defaults to env/SQLite.
         :param start_immediately: If True, ensure scheduler is started on init.
         :param wait_on_exit: Wait for running jobs when exiting context.
@@ -72,20 +81,22 @@ class Scheduler:
         if start_immediately:
             self.start()
 
-
     def __enter__(self) -> "Scheduler":
+        """Start and return the scheduler."""
         self.start()
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:
+        """Leave the scheduler running when the context exits."""
         return None
 
-
     def start(self) -> BackgroundScheduler:
-        """
-        Create and/or start the shared BackgroundScheduler with SQLAlchemy jobstore.
-        """
+        """Create or start the shared scheduler with a SQLAlchemy job store."""
         if self.__class__._aps is None:
+            if SQLAlchemyJobStore is None or create_engine is None:
+                raise ImportError(
+                    "Scheduler persistence requires SQLAlchemy. Install with: pip install 'pygarden[scheduler]'"
+                )
             logger.info("Creating and starting new APScheduler instance...")
             engine = create_engine(self.db_url)
             jobstores = {"default": SQLAlchemyJobStore(engine=engine)}
@@ -106,7 +117,6 @@ class Scheduler:
         """Access the underlying APScheduler (ensures it's started)."""
         return self.start()
 
-
     def start_job(
         self,
         task: Callable[..., Any],
@@ -118,13 +128,10 @@ class Scheduler:
         job_id: Optional[str] = None,
         end_date=None,
     ):
-        """
-        Schedule (create/replace) a job. `interval_value` can be dict or JSON string.
-        """
+        """Schedule a job, accepting a dict or JSON interval value."""
         # Resolve job_id
-        checked_job_id = (
-            (job_id.strip() if isinstance(job_id, str) and job_id.strip() else None)
-            or getattr(task, "__name__", getattr(task, "__qualname__", task.__class__.__name__))
+        checked_job_id = (job_id.strip() if isinstance(job_id, str) and job_id.strip() else None) or getattr(
+            task, "__name__", getattr(task, "__qualname__", task.__class__.__name__)
         )
         if not job_id:
             logger.warning(f"No job_id provided, using task name as job_id: '{checked_job_id}'")
@@ -182,9 +189,7 @@ class Scheduler:
         return out
 
     def shutdown(self, *, wait: bool = False, clear: bool = True) -> bool:
-        """
-        Shut down the shared APScheduler instance.
-        """
+        """Shut down the shared APScheduler instance."""
         aps = self.__class__._aps
         if aps is None:
             logger.debug("shutdown: no active scheduler to shut down.")
@@ -202,12 +207,9 @@ class Scheduler:
                 logger.debug("Scheduler singleton cleared.")
         return True
 
-
     @classmethod
     def _normalize_interval(cls, interval_value: Dict[str, Any] | str | None) -> Dict[str, Any]:
-        """
-        Accepts dict, JSON string, or None (falls back to env default).
-        """
+        """Accept a dict, JSON string, or the environment-backed default."""
         if interval_value is None:
             return dict(cls.DEFAULT_INTERVAL)
         if isinstance(interval_value, str):

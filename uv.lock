@@ -2183,7 +2183,6 @@ dependencies = [
     { name = "apscheduler" },
     { name = "loguru" },
     { name = "rich" },
-    { name = "sqlalchemy" },
 ]
 
 [package.optional-dependencies]
@@ -2218,6 +2217,7 @@ all = [
     { name = "rich" },
     { name = "selenium" },
     { name = "sqlalchemy" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "urllib3" },
     { name = "websocket" },
 ]
@@ -2293,6 +2293,9 @@ s3 = [
     { name = "boto3" },
     { name = "humanize" },
 ]
+scheduler = [
+    { name = "sqlalchemy" },
+]
 scrapers = [
     { name = "beautifulsoup4" },
     { name = "cfscrape" },
@@ -2304,17 +2307,27 @@ scrapers = [
     { name = "urllib3" },
     { name = "websocket" },
 ]
+sqlalchemy = [
+    { name = "sqlalchemy" },
+]
+trellis = [
+    { name = "asyncpg" },
+    { name = "click" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
+]
 
 [package.metadata]
 requires-dist = [
     { name = "apscheduler" },
     { name = "asyncpg", marker = "extra == 'postgres'" },
+    { name = "asyncpg", marker = "extra == 'trellis'" },
     { name = "beautifulsoup4", marker = "extra == 'scrapers'" },
     { name = "boto3", marker = "extra == 's3'" },
     { name = "bumpversion", marker = "extra == 'dev'" },
     { name = "celery", marker = "extra == 'flask-api'" },
     { name = "cfscrape", marker = "extra == 'scrapers'" },
     { name = "click", marker = "extra == 'cli'" },
+    { name = "click", marker = "extra == 'trellis'" },
     { name = "cloudscraper", marker = "extra == 'scrapers'" },
     { name = "duckdb", marker = "extra == 'duckdb'", specifier = ">=0.8.1" },
     { name = "fastapi", marker = "extra == 'oneid'" },
@@ -2342,7 +2355,7 @@ requires-dist = [
     { name = "psycopg", marker = "extra == 'flask-api'" },
     { name = "psycopg", extras = ["binary"], marker = "extra == 'postgres'", specifier = ">=3.0.0" },
     { name = "pygarden", extras = ["api"], marker = "extra == 'scrapers'" },
-    { name = "pygarden", extras = ["postgres", "mssql", "influx", "db-pandas", "auth", "flask-api", "scrapers", "cli", "s3", "analysis", "duckdb", "llama", "api", "oneid"], marker = "extra == 'all'" },
+    { name = "pygarden", extras = ["postgres", "trellis", "sqlalchemy", "scheduler", "mssql", "influx", "db-pandas", "auth", "flask-api", "scrapers", "cli", "s3", "analysis", "duckdb", "llama", "api", "oneid"], marker = "extra == 'all'" },
     { name = "pyjwt", extras = ["cryptography"], marker = "extra == 'oneid'" },
     { name = "pymssql", marker = "extra == 'mssql'", specifier = ">=2.2.11" },
     { name = "pytest", marker = "extra == 'dev'" },
@@ -2359,13 +2372,15 @@ requires-dist = [
     { name = "rich", marker = "extra == 'cli'" },
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "selenium", marker = "extra == 'scrapers'" },
-    { name = "sqlalchemy" },
     { name = "sqlalchemy", marker = "extra == 'db-pandas'" },
+    { name = "sqlalchemy", marker = "extra == 'scheduler'" },
+    { name = "sqlalchemy", marker = "extra == 'sqlalchemy'" },
     { name = "testcontainers", extras = ["mssql"], marker = "extra == 'dev'" },
+    { name = "tomli", marker = "python_full_version < '3.11' and extra == 'trellis'" },
     { name = "urllib3", marker = "extra == 'scrapers'", specifier = ">=2.0" },
     { name = "websocket", marker = "extra == 'scrapers'" },
 ]
-provides-extras = ["postgres", "mssql", "influx", "db-pandas", "auth", "flask-api", "cli", "s3", "analysis", "llama", "api", "scrapers", "duckdb", "oneid", "all", "dev"]
+provides-extras = ["postgres", "trellis", "sqlalchemy", "scheduler", "mssql", "influx", "db-pandas", "auth", "flask-api", "cli", "s3", "analysis", "llama", "api", "scrapers", "duckdb", "oneid", "all", "dev"]
 
 [[package]]
 name = "pygments"
