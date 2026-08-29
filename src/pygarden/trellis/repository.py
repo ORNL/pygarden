@@ -66,3 +66,49 @@ def command(sql: str | Path):
         return wrapped
 
     return decorate
+
+
+def inline_select(sql: str, result: type, cardinality: str = "many"):
+    """Implement a typed async repository method using inline SQL."""
+    if cardinality not in {"many", "one", "optional"}:
+        raise ValueError("cardinality must be 'many', 'one', or 'optional'")
+
+    def decorate(function):
+        if not inspect.iscoroutinefunction(function):
+            raise TypeError("Trellis repository methods must be async")
+
+        @functools.wraps(function)
+        async def wrapped(instance, *args, **kwargs):
+            return await instance.trellis.select_inline(
+                sql,
+                result,
+                cardinality,
+                _parameters(function, instance, args, kwargs),
+            )
+
+        wrapped.__trellis_statement__ = {
+            "kind": "inline_select",
+            "sql": sql,
+            "result": result,
+            "cardinality": cardinality,
+        }
+        return wrapped
+
+    return decorate
+
+
+def inline_command(sql: str):
+    """Implement an async repository method using an inline command."""
+
+    def decorate(function):
+        if not inspect.iscoroutinefunction(function):
+            raise TypeError("Trellis repository methods must be async")
+
+        @functools.wraps(function)
+        async def wrapped(instance, *args, **kwargs):
+            return await instance.trellis.command_inline(sql, _parameters(function, instance, args, kwargs))
+
+        wrapped.__trellis_statement__ = {"kind": "inline_command", "sql": sql}
+        return wrapped
+
+    return decorate

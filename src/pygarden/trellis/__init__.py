@@ -14,7 +14,7 @@ from pygarden.trellis.exceptions import (
 )
 from pygarden.trellis.generator import PostgresIntrospector, TrellisGenerator
 from pygarden.trellis.mapping import FieldMapping, map, map_rows, model
-from pygarden.trellis.repository import TrellisRepository, command, select
+from pygarden.trellis.repository import TrellisRepository, command, inline_command, inline_select, select
 
 __all__ = [
     "CompiledSQL",
@@ -38,5 +38,7 @@ __all__ = [
     "map_rows",
     "model",
     "PostgresIntrospector",
+    "inline_command",
+    "inline_select",
     "select",
 ]

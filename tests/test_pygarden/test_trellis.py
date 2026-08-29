@@ -13,6 +13,8 @@ from pygarden.trellis import (
     TrellisRepository,
     TrellisTemplateError,
     compile_sql,
+    inline_command,
+    inline_select,
     map,
     map_rows,
     model,
@@ -159,6 +161,10 @@ class FakeExecutor:
         self.calls.append((sql, args))
         return [{"user_id": args[0], "user_name": "Ada"}]
 
+    async def execute(self, sql, *args):
+        self.calls.append((sql, args))
+        return "UPDATE 1"
+
     def transaction(self):
         return FakeTransaction()
 
@@ -166,6 +172,12 @@ class FakeExecutor:
 class Users(TrellisRepository):
     @select("users/by_id.sql", result=User, cardinality="optional")
     async def by_id(self, user_id: int) -> User | None: ...
+
+    @inline_select("SELECT :expected AS health", result=int, cardinality="one")
+    async def health(self, expected: int = 1) -> int: ...
+
+    @inline_command("UPDATE health SET checked = :checked")
+    async def mark_checked(self, checked: bool = True) -> str | None: ...
 
 
 @pytest.mark.asyncio
@@ -178,6 +190,9 @@ async def test_repository_uses_context_and_method_signature(tmp_path):
     async with TrellisContext(config_path, executor=executor) as context:
         result = await Users(context).by_id(7)
         assert result.user_id == 7
+        assert await Users(context).health() == 1
+        assert await Users(context).mark_checked() == "UPDATE 1"
+        assert await context.select_inline("SELECT :value", int, "one", {"value": 9}) == 9
         async with context.transaction():
             pass
     assert executor.calls[0][1] == (7,)

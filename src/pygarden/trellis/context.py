@@ -97,6 +97,25 @@ class TrellisContext:
         compiled = self.compile(sql_file, parameters)
         return await self.database.execute(compiled.sql, *compiled.arguments)
 
+    async def select_inline(
+        self,
+        sql: str,
+        result_type: type = dict,
+        cardinality: str = "many",
+        parameters: dict[str, Any] | None = None,
+    ):
+        """Compile, execute, and map an inline select statement."""
+        self._ensure_open()
+        compiled = compile_sql(sql, parameters or {})
+        rows = await self.database.fetch(compiled.sql, *compiled.arguments)
+        return map_rows(rows or [], result_type, cardinality)
+
+    async def command_inline(self, sql: str, parameters: dict[str, Any] | None = None) -> str | None:
+        """Compile and execute an inline non-query statement."""
+        self._ensure_open()
+        compiled = compile_sql(sql, parameters or {})
+        return await self.database.execute(compiled.sql, *compiled.arguments)
+
     @asynccontextmanager
     async def transaction(self):
         """Create a transaction shared by every repository using this context."""

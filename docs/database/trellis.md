@@ -96,6 +96,47 @@ The available directives are `if`/`elif`/`else`/`endif`,
 boolean expressions, comparisons, membership, dotted access, and `None`
 checks. Empty loops raise an error unless an enclosing `if` excludes them.
 
+## Inline SQL
+
+Use an explicit inline API for small statements such as health checks. This
+keeps file-backed SQL unambiguous while still using Trellis parameter binding
+and result mapping:
+
+```python
+async with TrellisContext("trellis.toml") as context:
+    value = await context.select_inline(
+        "SELECT 1",
+        result_type=int,
+        cardinality="one",
+    )
+    healthy = value == 1
+```
+
+Inline statements can also define typed repository methods:
+
+```python
+class HealthRepository(TrellisRepository):
+    @trellis.inline_select("SELECT 1", result=int, cardinality="one")
+    async def check(self) -> int:
+        ...
+```
+
+Named parameters work the same way as external SQL:
+
+```python
+result = await context.select_inline(
+    "SELECT :expected::int",
+    result_type=int,
+    cardinality="one",
+    parameters={"expected": 1},
+)
+```
+
+Use `context.command_inline(sql, parameters)` or
+`@trellis.inline_command(sql)` for an inline statement that does not return
+rows. Inline SQL supports the same comment directives as `.sql` files. Values
+are always bound; inline SQL does not enable raw string interpolation.
+
 ## Dictionary and scalar results
 
 Queries do not need a generated model. Use `result=dict` to return each row as
