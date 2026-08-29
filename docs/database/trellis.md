@@ -96,6 +96,40 @@ The available directives are `if`/`elif`/`else`/`endif`,
 boolean expressions, comparisons, membership, dotted access, and `None`
 checks. Empty loops raise an error unless an enclosing `if` excludes them.
 
+## Dictionary and scalar results
+
+Queries do not need a generated model. Use `result=dict` to return each row as
+a dictionary whose keys are the selected column names or aliases:
+
+```python
+class UserReportRepository(TrellisRepository):
+    @trellis.select("reports/user_summary.sql", result=dict, cardinality="many")
+    async def user_summary(self, active_only: bool = False) -> list[dict[str, object]]:
+        ...
+```
+
+With `cardinality="one"`, the same result declaration returns one dictionary;
+with `cardinality="optional"`, it returns either one dictionary or `None`.
+
+For a query that selects one value, provide its Python type. Trellis takes the
+first selected column from the row and applies the requested cardinality:
+
+```sql
+SELECT COUNT(*)::int AS total
+FROM users;
+```
+
+```python
+class UserRepository(GenUserRepository):
+    @trellis.select("users/count.sql", result=int, cardinality="one")
+    async def count_users(self) -> int:
+        ...
+```
+
+Scalar queries can use `str`, `int`, `float`, `bool`, or another application
+type returned by the database driver. Select only one column so the intended
+value is unambiguous.
+
 ## Joined results
 
 `@trellis.model` creates a keyword-only dataclass and `@trellis.map` associates

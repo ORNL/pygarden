@@ -97,11 +97,15 @@ def _identity(cls: type, row: Mapping[str, Any], fallback: int) -> tuple[Any, ..
     return tuple(row.get(item.column) for item in keys)
 
 
-def map_rows(rows: Sequence[Mapping[str, Any]], result_type: type, cardinality: str = "many") -> Any:
+def map_rows(  # noqa: C901
+    rows: Sequence[Mapping[str, Any]], result_type: type, cardinality: str = "many"
+) -> Any:
     """Map flat result rows to scalar or Trellis model results."""
     if cardinality not in {"many", "one", "optional"}:
         raise TrellisCardinalityError(f"Unknown cardinality: {cardinality}")
     normalized = [dict(row) for row in rows]
+    if result_type is dict:
+        return _apply_cardinality(normalized, cardinality)
     if not dataclasses.is_dataclass(result_type):
         values = [next(iter(row.values())) if row else None for row in normalized]
         return _apply_cardinality(values, cardinality)

@@ -127,6 +127,14 @@ def test_mapping_aggregates_and_deduplicates_children():
         map_rows(rows, User, "one")
 
 
+def test_mapping_returns_dicts_and_scalar_values():
+    rows = [{"user_id": 1, "user_name": "Ada"}, {"user_id": 2, "user_name": "Lin"}]
+    assert map_rows(rows, dict, "many") == rows
+    assert map_rows([rows[0]], dict, "optional") == rows[0]
+    assert map_rows([{"total": 2}], int, "one") == 2
+    assert map_rows([], int, "optional") is None
+
+
 class FakeTransaction:
     async def __aenter__(self):
         return self
