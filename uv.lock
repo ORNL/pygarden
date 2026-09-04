@@ -788,6 +788,19 @@ wheels = [
 ]
 
 [[package]]
+name = "fastapi-sessions"
+version = "0.3.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "itsdangerous" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1d/89/da83ba47bd70101e14eca0ac57c7f300b055b70104446badfdc1dcbe813f/fastapi-sessions-0.3.2.tar.gz", hash = "sha256:5159023fd548f8a9c198a966cf1086a73a43038cf3b9b79175fe33129f15e64c", size = 5618, upload-time = "2021-09-11T18:17:43.739Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/92/16/c0cd4442b21589eb605b68789a6c078e2948b728beb40ba504873c6e71ab/fastapi_sessions-0.3.2-py3-none-any.whl", hash = "sha256:b7f5642224b8f03661428e9fb45c9d96c4e61a9cdf963c9ba36ce8428629b0bc", size = 8757, upload-time = "2021-09-11T18:17:45.394Z" },
+]
+
+[[package]]
 name = "flask"
 version = "3.1.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2192,7 +2205,7 @@ wheels = [
 
 [[package]]
 name = "pygarden"
-version = "0.3.35"
+version = "0.3.36"
 source = { editable = "." }
 dependencies = [
     { name = "apscheduler" },
@@ -2212,6 +2225,7 @@ all = [
     { name = "cloudscraper" },
     { name = "duckdb" },
     { name = "fastapi" },
+    { name = "fastapi-sessions" },
     { name = "flask" },
     { name = "flask-cors" },
     { name = "flask-restx" },
@@ -2224,6 +2238,7 @@ all = [
     { name = "polars" },
     { name = "polars-st" },
     { name = "psycopg", extra = ["binary"] },
+    { name = "pyjwt" },
     { name = "pymssql" },
     { name = "redis" },
     { name = "requests" },
@@ -2301,6 +2316,12 @@ llama = [
 mssql = [
     { name = "pymssql" },
 ]
+oneid = [
+    { name = "fastapi" },
+    { name = "fastapi-sessions" },
+    { name = "pyjwt" },
+    { name = "requests" },
+]
 postgres = [
     { name = "asyncpg" },
     { name = "psycopg", extra = ["binary"] },
@@ -2335,6 +2356,8 @@ requires-dist = [
     { name = "cloudscraper", marker = "extra == 'scrapers'" },
     { name = "duckdb", marker = "extra == 'duckdb'", specifier = ">=0.8.1" },
     { name = "fastapi", marker = "extra == 'fastapi-api'" },
+    { name = "fastapi", marker = "extra == 'oneid'" },
+    { name = "fastapi-sessions", marker = "extra == 'oneid'" },
     { name = "flask", marker = "extra == 'auth'" },
     { name = "flask", marker = "extra == 'flask-api'" },
     { name = "flask-cors", marker = "extra == 'flask-api'" },
@@ -2360,8 +2383,9 @@ requires-dist = [
     { name = "psycopg", marker = "extra == 'flask-api'" },
     { name = "psycopg", extras = ["binary"], marker = "extra == 'postgres'", specifier = ">=3.0.0" },
     { name = "pygarden", extras = ["api"], marker = "extra == 'scrapers'" },
-    { name = "pygarden", extras = ["postgres", "mssql", "influx", "db-pandas", "auth", "flask-api", "fastapi-api", "scrapers", "cli", "s3", "analysis", "duckdb", "llama", "api"], marker = "extra == 'all'" },
+    { name = "pygarden", extras = ["postgres", "mssql", "influx", "db-pandas", "auth", "flask-api", "fastapi-api", "scrapers", "cli", "s3", "analysis", "duckdb", "llama", "api", "oneid"], marker = "extra == 'all'" },
     { name = "pymssql", marker = "extra == 'fastapi-api'" },
+    { name = "pyjwt", extras = ["cryptography"], marker = "extra == 'oneid'" },
     { name = "pymssql", marker = "extra == 'mssql'", specifier = ">=2.2.11" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-asyncio", marker = "extra == 'dev'" },
@@ -2373,6 +2397,7 @@ requires-dist = [
     { name = "requests", marker = "extra == 'api'" },
     { name = "requests", marker = "extra == 'fastapi-api'" },
     { name = "requests", marker = "extra == 'flask-api'" },
+    { name = "requests", marker = "extra == 'oneid'" },
     { name = "requests-toolbelt", marker = "extra == 'api'" },
     { name = "rich" },
     { name = "rich", marker = "extra == 'cli'" },
@@ -2384,7 +2409,7 @@ requires-dist = [
     { name = "urllib3", marker = "extra == 'scrapers'", specifier = ">=2.0" },
     { name = "websocket", marker = "extra == 'scrapers'" },
 ]
-provides-extras = ["postgres", "mssql", "influx", "db-pandas", "auth", "flask-api", "fastapi-api", "cli", "s3", "analysis", "llama", "api", "scrapers", "duckdb", "all", "dev"]
+provides-extras = ["postgres", "mssql", "influx", "db-pandas", "auth", "flask-api", "fastapi-api", "cli", "s3", "analysis", "llama", "api", "scrapers", "duckdb", "oneid", "all", "dev"]
 
 [[package]]
 name = "pygments"
@@ -2393,6 +2418,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/b0/77/a5b8c569bf593b0140bde72ea885a803b82086995367bf2037de0159d924/pygments-2.19.2.tar.gz", hash = "sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887", size = 4968631, upload-time = "2025-06-21T13:39:12.283Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/21/705964c7812476f378728bdf590ca4b771ec72385c533964653c68e86bdc/pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b", size = 1225217, upload-time = "2025-06-21T13:39:07.939Z" },
+]
+
+[[package]]
+name = "pyjwt"
+version = "2.13.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3b/81/58d0ac84e1ef3a3843791d6954d94c0b33d526c75eeb1efbce9d0a4c4077/pyjwt-2.13.0.tar.gz", hash = "sha256:41571c89ca91598c79e8ef18a2d07367d4810fbbd6f637794879baf1b7703423", size = 107515, upload-time = "2026-05-21T19:54:36.618Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a3/5e/ecf12fdb62546d64385c158514e9b2b671f7832108ef2ecd2020ce0af2d1/pyjwt-2.13.0-py3-none-any.whl", hash = "sha256:66adcc2aff09b3f1bbd95fc1e1577df8ac8723c978552fd43304c8a290ac5728", size = 31274, upload-time = "2026-05-21T19:54:35.362Z" },
 ]
 
 [[package]]

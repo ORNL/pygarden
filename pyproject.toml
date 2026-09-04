@@ -1,6 +1,6 @@
 [project]
 name = "pygarden"
-version = "0.3.35"
+version = "0.3.36"
 readme = "README.md"
 description = "Package to perform everyday tasks - logging, accessing database, etc."
 authors = [
@@ -104,8 +104,14 @@ scrapers = [
 duckdb = [
     "duckdb>=0.8.1",
 ]
+oneid = [
+    "fastapi",
+    "fastapi-sessions",
+    "pyjwt[cryptography]",
+    "requests",
+]
 all = [
-    "pygarden[postgres,mssql,influx,db-pandas,auth,flask-api,fastapi-api,scrapers,cli,s3,analysis,duckdb,llama,api]"
+    "pygarden[postgres,mssql,influx,db-pandas,auth,flask-api,fastapi-api,scrapers,cli,s3,analysis,duckdb,llama,api,oneid]"
 ]
 dev = [
     "ruff",
