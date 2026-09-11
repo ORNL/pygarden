@@ -52,73 +52,6 @@ DEFAULT_SEARCH_PATH = ce("DATABASE_SEARCH_PATH", "public")
 DEFAULT_APPLICATION_NAME = ce("DATABASE_APPLICATION_NAME", "pygarden")
 ```
 
-Generally these would be set in a Dockerfile, or a gitlab-ci.yml file, or another file proper for setting ENV variables.
-
-With ENV variables set up and postgres installed locally or in a container, make a simple Database class importing Database and 
-PostgresMixin from pygarden:
-
-```python
-from pygarden.database import Database
-from pygarden.mixins.postgres import PostgresMixin
-from pygarden.logz import create_logger
-
-logger = create_logger()
-
-class TestDB(Database, PostgresMixin):
-    def __init__(self, **kwargs):
-        super().__init__()
-```
-
-Calling `super().__init__()` the class takes care of the connection and cursor opening and closing.
-
-From here, you can write queries that can be called later. What is returned is a generator representing a list of dictionairies 
-corresponding to each row in the database. Likewise, you may write queries that insert as well:
-
-```python
-from pygarden.database import Database
-from pygarden.mixins.postgres import PostgresMixin
-from pygarden.logz import create_logger
-
-logger = create_logger()
-
-
-class TestDB(Database, PostgresMixin):
-    def __init__(self, **kwargs):
-        super().__init__()
-
-
-    def get_users(self):
-        return self.query("SELECT * FROM public.users;")
-
-    def insert_user(self, first_name, last_name, email):
-        self.cursor.execute("""INSERT INTO public.users (first_name, last_name, email)
-                        VALUES (%s, %s, %s);""")
-```
-
-Now in your code, you can call these queries like so (given this test database file is called test_database):
-
-```python
-
-from test_database import TestDB
-
-with TestDB() as db:
-    users = db.get_users()
-
-print(list(users))
-
-# output
-[
-    {'id': 1019, 'first_name': 'Mister', 'last_name': 'Man', 'email': 'some_email@email.com'},
-    {'id': 1016, 'first_name': 'That', 'last_name': 'Guy', 'email': 'That_guys_email@that_guy.com'},
-    {'id': 1132, 'first_name': 'Who', 'last_name': 'Dis', 'email': 'new_email@whodis.com}
-]
-
-# insert
-with TestDB() as db:
-    db.insert_user('Johnny', 'Rotten', 'god_save_the_queen@punk_rock.com')
-```
-
-
 ### AsyncPostgresMixin
 
 Asynchronous PostgreSQL connection using asyncpg. Provides async/await support for high-performance database operations.
@@ -159,12 +92,78 @@ asyncio.run(main())
 ```
 
 ### SQLiteMixin
-
 Synchronous SQLite connection. No extra is required.
 
 ### MSSQLMixin
 
 Synchronous Microsoft SQL Server connection. Install with `pygarden[mssql]`.
+
+Much like the PostgresMixin from above, here are the ENV variables that need to set:
+
+```python
+from pygarden.env import check_multi_environment as cme
+
+DEFAULT_DB = cme("DATABASE_DB_MS", "CommonDB", "DATABASE_DB", "postgres")
+DEFAULT_USER = cme("DATABASE_USER_MS", "sa", "DATABASE_USER", "postgres")
+DEFAULT_PW = cme("DATABASE_PW_MS", "5nowDog5", "DATABASE_PW", "postgres")
+DEFAULT_HOST = cme("DATABASE_HOST_MS", "mssql", "DATABASE_HOST", "localhost")
+DEFAULT_PORT = int(cme("DATABASE_PORT_MS", 1433, "DATABASE_PORT"))
+```
+
+You can then create a very basic base class for the MSSQLMixin database:
+
+```python
+from pygarden.database import Database
+from pygarden.mixins.mssql import MSSQLMixin
+from pygarden.logz import create_logger
+
+logger = create_logger()
+
+
+class TestDB(Database, MSSQLMixin):
+    def __init__(self, **kwargs):
+        super().__init__()
+
+    def access(self):
+        """ Test access to the db. """
+        if TestDB.is_open(self):
+            return "Successfully accessed Database. "
+        else:
+            return "Did not access database. "
+
+    def get_users(self):
+        return self.query("SELECT * FROM dbo.users;")
+
+    def insert_user(self, first_name, last_name, email):
+        self.cursor.execute(
+            """INSERT INTO dbo.users (first_name, last_name, email)
+               VALUES (%s, %s, %s);""",
+            (first_name, last_name, email),
+        )
+
+```
+
+Because all the database Mixins inherit Database, you can query the database just like the example above:
+
+```python
+from test_database import TestDB
+
+with TestDB() as db:
+    users = db.get_users()
+
+print(list(users))
+
+# output
+[
+    {'id': 1019, 'first_name': 'Mister', 'last_name': 'Man', 'email': 'some_email@email.com'},
+    {'id': 1016, 'first_name': 'That', 'last_name': 'Guy', 'email': 'That_guys_email@that_guy.com'},
+    {'id': 1132, 'first_name': 'Who', 'last_name': 'Dis', 'email': 'new_email@whodis.com}
+]
+
+# insert
+with TestDB() as db:
+    db.insert_user('Johnny', 'Rotten', 'god_save_the_queen@punk_rock.com')
+```
 
 ### DuckDBMixin
 
@@ -202,6 +201,42 @@ Time-series database operations using InfluxDB.
 ### PandasMixin
 
 Data manipulation operations using pandas. Install with `pygarden[db-pandas]`.
+
+The PandasMixin nicely returns a DataFrame from a database query. 
+
+Import the PandasMixin:
+
+```from pygarden.mixins.pandas_mixin import PandasMixin```
+
+and add it to your class inheritance:
+
+```python
+class TestDB(Database, PostgresMixin, PandasMixin):
+    def __init__(self, **kwargs):
+        super().__init__()
+```
+
+with your Database class set, simply call `query_pandas`:
+
+```python
+def get_users_pandas(self):
+    return self.query_pandas(query="SELECT * FROM public.users")
+
+. . . 
+
+with TestDB() as tb:
+     p = tb.get_users_pandas()
+```
+
+output a nice dataframe:
+
+| id   | first_name | last_name   | email                                               | last_login_date                  | enabled |
+| ---- | ---------- | ----------- | --------------------------------------------------- | -------------------------------- | ------- |
+| 1019 | AlphaOne   | Testerson   | [alpha.one@fake.org](mailto:alpha.one@fake.org)     | 2023-11-29 20:21:39.470460+00:00 | True    |
+| 1016 | BetaTwo    | Placeholder | [beta.two@fake.org](mailto:beta.two@fake.org)       | 2024-04-18 19:26:42.909822+00:00 | True    |
+| 1132 | GammaThree | Mockdata    | [gamma.three@fake.org](mailto:gamma.three@fake.org) | 2024-03-04 14:14:04.182942+00:00 | True    |
+| 1316 | DeltaFour  | Exampleton  | [delta.four@fake.org](mailto:delta.four@fake.org)   | 2024-03-28 13:54:31.940848+00:00 | True    |
+| 1011 | OmegaFive  | NotReal     | [omega.five@fake.org](mailto:omega.five@fake.org)   | 2024-12-14 14:13:50.567000+00:00 | True    |
 
 ### MultipleMixin
 Support for multiple database connections.
@@ -264,4 +299,6 @@ Running API Tests...
 Got Random Image Response: {'message': 'https://images.dog.ceo/breeds/terrier-silky/n02097658_4890.jpg', 'status': 'success'}
 Status is Successful
 is_status_unsuccessful did not return the right value, it returned False instead of True
+```
+```
 ```

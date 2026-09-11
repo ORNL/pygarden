@@ -49,6 +49,8 @@ Available extras include:
 - `analysis`: Installs analysis dependencies
 - `llama`: Installs llama.cpp support
 - `api`: Installs generic API helper dependencies
+- `oneid`: Installs the FastAPI OneID authentication plugin dependencies; use it
+  together with `postgres`
 - `all`: Installs all optional extras
 
 #### `pymssql` on MacOS
