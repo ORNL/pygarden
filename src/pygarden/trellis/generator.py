@@ -350,8 +350,8 @@ class TrellisGenerator:
             required = [c for c in insertable if not c.nullable and c.default is None]
             optional = [c for c in insertable if c not in required]
             if required and optional:
-                selective_names = [_quote(c.name) for c in required]
-                selective_values = [f":model.{_field(c, cfg)}" for c in required]
+                selective_names = [", ".join(_quote(c.name) for c in required)]
+                selective_values = [", ".join(f":model.{_field(c, cfg)}" for c in required)]
                 for column in optional:
                     expression = f"model.{_field(column, cfg)} is not None"
                     selective_names.extend(

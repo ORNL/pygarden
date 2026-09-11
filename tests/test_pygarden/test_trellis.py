@@ -205,6 +205,8 @@ def test_generator_renders_models_repositories_and_sql(tmp_path):
         (
             Column("user_id", "integer", "int4", False, None, True, False, True, 1),
             Column("user_name", "character varying", "varchar", False, None, False, False, False, 2),
+            Column("email", "character varying", "varchar", False, None, False, False, False, 3),
+            Column("nickname", "character varying", "varchar", True, None, False, False, False, 4),
         ),
         "BASE TABLE",
     )
@@ -219,3 +221,5 @@ def test_generator_renders_models_repositories_and_sql(tmp_path):
     assert "class GenUserRepository" in repositories
     assert "RETURNING" in sql["insert.sql"]
     assert "update_by_primary_key_selective.sql" in sql
+    assert '"user_name", "email"' in sql["insert_selective.sql"]
+    assert ":model.user_name, :model.email" in sql["insert_selective.sql"]
