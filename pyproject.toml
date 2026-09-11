@@ -62,6 +62,15 @@ flask-api = [
     "celery"
 ]
 
+fastapi-api = [
+    "fastapi",
+    "redis",
+    "psycopg",
+    "pymssql",
+    "requests",
+    "celery"
+]
+
 cli = [
     "rich",
     "click",
@@ -102,12 +111,13 @@ oneid = [
     "requests",
 ]
 all = [
-    "pygarden[postgres,mssql,influx,db-pandas,auth,flask-api,scrapers,cli,s3,analysis,duckdb,llama,api,oneid]"
+    "pygarden[postgres,mssql,influx,db-pandas,auth,flask-api,fastapi-api,scrapers,cli,s3,analysis,duckdb,llama,api,oneid]"
 ]
 dev = [
     "ruff",
     "pytest",
     "pytest-cov",
+    "httpx",
     "moto",
     "python-hcl2",
     "bumpversion",
