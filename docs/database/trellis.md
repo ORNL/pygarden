@@ -139,6 +139,28 @@ Use `context.command_inline(sql, parameters)` or
 rows. Inline SQL supports the same comment directives as `.sql` files. Values
 are always bound; inline SQL does not enable raw string interpolation.
 
+## Batch commands
+
+Use `command_many` when a collector or import job applies the same command to
+many records. Trellis compiles each mapping, verifies that every item produces
+the same prepared SQL statement, and delegates to the driver's `executemany`:
+
+```python
+class ReadingRepository(TrellisRepository):
+    @trellis.command_many("readings/ingest.sql", items="readings")
+    async def ingest(
+        self,
+        readings: list[dict[str, object]],
+        collection_run_id: str,
+    ) -> None:
+        ...
+```
+
+Arguments other than the configured `items` argument are shared across every
+record. Item keys override shared keys. Empty batches are a no-op. If template
+conditions produce different SQL text within one batch, Trellis raises
+`TrellisError`; split those records into homogeneous batches instead.
+
 ## Dictionary and scalar results
 
 Queries do not need a generated model. Use `result=dict` to return each row as

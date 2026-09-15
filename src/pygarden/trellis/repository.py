@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import functools
 import inspect
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -63,6 +64,37 @@ def command(sql: str | Path):
             return await instance.trellis.command(sql, _parameters(function, instance, args, kwargs))
 
         wrapped.__trellis_statement__ = {"kind": "command", "sql": str(sql)}
+        return wrapped
+
+    return decorate
+
+
+def command_many(sql: str | Path, items: str = "items"):
+    """Implement a batched async repository command using an iterable parameter."""
+
+    def decorate(function):
+        if not inspect.iscoroutinefunction(function):
+            raise TypeError("Trellis repository methods must be async")
+
+        @functools.wraps(function)
+        async def wrapped(instance, *args, **kwargs):
+            parameters = _parameters(function, instance, args, kwargs)
+            try:
+                rows = parameters.pop(items)
+            except KeyError as error:
+                raise TypeError(f"Batch repository method has no {items!r} parameter") from error
+            parameter_sets = []
+            for row in rows:
+                if not isinstance(row, Mapping):
+                    raise TypeError("Batch command items must be mappings")
+                parameter_sets.append({**parameters, **row})
+            return await instance.trellis.command_many(sql, parameter_sets)
+
+        wrapped.__trellis_statement__ = {
+            "kind": "command_many",
+            "sql": str(sql),
+            "items": items,
+        }
         return wrapped
 
     return decorate

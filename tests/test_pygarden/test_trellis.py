@@ -10,8 +10,10 @@ from pygarden.trellis import (
     TrellisCardinalityError,
     TrellisConfig,
     TrellisContext,
+    TrellisError,
     TrellisRepository,
     TrellisTemplateError,
+    command_many,
     compile_sql,
     inline_command,
     inline_select,
@@ -165,6 +167,9 @@ class FakeExecutor:
         self.calls.append((sql, args))
         return "UPDATE 1"
 
+    async def executemany(self, sql, args):
+        self.calls.append((sql, tuple(args)))
+
     def transaction(self):
         return FakeTransaction()
 
@@ -179,6 +184,9 @@ class Users(TrellisRepository):
     @inline_command("UPDATE health SET checked = :checked")
     async def mark_checked(self, checked: bool = True) -> str | None: ...
 
+    @command_many("users/rename.sql", items="rows")
+    async def rename(self, rows: list[dict[str, object]], audit_user: str) -> None: ...
+
 
 @pytest.mark.asyncio
 async def test_repository_uses_context_and_method_signature(tmp_path):
@@ -186,6 +194,10 @@ async def test_repository_uses_context_and_method_signature(tmp_path):
     sql = tmp_path / "sql/users/by_id.sql"
     sql.parent.mkdir(parents=True)
     sql.write_text("SELECT user_id, user_name FROM users WHERE user_id=:user_id", encoding="utf-8")
+    rename_sql = tmp_path / "sql/users/rename.sql"
+    rename_sql.write_text(
+        "UPDATE users SET user_name=:name WHERE user_id=:id AND :audit_user IS NOT NULL", encoding="utf-8"
+    )
     executor = FakeExecutor()
     async with TrellisContext(config_path, executor=executor) as context:
         result = await Users(context).by_id(7)
@@ -195,7 +207,23 @@ async def test_repository_uses_context_and_method_signature(tmp_path):
         assert await context.select_inline("SELECT :value", int, "one", {"value": 9}) == 9
         async with context.transaction():
             pass
+        await Users(context).rename(
+            [{"id": 1, "name": "Ada"}, {"id": 2, "name": "Lin"}],
+            audit_user="collector",
+        )
     assert executor.calls[0][1] == (7,)
+    assert executor.calls[-1][1] == (("Ada", 1, "collector"), ("Lin", 2, "collector"))
+
+
+@pytest.mark.asyncio
+async def test_command_many_rejects_different_statement_shapes(tmp_path):
+    executor = FakeExecutor()
+    async with TrellisContext(write_config(tmp_path), executor=executor) as context:
+        sql = tmp_path / "sql/conditional.sql"
+        sql.parent.mkdir(parents=True)
+        sql.write_text("SELECT 1\n-- trellis: if enabled\nWHERE :enabled\n-- trellis: endif\n", encoding="utf-8")
+        with pytest.raises(TrellisError, match="same SQL statement"):
+            await context.command_many("conditional.sql", [{"enabled": True}, {"enabled": False}])
 
 
 def test_generator_renders_models_repositories_and_sql(tmp_path):

@@ -97,6 +97,31 @@ class TrellisContext:
         compiled = self.compile(sql_file, parameters)
         return await self.database.execute(compiled.sql, *compiled.arguments)
 
+    async def command_many(self, sql_file: str | Path, parameter_sets: list[dict[str, Any]]) -> None:
+        """
+        Compile and execute one file-backed command for many parameter sets.
+
+        Batch commands intentionally require every parameter set to compile to
+        the same SQL text. This preserves prepared-statement batching and makes
+        conditional templates fail loudly instead of silently degrading into
+        row-at-a-time execution.
+        """
+        self._ensure_open()
+        if not parameter_sets:
+            return
+        compiled = [self.compile(sql_file, parameters) for parameters in parameter_sets]
+        sql = compiled[0].sql
+        if any(item.sql != sql for item in compiled[1:]):
+            raise TrellisError("Batch parameter sets must compile to the same SQL statement")
+        arguments = [item.arguments for item in compiled]
+        executor = getattr(self.database, "executemany", None)
+        if executor is None:
+            connection = getattr(self.database, "connection", None)
+            executor = getattr(connection, "executemany", None)
+        if executor is None:
+            raise TrellisError("The configured executor does not support batch commands")
+        await executor(sql, arguments)
+
     async def select_inline(
         self,
         sql: str,
