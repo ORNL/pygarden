@@ -28,6 +28,12 @@ common_cli.add_command(docker, name="docker")
 common_cli.add_command(python_cli, name="py")
 common_cli.add_command(gen_cli, name="gen")
 try:
+    from pygarden.trellis.cli import trellis_cli
+
+    common_cli.add_command(trellis_cli, name="trellis")
+except ImportError:
+    logger.debug("trellis command not available. Install the [trellis] extra.")
+try:
     from pygarden.cli.geoparquet_join import cli as geoparquet_join_cli
 
     common_cli.add_command(geoparquet_join_cli, name="parquet_join")

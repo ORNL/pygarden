@@ -121,6 +121,22 @@ class AsyncPostgresMixin:
             self.logger.error("There was an undetermined issue with the query process: " + f" {error}")
         return None
 
+    async def executemany(self, query, args):
+        """Execute one prepared command for each positional argument sequence."""
+        if not self.is_open():
+            self.logger.info("Database not open, opening now.")
+            await self.open()
+
+        self.logger.debug("Executing batch query on database.")
+        try:
+            await self.connection.executemany(query, args)
+        except asyncpg.PostgresError as error:
+            self.logger.error(f"Database error occurred: {error}")
+            raise
+        except Exception as error:
+            self.logger.error(f"There was an undetermined issue with batch execution: {error}")
+            raise
+
     async def execute(self, query, *args):
         """
         Execute a query that doesn't return results (INSERT, UPDATE, DELETE, etc.)

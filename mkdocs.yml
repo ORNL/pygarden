@@ -7,6 +7,7 @@ nav:
   - Database:
       - Overview: database/index.md
       - Mixins: database/mixins.md
+      - Trellis: database/trellis.md
       - SQLAlchemy: database/sqlalchemy.md
   - Scrapers:
       - Overview: scrapers/index.md
