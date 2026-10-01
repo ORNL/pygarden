@@ -3,13 +3,20 @@
 **Trellis** stands for **Typed Result & Execution Layer for Lightweight Integrated SQL**.
 
 Trellis is pyGARDEN's async, external-SQL data mapper. It generates typed
-dataclasses and CRUD repositories from a live PostgreSQL schema while keeping
-custom SQL in ordinary `.sql` files.
+dataclasses and CRUD repositories from a live PostgreSQL or Microsoft SQL
+Server schema while keeping custom SQL in ordinary `.sql` files.
 
 Install it with:
 
 ```bash
 pip install "pygarden[trellis]"
+```
+
+For SQL Server, install the async ODBC support and an appropriate system ODBC
+driver (ODBC Driver 18 is the default):
+
+```bash
+pip install "pygarden[trellis-mssql]"
 ```
 
 ## Configuration and generation
@@ -18,6 +25,7 @@ Create `trellis.toml` in the application root:
 
 ```toml
 [trellis]
+driver = "postgres"
 sql_path = "sql"
 
 [trellis.generate]
@@ -46,10 +54,32 @@ Generated files carry a marker and are safe to regenerate. Trellis refuses to
 overwrite an existing file without that marker. Keep application extensions in
 separate modules and subclass the generated model or repository.
 
+Set `driver = "mssql"` for SQL Server. The default table schema is `public`
+for PostgreSQL and `dbo` for MSSQL. MSSQL uses the `DATABASE_*_MS` variables,
+plus these optional settings:
+
+- `DATABASE_ODBC_DRIVER_MS` (default `ODBC Driver 18 for SQL Server`)
+- `DATABASE_ENCRYPT_MS` (default `yes`)
+- `DATABASE_TRUST_SERVER_CERTIFICATE_MS` (default `no`)
+
+An application can use both backends at once with separate configurations and
+contexts. Keep their generated SQL directories separate because generated CRUD
+syntax is dialect-specific:
+
+```python
+async with TrellisContext("trellis-postgres.toml") as postgres:
+    async with TrellisContext("trellis-mssql.toml") as mssql:
+        postgres_users = PostgresUserRepository(postgres)
+        mssql_users = MSSQLUserRepository(mssql)
+```
+
+Pass `connection_info=Database.create_connection_info(...)` to either context
+to override environment configuration for that individual connection.
+
 ## Context and repositories
 
-A `TrellisContext` owns one asyncpg connection. Repositories using the same
-context share that connection and its transaction:
+A `TrellisContext` owns one async driver connection. Repositories using the
+same context share that connection and its transaction:
 
 ```python
 from pygarden.trellis import TrellisContext
@@ -81,8 +111,8 @@ class UserRepository(GenUserRepository):
         ...
 ```
 
-Values use named binds. Trellis converts them to asyncpg positional binds; it
-never interpolates values directly:
+Values use named binds. Trellis converts them to the selected driver's
+positional binds; it never interpolates values directly:
 
 ```sql
 SELECT user_id, user_name
@@ -212,6 +242,5 @@ class User(GenUser):
 An outer-joined child whose key fields are all `NULL` is omitted. Version 1
 supports one collection nesting level.
 
-Trellis has no SQLAlchemy dependency. Its compiler, executor, and result mapper
-are separated so a SQLAlchemy adapter can be added later without changing SQL
-files or model metadata.
+Trellis has no SQLAlchemy dependency. PostgreSQL uses `asyncpg`, and SQL Server
+uses `aioodbc`.

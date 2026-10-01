@@ -45,6 +45,7 @@ class TrellisConfig:
     """Validated Trellis configuration."""
 
     path: Path
+    driver: str
     sql_path: Path
     generation: GenerationConfig
     tables: tuple[TableConfig, ...]
@@ -75,6 +76,11 @@ class TrellisConfig:
         root = raw.get("trellis")
         if not isinstance(root, dict):
             raise TrellisConfigError("Configuration must contain a [trellis] table")
+        driver = str(root.get("driver", "postgres")).lower()
+        aliases = {"postgresql": "postgres", "asyncpg": "postgres", "sqlserver": "mssql", "aioodbc": "mssql"}
+        driver = aliases.get(driver, driver)
+        if driver not in {"postgres", "mssql"}:
+            raise TrellisConfigError("trellis.driver must be 'postgres' or 'mssql'")
         generation = root.get("generate")
         if not isinstance(generation, dict):
             raise TrellisConfigError("Configuration must contain [trellis.generate]")
@@ -93,7 +99,7 @@ class TrellisConfig:
         for item in table_values:
             if not isinstance(item, dict) or not item.get("table"):
                 raise TrellisConfigError("Each table entry requires a table name")
-            schema = str(item.get("schema", "public"))
+            schema = str(item.get("schema", "dbo" if driver == "mssql" else "public"))
             table = str(item["table"])
             identity = (schema, table)
             if identity in seen:
@@ -112,6 +118,7 @@ class TrellisConfig:
 
         return cls(
             path=config_path,
+            driver=driver,
             sql_path=Path(str(root.get("sql_path", "sql"))),
             generation=GenerationConfig(
                 models_output=Path(str(generation["models_output"])),

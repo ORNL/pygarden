@@ -31,15 +31,27 @@ class TrellisContext:
         self._open = False
 
     def _create_database(self):
-        try:
-            from pygarden.mixins.asyncpg_mixin import AsyncPostgresMixin
-        except ImportError as error:  # pragma: no cover - protected by the extra
-            raise TrellisError('Trellis requires the "pygarden[trellis]" extra') from error
+        if self.config.driver == "mssql":
+            try:
+                from pygarden.mixins.aioodbc_mixin import AsyncMSSQLMixin
+            except ImportError as error:  # pragma: no cover - protected by the extra
+                raise TrellisError('MSSQL Trellis requires the "pygarden[trellis-mssql]" extra') from error
 
-        class TrellisDatabase(AsyncPostgresMixin, Database):
-            pass
+            class TrellisDatabase(AsyncMSSQLMixin, Database):
+                pass
 
-        return TrellisDatabase(connection_info=self.connection_info)
+            connection_info = self.connection_info or AsyncMSSQLMixin.create_connection_info()
+        else:
+            try:
+                from pygarden.mixins.asyncpg_mixin import AsyncPostgresMixin
+            except ImportError as error:  # pragma: no cover - protected by the extra
+                raise TrellisError('Trellis requires the "pygarden[trellis]" extra') from error
+
+            class TrellisDatabase(AsyncPostgresMixin, Database):
+                pass
+
+            connection_info = self.connection_info or AsyncPostgresMixin.create_connection_info()
+        return TrellisDatabase(connection_info=connection_info)
 
     async def __aenter__(self) -> "TrellisContext":
         """Open the shared database connection."""
@@ -82,7 +94,7 @@ class TrellisContext:
             template = path.read_text(encoding="utf-8")
         except OSError as error:
             raise TrellisError(f"Unable to read SQL file {path}: {error}") from error
-        return compile_sql(template, parameters)
+        return compile_sql(template, parameters, self.config.driver)
 
     async def select(self, sql_file: str | Path, parameters: dict[str, Any], result_type: type, cardinality: str):
         """Compile, execute, and map a select statement."""
@@ -131,14 +143,14 @@ class TrellisContext:
     ):
         """Compile, execute, and map an inline select statement."""
         self._ensure_open()
-        compiled = compile_sql(sql, parameters or {})
+        compiled = compile_sql(sql, parameters or {}, self.config.driver)
         rows = await self.database.fetch(compiled.sql, *compiled.arguments)
         return map_rows(rows or [], result_type, cardinality)
 
     async def command_inline(self, sql: str, parameters: dict[str, Any] | None = None) -> str | None:
         """Compile and execute an inline non-query statement."""
         self._ensure_open()
-        compiled = compile_sql(sql, parameters or {})
+        compiled = compile_sql(sql, parameters or {}, self.config.driver)
         return await self.database.execute(compiled.sql, *compiled.arguments)
 
     @asynccontextmanager

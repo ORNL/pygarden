@@ -11,20 +11,19 @@ from pygarden.trellis.generator import TrellisGenerator
 
 @click.group(name="trellis")
 def trellis_cli():
-    """Generate typed PostgreSQL models and repositories."""
+    """Generate typed database models and repositories."""
 
 
 @trellis_cli.command(name="generate")
 @click.option("--config", "config_path", default="trellis.toml", show_default=True, type=click.Path(exists=True))
 @click.option("--check", is_flag=True, help="Report drift without writing generated files.")
 def generate(config_path, check):
-    """Generate Trellis artifacts from a live PostgreSQL schema."""
+    """Generate Trellis artifacts from a live database schema."""
 
     async def run():
         config = TrellisConfig.load(config_path)
         async with TrellisContext(config) as context:
-            connection = getattr(context.database, "connection", context.database)
-            return await TrellisGenerator(config).generate(connection, check=check)
+            return await TrellisGenerator(config).generate(context.database, check=check)
 
     changed = asyncio.run(run())
     if check and changed:

@@ -37,7 +37,9 @@ Install optional features with `uv sync --extra <name>` or
 Available extras include:
 
 - `postgres`: Enables PostgreSQL support via `psycopg` and `asyncpg`
-- `mssql`: Enables MSSQL support via `pymssql`
+- `mssql`: Enables synchronous MSSQL support via `pymssql` and async support via `aioodbc`
+- `trellis`: Enables PostgreSQL Trellis support via `asyncpg`
+- `trellis-mssql`: Enables MSSQL Trellis support via `aioodbc`
 - `duckdb`: Enables DuckDB support
 - `db-pandas`: Adds pandas helpers for database work
 - `influx`: Enables InfluxDB support

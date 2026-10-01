@@ -12,7 +12,7 @@ from pygarden.trellis.exceptions import (
     TrellisMappingError,
     TrellisTemplateError,
 )
-from pygarden.trellis.generator import PostgresIntrospector, TrellisGenerator
+from pygarden.trellis.generator import MSSQLIntrospector, PostgresIntrospector, TrellisGenerator
 from pygarden.trellis.mapping import FieldMapping, map, map_rows, model
 from pygarden.trellis.repository import TrellisRepository, command, command_many, inline_command, inline_select, select
 
@@ -39,6 +39,7 @@ __all__ = [
     "map_rows",
     "model",
     "PostgresIntrospector",
+    "MSSQLIntrospector",
     "inline_command",
     "inline_select",
     "select",

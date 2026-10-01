@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """Allow opening with an asyncpg connection."""
 
+from typing import Any
+
 try:
     import asyncpg
 except ImportError:
@@ -10,7 +12,7 @@ except ImportError:
     from pygarden.logz import create_logger
 
     logger = create_logger()
-    logger.warn("asyncpg extra must be installed to use asyncpg mixin. " "Install with: pip install asyncpg")
+    logger.warn("asyncpg extra must be installed to use asyncpg mixin. Install with: pip install asyncpg")
     sys.exit(1)
 
 from pygarden.env import check_environment as ce
@@ -39,6 +41,24 @@ class AsyncPostgresMixin:
 
     # define a URI string if URI is preferred to connect
     DEFAULT_URI = DEFAULT_ENGINE + "://" + DEFAULT_USER + ":" + str(DEFAULT_PW) + "@" + DEFAULT_HOST + "/" + DEFAULT_DB
+
+    @classmethod
+    def create_connection_info(cls, **overrides: Any) -> dict[str, Any]:
+        """Create connection metadata using PostgreSQL-specific environment defaults."""
+        from pygarden.database import Database
+
+        values = {
+            "db_name": cls.DEFAULT_DB,
+            "db_user": cls.DEFAULT_USER,
+            "db_password": cls.DEFAULT_PW,
+            "db_host": cls.DEFAULT_HOST,
+            "db_port": cls.DEFAULT_PORT,
+            "db_schema": cls.DEFAULT_SCHEMA,
+            "db_timeout": cls.DEFAULT_TIMEOUT,
+            "db_engine": cls.DEFAULT_ENGINE,
+        }
+        values.update(overrides)
+        return Database.create_connection_info(**values)
 
     def __del__(self):
         """Deletion is handled automatically"""
@@ -222,8 +242,10 @@ class AsyncPostgresMixin:
         return hasattr(self, "connection") and self.connection and not self.connection.is_closed()
 
     async def __aenter__(self):
+        """Open and return this asynchronous database object."""
         await self.open()
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
+        """Close this asynchronous database object."""
         await self.close()

@@ -25,11 +25,12 @@ from pygarden.trellis import (
 from pygarden.trellis.generator import Column, Relation, TrellisGenerator
 
 
-def write_config(tmp_path: Path) -> Path:
-    config = tmp_path / "trellis.toml"
+def write_config(tmp_path: Path, driver: str = "postgres", name: str = "trellis.toml") -> Path:
+    config = tmp_path / name
     config.write_text(
-        """
+        f"""
 [trellis]
+driver = "{driver}"
 sql_path = "sql"
 
 [trellis.generate]
@@ -50,8 +51,105 @@ repository = "GenUserRepository"
 
 def test_config_loads_and_resolves_sql(tmp_path):
     config = TrellisConfig.load(write_config(tmp_path))
+    assert config.driver == "postgres"
     assert config.tables[0].model == "GenUser"
     assert config.resolve_sql("users/select.sql") == tmp_path / "sql/users/select.sql"
+
+
+def test_mssql_config_defaults_to_dbo_schema(tmp_path):
+    config_path = tmp_path / "mssql.toml"
+    config_path.write_text(
+        """
+[trellis]
+driver = "mssql"
+
+[trellis.generate]
+models_output = "models.py"
+repositories_output = "repositories.py"
+sql_output = "sql/generated"
+
+[[trellis.tables]]
+table = "users"
+""",
+        encoding="utf-8",
+    )
+    config = TrellisConfig.load(config_path)
+    assert config.driver == "mssql"
+    assert config.tables[0].schema == "dbo"
+
+
+def test_mssql_context_builds_async_database_with_mssql_connection_info(tmp_path):
+    from pygarden.mixins.aioodbc_mixin import AsyncMSSQLMixin
+
+    context = TrellisContext(write_config(tmp_path, "mssql"))
+    database = context._create_database()
+    assert isinstance(database, AsyncMSSQLMixin)
+    assert database.connection_info["dbEngine"] == "mssql+aioodbc"
+
+
+class FakeODBCCursor:
+    description = (("user_id", int, None, None, None, None, False),)
+    rowcount = 1
+
+    def __init__(self):
+        self.calls = []
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, traceback):
+        return False
+
+    async def execute(self, sql, parameters=()):
+        self.calls.append((sql, parameters))
+
+    async def executemany(self, sql, parameters):
+        self.calls.append((sql, parameters))
+
+    async def fetchall(self):
+        return [(7,)]
+
+    async def fetchone(self):
+        return (7,)
+
+
+class FakeODBCConnection:
+    closed = False
+
+    def __init__(self):
+        self.cursors = []
+        self.committed = False
+        self.rolled_back = False
+
+    def cursor(self):
+        cursor = FakeODBCCursor()
+        self.cursors.append(cursor)
+        return cursor
+
+    async def commit(self):
+        self.committed = True
+
+    async def rollback(self):
+        self.rolled_back = True
+
+
+@pytest.mark.asyncio
+async def test_async_mssql_mixin_implements_trellis_executor_contract(tmp_path):
+    context = TrellisContext(write_config(tmp_path, "mssql"))
+    database = context._create_database()
+    connection = FakeODBCConnection()
+    database.connection = connection
+
+    assert await database.fetch("SELECT user_id FROM users WHERE user_id=?", 7) == [{"user_id": 7}]
+    assert await database.fetchrow("SELECT user_id FROM users WHERE user_id=?", 7) == {"user_id": 7}
+    assert await database.fetchval("SELECT user_id FROM users WHERE user_id=?", 7) == 7
+    assert await database.execute("UPDATE users SET user_id=?", 7) == "AFFECTED 1"
+    await database.executemany("UPDATE users SET user_id=?", [(7,), (8,)])
+    async with database.transaction():
+        pass
+    assert connection.cursors[0].calls == [("SELECT user_id FROM users WHERE user_id=?", (7,))]
+    assert connection.cursors[-1].calls == [("BEGIN TRANSACTION", ())]
+    assert connection.committed
 
 
 def test_compiler_handles_conditions_choose_and_named_binds():
@@ -74,6 +172,16 @@ ORDER BY user_id
     assert "WHERE user_id = $1" in compiled.sql
     assert "ORDER BY name" in compiled.sql
     assert compiled.arguments == (4,)
+
+
+def test_compiler_uses_mssql_qmark_binds():
+    compiled = compile_sql(
+        "SELECT * FROM [users] WHERE [user_id]=:user_id AND [name]=:name",
+        {"user_id": 4, "name": "Ada"},
+        driver="mssql",
+    )
+    assert compiled.sql == "SELECT * FROM [users] WHERE [user_id]=? AND [name]=?"
+    assert compiled.arguments == (4, "Ada")
 
 
 def test_compiler_expands_foreach_and_preserves_casts_and_literals():
@@ -226,6 +334,20 @@ async def test_command_many_rejects_different_statement_shapes(tmp_path):
             await context.command_many("conditional.sql", [{"enabled": True}, {"enabled": False}])
 
 
+@pytest.mark.asyncio
+async def test_postgres_and_mssql_contexts_can_coexist(tmp_path):
+    postgres_executor = FakeExecutor()
+    mssql_executor = FakeExecutor()
+    postgres_config = write_config(tmp_path, "postgres", "postgres.toml")
+    mssql_config = write_config(tmp_path, "mssql", "mssql.toml")
+    async with TrellisContext(postgres_config, executor=postgres_executor) as postgres_context:
+        async with TrellisContext(mssql_config, executor=mssql_executor) as mssql_context:
+            await postgres_context.command_inline("UPDATE users SET user_name=:name", {"name": "Ada"})
+            await mssql_context.command_inline("UPDATE users SET user_name=:name", {"name": "Lin"})
+    assert postgres_executor.calls[0] == ("UPDATE users SET user_name=$1", ("Ada",))
+    assert mssql_executor.calls[0] == ("UPDATE users SET user_name=?", ("Lin",))
+
+
 def test_generator_renders_models_repositories_and_sql(tmp_path):
     config = TrellisConfig.load(write_config(tmp_path))
     relation = Relation(
@@ -251,3 +373,22 @@ def test_generator_renders_models_repositories_and_sql(tmp_path):
     assert "update_by_primary_key_selective.sql" in sql
     assert '"user_name", "email"' in sql["insert_selective.sql"]
     assert ":model.user_name, :model.email" in sql["insert_selective.sql"]
+
+
+def test_generator_renders_mssql_crud_sql(tmp_path):
+    config = TrellisConfig.load(write_config(tmp_path, "mssql"))
+    relation = Relation(
+        config.tables[0],
+        (
+            Column("user_id", "int", "int", False, None, True, False, True, 1),
+            Column("user_name", "nvarchar", "nvarchar", False, None, False, False, False, 2),
+            Column("nickname", "nvarchar", "nvarchar", True, None, False, False, False, 3),
+        ),
+        "BASE TABLE",
+    )
+    sql = TrellisGenerator(config)._sql(relation)
+    assert "INSERT INTO [public].[users]" in sql["insert.sql"]
+    assert "OUTPUT INSERTED.[user_id]" in sql["insert.sql"]
+    assert "RETURNING" not in sql["insert.sql"]
+    assert "OUTPUT INSERTED.[user_id]" in sql["update_by_primary_key.sql"]
+    assert "WHERE [user_id] = :model.user_id" in sql["update_by_primary_key.sql"]

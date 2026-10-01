@@ -1,4 +1,4 @@
-"""Compile comment-directed SQL into asyncpg statements."""
+"""Compile comment-directed SQL into driver-ready statements."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ _DIRECTIVE = re.compile(r"^\s*--\s*trellis:\s*(.*?)\s*$", re.IGNORECASE)
 
 @dataclass(frozen=True)
 class CompiledSQL:
-    """SQL and ordered arguments ready for an asyncpg call."""
+    """SQL and ordered arguments ready for a database-driver call."""
 
     sql: str
     arguments: tuple[Any, ...]
@@ -231,7 +231,7 @@ def _render(  # noqa: C901
     return "".join(output)
 
 
-def _bind(sql: str, values: Mapping[str, Any]) -> CompiledSQL:  # noqa: C901
+def _bind(sql: str, values: Mapping[str, Any], driver: str) -> CompiledSQL:  # noqa: C901
     output: list[str] = []
     arguments: list[Any] = []
     index = 0
@@ -271,7 +271,7 @@ def _bind(sql: str, values: Mapping[str, Any]) -> CompiledSQL:  # noqa: C901
                 except TrellisTemplateError as error:
                     raise TrellisBindingError(str(error)) from error
                 arguments.append(value)
-                output.append(f"${len(arguments)}")
+                output.append("?" if driver == "mssql" else f"${len(arguments)}")
                 index += len(match.group(0))
                 continue
         elif state == "single" and char == "'":
@@ -303,11 +303,13 @@ def _bind(sql: str, values: Mapping[str, Any]) -> CompiledSQL:  # noqa: C901
     return CompiledSQL("".join(output), tuple(arguments))
 
 
-def compile_sql(template: str, parameters: Mapping[str, Any]) -> CompiledSQL:
+def compile_sql(template: str, parameters: Mapping[str, Any], driver: str = "postgres") -> CompiledSQL:
     """Render dynamic directives and bind named parameters."""
+    if driver not in {"postgres", "mssql"}:
+        raise ValueError("driver must be 'postgres' or 'mssql'")
     lines = template.splitlines(keepends=True)
     nodes, index = _parse_sequence(lines)
     if index != len(lines):
         raise TrellisTemplateError(f"Unexpected directive near line {index + 1}")
     bindings = dict(parameters)
-    return _bind(_render(nodes, bindings, bindings), bindings)
+    return _bind(_render(nodes, bindings, bindings), bindings, driver)
