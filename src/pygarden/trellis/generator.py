@@ -496,14 +496,14 @@ class TrellisGenerator:
                     selective_names.extend(
                         [
                             f"    -- trellis: if {expression}",
-                            f"    , {quote(column.name)}",
+                            f"        , {quote(column.name)}",
                             "    -- trellis: endif",
                         ]
                     )
                     selective_values.extend(
                         [
                             f"    -- trellis: if {expression}",
-                            f"    , :model.{_field(column, cfg)}",
+                            f"        , :model.{_field(column, cfg)}",
                             "    -- trellis: endif",
                         ]
                     )
@@ -539,7 +539,7 @@ class TrellisGenerator:
                 selective_sets.extend(
                     [
                         f"    -- trellis: if {expression}",
-                        f"    , {quote(column.name)} = :model.{_field(column, cfg)}",
+                        f"        , {quote(column.name)} = :model.{_field(column, cfg)}",
                         "    -- trellis: endif",
                     ]
                 )

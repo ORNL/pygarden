@@ -394,9 +394,10 @@ def test_generator_renders_models_repositories_and_sql(tmp_path):
         'FROM "public"."users";\n'
     )
     assert "\n    -- trellis: if model.nickname is not None\n" in sql["insert_selective.sql"]
-    assert '\n    , "nickname"\n' in sql["insert_selective.sql"]
+    assert '\n        , "nickname"\n' in sql["insert_selective.sql"]
     assert '\nSET\n    "user_id" = "user_id"\n' in sql["update_by_primary_key_selective.sql"]
     assert "\n    -- trellis: if model.user_name is not None\n" in sql["update_by_primary_key_selective.sql"]
+    assert '\n        , "user_name" = :model.user_name\n' in sql["update_by_primary_key_selective.sql"]
 
     sparse_model = {"user_id": 7, "user_name": "Ada", "email": "ada@example.test", "nickname": None}
     sparse_insert = compile_sql(sql["insert_selective.sql"], {"model": sparse_model})
