@@ -127,6 +127,10 @@ The available directives are `if`/`elif`/`else`/`endif`,
 `for item in items separator=","`/`endfor`. Conditions support safe Python-like
 boolean expressions, comparisons, membership, dotted access, and `None`
 checks. Empty loops raise an error unless an enclosing `if` excludes them.
+Directive comments may be indented like ordinary SQL comments. Generated SQL
+aligns each directive with the clause item it controls and uses the same
+compact-or-multiline layout on every generation, so a compatible formatter
+does not rewrite generated files.
 
 ## Inline SQL
 
