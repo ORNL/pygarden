@@ -15,7 +15,7 @@ optional extras from `pygarden`:
 - `SQLiteMixin`: no extra required
 - `PostgresMixin` and `AsyncPostgresMixin`: `pygarden[postgres]`
 - `MSSQLMixin`: `pygarden[mssql]`
-- `DuckDBMixin`: `pygarden[duckdb]`
+- `DuckDBMixin` (deprecated): `pygarden[duckdb]`
 - `PandasMixin`: `pygarden[db-pandas]`
 - `InfluxMixin`: `pygarden[influx]`
 
@@ -168,7 +168,9 @@ Synchronous Microsoft SQL Server connection. Install with `pygarden[mssql]`.
 
 ### DuckDBMixin
 
-Synchronous DuckDB connection. Install with `pygarden[duckdb]`.
+Synchronous DuckDB connection. Install with `pygarden[duckdb]`. Its `open()`
+and `query()` methods are deprecated and will be removed in a future release.
+Use `from pygarden.extras.duckdb import DuckDB` for new code.
 
 ## Other Mixins
 

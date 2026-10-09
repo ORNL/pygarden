@@ -124,7 +124,8 @@ To use a specific backend, you mix in an implementation that provides
 - `pygarden.mixins.mssql.MSSQLMixin`
 - `pygarden.mixins.sqlite.SQLiteMixin`
 - `pygarden.mixins.asyncpg_mixin.AsyncPostgresMixin`
-- `pygarden.mixins.duckdb_mixin.DuckDBMixin`
+- `pygarden.mixins.duckdb_mixin.DuckDBMixin` (deprecated; use
+  `from pygarden.extras.duckdb import DuckDB`)
 - `pygarden.mixins.multiple.MultipleMixin`
 - `pygarden.mixins.pandas_mixin.PandasMixin`
 - `pygarden.mixins.influx.InfluxMixin`

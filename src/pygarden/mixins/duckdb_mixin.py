@@ -1,4 +1,7 @@
-"""Allow opening with a duckdb connection."""
+"""Allow opening with a deprecated DuckDB mixin connection."""
+
+import warnings
+
 try:
     import duckdb
 except ImportError:
@@ -7,10 +10,7 @@ except ImportError:
     from pygarden.logz import create_logger
 
     logger = create_logger()
-    logger.warn(
-        "DuckDB extra must be installed to use duckdb mixin. "
-        "Install with 'pip install pygarden[duckdb]'"
-    )
+    logger.warn("DuckDB extra must be installed to use duckdb mixin. Install with 'pip install pygarden[duckdb]'")
     sys.exit(1)
 
 from pygarden.env import check_environment as ce
@@ -18,13 +18,13 @@ from pygarden.env import check_environment as ce
 
 class DuckDBMixin:
     """
-        Serve common connection method for DuckDB.
+    Serve common connection method for DuckDB.
 
-        The default schema can be set via:
-            - DATABASE_SCHEMA_DUCKDB  (falls back to DATABASE_SCHEMA or 'main')
-        Database path/name via:
-            - DATABASE_DB_DUCKDB      (falls back to DATABASE_DB or ':memory:')
-        """
+    The default schema can be set via:
+        - DATABASE_SCHEMA_DUCKDB  (falls back to DATABASE_SCHEMA or 'main')
+    Database path/name via:
+        - DATABASE_DB_DUCKDB      (falls back to DATABASE_DB or ':memory:')
+    """
 
     # Defaults (prefer DuckDB-specific envs, then the generic ones)
     DEFAULT_DB = ce("DATABASE_DB_DUCKDB", ce("DATABASE_DB", ":memory:"))
@@ -36,6 +36,14 @@ class DuckDBMixin:
     # For parity with other mixins; DuckDB doesn't really use a URI, but we synthesize one.
     DEFAULT_URI = f"duckdb:///{DEFAULT_DB}"
 
+    _DEPRECATION_MESSAGE = (
+        "DuckDBMixin is deprecated and will be removed in a future release. "
+        "Use 'from pygarden.extras.duckdb import DuckDB' instead."
+    )
+
+    def _warn_deprecated(self) -> None:
+        warnings.warn(self._DEPRECATION_MESSAGE, DeprecationWarning, stacklevel=3)
+
     def open(self, schema: str | None = None):
         """
         Explicitly open the DuckDB connection.
@@ -43,6 +51,7 @@ class DuckDBMixin:
         :param schema: target schema to USE (created if not exists). Defaults to env/provided connection_info.
         :return: True if connection established, else False
         """
+        self._warn_deprecated()
         # Pull from connection_info if available (populated by Database.__init__/create_connection_info)
         db_name = self.connection_info.get("dbName", DuckDBMixin.DEFAULT_DB)
         db_schema = schema or self.connection_info.get("dbSchema", DuckDBMixin.DEFAULT_SCHEMA)
@@ -78,9 +87,7 @@ class DuckDBMixin:
         return True
 
     def _rows_to_dicts(self, cursor, rows):
-        """
-        Convert tuple rows to list[dict] using cursor.description for column names.
-        """
+        """Convert tuple rows to list[dict] using cursor.description for column names."""
         if rows is None:
             return None
         if cursor.description is None:
@@ -88,7 +95,7 @@ class DuckDBMixin:
         cols = [d[0] for d in cursor.description]
         return [dict(zip(cols, r)) for r in rows]
 
-    def query(self, query: str, *, as_dict: bool = False):
+    def query(self, query: str, *, as_dict: bool = False):  # noqa: C901
         """
         Query the DuckDB database.
 
@@ -101,6 +108,8 @@ class DuckDBMixin:
             if not self.open():
                 self.logger.error("Failed to open DuckDB before querying.")
                 return None
+        else:
+            self._warn_deprecated()
 
         self.logger.debug("Submitting user-specified query to DuckDB.")
         try:
