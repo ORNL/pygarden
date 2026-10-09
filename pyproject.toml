@@ -93,7 +93,7 @@ scrapers = [
     "websocket",
 ]
 duckdb = [
-    "duckdb>=0.8.1",
+    "duckdb>=1.2.1",
 ]
 all = [
     "pygarden[postgres,mssql,influx,db-pandas,auth,flask-api,scrapers,cli,s3,analysis,duckdb,llama,api]"

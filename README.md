@@ -51,6 +51,29 @@ Available extras include:
 - `api`: Installs generic API helper dependencies
 - `all`: Installs all optional extras
 
+### DuckDB
+
+Install the optional dependency and import the supported DuckDB class with:
+
+```bash
+python -m pip install "pygarden[duckdb]"
+```
+
+```python
+from pygarden.extras.duckdb import DuckDB
+
+with DuckDB() as db:
+    rows = db.sql("SELECT ? AS value", [42]).fetchall()
+```
+
+Parquet, spatial, PostgreSQL, and HTTPFS extensions are enabled by default and
+can be disabled individually in the constructor.
+
+`DuckDBMixin` remains available for compatibility, but its `open()` and
+`query()` methods are deprecated and will be removed in a future release. See
+the [DuckDB documentation](docs/database/duckdb.md) for persistent databases,
+extensions, PostgreSQL attachments, and terminal or web interfaces.
+
 #### `pymssql` on MacOS
 
 Before install the `mssql` extra, you may need to install `freetds` using `brew`:
