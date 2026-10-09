@@ -35,12 +35,19 @@ dependencies = [
     "rich",
     "loguru",
     "APScheduler",
-    "SQLAlchemy",
 ]
 
 [project.optional-dependencies]
 postgres = ["psycopg[binary]>=3.0.0", "asyncpg"]
-mssql = ["pymssql>=2.2.11"]
+trellis = [
+    "asyncpg",
+    "click",
+    "tomli; python_version < '3.11'",
+]
+sqlalchemy = ["SQLAlchemy"]
+scheduler = ["SQLAlchemy"]
+mssql = ["pymssql>=2.2.11", "aioodbc>=0.5.0"]
+trellis-mssql = ["pygarden[trellis]", "aioodbc>=0.5.0"]
 influx = ["influxdb"]
 db-pandas = [
     "pandas",
@@ -102,7 +109,7 @@ oneid = [
     "requests",
 ]
 all = [
-    "pygarden[postgres,mssql,influx,db-pandas,auth,flask-api,scrapers,cli,s3,analysis,duckdb,llama,api,oneid]"
+    "pygarden[postgres,trellis,trellis-mssql,sqlalchemy,scheduler,mssql,influx,db-pandas,auth,flask-api,scrapers,cli,s3,analysis,duckdb,llama,api,oneid]"
 ]
 dev = [
     "ruff",
