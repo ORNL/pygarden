@@ -26,6 +26,8 @@ plugins:
         python:
           paths:
             - .
+markdown_extensions:
+  - mkdocs-click
 theme:
   name: material
   features:
