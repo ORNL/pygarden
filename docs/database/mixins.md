@@ -14,7 +14,7 @@ This page summarizes the main mixins shipped with pyGARDEN.
 Use extras to install the dependencies required by non-default mixins:
 
 - `pip install "pygarden[postgres]"`: `PostgresMixin` and `AsyncPostgresMixin`
-- `pip install "pygarden[mssql]"`: `MSSQLMixin`
+- `pip install "pygarden[mssql]"`: `MSSQLMixin` and `AsyncMSSQLMixin`
 - `pip install "pygarden[duckdb]"`: `DuckDBMixin`
 - `pip install "pygarden[db-pandas]"`: `PandasMixin`
 - `pip install "pygarden[influx]"`: `InfluxMixin`
@@ -104,6 +104,15 @@ from pygarden.mixins.mssql import MSSQLMixin
 class MSSQLDatabase(Database, MSSQLMixin):
     pass
 ```
+
+## AsyncMSSQLMixin (`pygarden.mixins.aioodbc_mixin`)
+
+**Backend**: Microsoft SQL Server via `aioodbc`.
+
+This mixin implements the async `fetch`, `fetchrow`, `execute`, `executemany`,
+and transaction interface used by Trellis. Install it with either the `mssql`
+or `trellis-mssql` extra. It uses the same `connection_info` dictionary as
+other database mixins and honors the MSSQL-specific environment variables.
 
 ---
 

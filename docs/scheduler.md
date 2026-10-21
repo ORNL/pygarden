@@ -1,5 +1,8 @@
 ## Scheduler
 
+Install the persistent job-store dependency with
+`pip install "pygarden[scheduler]"`.
+
 pyGARDEN includes a lightweight wrapper around APScheduler in
 `pygarden.scheduler.Scheduler`. It provides:
 
@@ -103,4 +106,3 @@ You can point `SCHEDULER_DB_URL` at:
 
 - SQLite (default).
 - PostgreSQL or other SQLAlchemy-supported databases.
-
