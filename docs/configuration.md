@@ -30,9 +30,14 @@ Core database settings come from `pygarden.database.Database`:
     (default: `pygarden`).
 
 Database mixins such as `PostgresMixin`, `MSSQLMixin`, `SQLiteMixin`,
-and `AsyncPostgresMixin` typically add their own precedence layer (e.g.
+`AsyncMSSQLMixin`, and `AsyncPostgresMixin` typically add their own precedence layer (e.g.
 `DATABASE_DB_PG`), but always fall back to the base `Database`
 defaults.
+
+Async MSSQL connections additionally recognize `DATABASE_DB_MS`,
+`DATABASE_USER_MS`, `DATABASE_PW_MS`, `DATABASE_HOST_MS`, `DATABASE_PORT_MS`,
+`DATABASE_SCHEMA_MS`, `DATABASE_TIMEOUT_MS`, `DATABASE_ODBC_DRIVER_MS`,
+`DATABASE_ENCRYPT_MS`, and `DATABASE_TRUST_SERVER_CERTIFICATE_MS`.
 
 ---
 

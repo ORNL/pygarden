@@ -105,6 +105,15 @@ class MSSQLDatabase(Database, MSSQLMixin):
     pass
 ```
 
+## AsyncMSSQLMixin (`pygarden.mixins.aioodbc_mixin`)
+
+**Backend**: Microsoft SQL Server via `aioodbc`.
+
+This mixin implements the async `fetch`, `fetchrow`, `execute`, `executemany`,
+and transaction interface used by Trellis. Install it with either the `mssql`
+or `trellis-mssql` extra. It uses the same `connection_info` dictionary as
+other database mixins and honors the MSSQL-specific environment variables.
+
 ---
 
 ## SQLiteMixin (`pygarden.mixins.sqlite`)
