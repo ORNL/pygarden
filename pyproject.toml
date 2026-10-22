@@ -100,7 +100,7 @@ scrapers = [
     "websocket",
 ]
 duckdb = [
-    "duckdb>=0.8.1",
+    "duckdb>=1.2.1",
 ]
 oneid = [
     "fastapi",

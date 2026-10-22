@@ -15,7 +15,7 @@ optional extras from `pygarden`:
 - `SQLiteMixin`: no extra required
 - `PostgresMixin` and `AsyncPostgresMixin`: `pygarden[postgres]`
 - `MSSQLMixin`: `pygarden[mssql]`
-- `DuckDBMixin`: `pygarden[duckdb]`
+- `DuckDB` and the deprecated `DuckDBMixin`: `pygarden[duckdb]`
 - `PandasMixin`: `pygarden[db-pandas]`
 - `InfluxMixin`: `pygarden[influx]`
 
@@ -92,82 +92,33 @@ asyncio.run(main())
 ```
 
 ### SQLiteMixin
+
 Synchronous SQLite connection. No extra is required.
 
 ### MSSQLMixin
 
 Synchronous Microsoft SQL Server connection. Install with `pygarden[mssql]`.
 
-Much like the PostgresMixin from above, here are the ENV variables that need to set:
+### DuckDB
+
+The supported DuckDB interface is the standalone `DuckDB` class. Install it
+with `pygarden[duckdb]`:
 
 ```python
-from pygarden.env import check_multi_environment as cme
+from pygarden.extras.duckdb import DuckDB
 
-DEFAULT_DB = cme("DATABASE_DB_MS", "CommonDB", "DATABASE_DB", "postgres")
-DEFAULT_USER = cme("DATABASE_USER_MS", "sa", "DATABASE_USER", "postgres")
-DEFAULT_PW = cme("DATABASE_PW_MS", "5nowDog5", "DATABASE_PW", "postgres")
-DEFAULT_HOST = cme("DATABASE_HOST_MS", "mssql", "DATABASE_HOST", "localhost")
-DEFAULT_PORT = int(cme("DATABASE_PORT_MS", 1433, "DATABASE_PORT"))
+with DuckDB() as db:
+    rows = db.sql("SELECT ? AS value", [42]).fetchall()
 ```
 
-You can then create a very basic base class for the MSSQLMixin database:
+See the [DuckDB guide](../../../docs/database/duckdb.md) for extensions,
+Parquet, PostgreSQL attachments, and terminal or web UI usage.
 
-```python
-from pygarden.database import Database
-from pygarden.mixins.mssql import MSSQLMixin
-from pygarden.logz import create_logger
+### DuckDBMixin (deprecated)
 
-logger = create_logger()
-
-
-class TestDB(Database, MSSQLMixin):
-    def __init__(self, **kwargs):
-        super().__init__()
-
-    def access(self):
-        """ Test access to the db. """
-        if TestDB.is_open(self):
-            return "Successfully accessed Database. "
-        else:
-            return "Did not access database. "
-
-    def get_users(self):
-        return self.query("SELECT * FROM dbo.users;")
-
-    def insert_user(self, first_name, last_name, email):
-        self.cursor.execute(
-            """INSERT INTO dbo.users (first_name, last_name, email)
-               VALUES (%s, %s, %s);""",
-            (first_name, last_name, email),
-        )
-
-```
-
-Because all the database Mixins inherit Database, you can query the database just like the example above:
-
-```python
-from test_database import TestDB
-
-with TestDB() as db:
-    users = db.get_users()
-
-print(list(users))
-
-# output
-[
-    {'id': 1019, 'first_name': 'Mister', 'last_name': 'Man', 'email': 'some_email@email.com'},
-    {'id': 1016, 'first_name': 'That', 'last_name': 'Guy', 'email': 'That_guys_email@that_guy.com'},
-    {'id': 1132, 'first_name': 'Who', 'last_name': 'Dis', 'email': 'new_email@whodis.com}
-]
-
-# insert
-with TestDB() as db:
-    db.insert_user('Johnny', 'Rotten', 'god_save_the_queen@punk_rock.com')
-```
-
-### DuckDBMixin
-
-Synchronous DuckDB connection. Install with `pygarden[duckdb]`.
+`DuckDBMixin` remains available for legacy applications. Its `open()` and
+`query()` methods are deprecated and will be removed in a future release. New
+applications should use the standalone `DuckDB` class shown above.
 
 ## Other Mixins
 
