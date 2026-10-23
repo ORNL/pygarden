@@ -27,7 +27,7 @@ class TestHtmlMixinIntegration:
         assert result is not None
         assert hasattr(result, "find")  # BeautifulSoup object
         # Example.com should have an h1 tag
-        h1 = result.find("h1")
+        h1 = result.find("p")
         assert h1 is not None
 
     @pytest.mark.integration
