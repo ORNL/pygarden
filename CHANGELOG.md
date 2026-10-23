@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.3.36] - 2026-08-21
+## [0.3.36] - 2026-10-23
 
 ### Removed
 
 - Removed support for EOL Python 3.10
+- Removed "Test" prefix from fixtures that were not tests
 
 ### Added
 
@@ -23,5 +24,6 @@ All notable changes to this project will be documented in this file.
   committing implicitly from `Database.close()`.
 - Expand the database mixin documentation with Async PostgreSQL, MSSQL, and
   pandas examples.
+- websocket -> websocket-client dependency for `scrapers` extra
 
 [0.3.36]: https://github.com/ornl/pygarden/releases/tag/v0.3.36
