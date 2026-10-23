@@ -17,6 +17,7 @@ def test_all_modules_importable():
     failures = []
     optional_modules = {
         "pygarden.llama_cpp",  # requires llama-cpp-python
+        "pygarden.mqtt",  # requires paho-mqtt
         "pygarden.mixins.postgres",  # requires psycopg
         "pygarden.mixins.postgres_logger",  # requires psycopg
         "pygarden.mixins.minio_mixin",  # requires minio

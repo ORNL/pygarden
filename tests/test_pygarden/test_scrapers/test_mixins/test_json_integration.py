@@ -6,7 +6,7 @@ from pygarden.scrapers.mixins.json import JsonMixin
 from pygarden.scrapers.scraper import Scraper
 
 
-class TestScraperWithJsonIntegration(JsonMixin, Scraper):
+class ScraperWithJsonIntegration(JsonMixin, Scraper):
     """Test scraper using JsonMixin for integration tests."""
 
     def parse(self, data):
@@ -22,7 +22,7 @@ class TestJsonMixinIntegration:
         """Integration test: Request JSON from httpbin.org/json."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithJsonIntegration("https://httpbin.org/json")
+        scraper = ScraperWithJsonIntegration("https://httpbin.org/json")
         try:
             result = scraper.request("https://httpbin.org/json", method="GET", timeout=10)
             assert isinstance(result, dict)
@@ -45,7 +45,7 @@ class TestJsonMixinIntegration:
         """Integration test: Request JSON response from httpbin.org/get."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithJsonIntegration("https://httpbin.org/get")
+        scraper = ScraperWithJsonIntegration("https://httpbin.org/get")
         try:
             result = scraper.request("https://httpbin.org/get?test=value", method="GET", timeout=10)
             assert isinstance(result, dict)

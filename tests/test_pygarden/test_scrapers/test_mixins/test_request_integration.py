@@ -6,7 +6,7 @@ from pygarden.scrapers.mixins.request import RequestMixin
 from pygarden.scrapers.scraper import Scraper
 
 
-class TestScraperWithRequestIntegration(RequestMixin, Scraper):
+class ScraperWithRequestIntegration(RequestMixin, Scraper):
     """Test scraper using RequestMixin for integration tests."""
 
     def parse(self, data):
@@ -22,7 +22,7 @@ class TestRequestMixinIntegration:
         """Integration test: Request from httpbin.org/get."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithRequestIntegration("https://httpbin.org/get")
+        scraper = ScraperWithRequestIntegration("https://httpbin.org/get")
         try:
             result = scraper.request("https://httpbin.org/get", method="GET", timeout=10)
             assert result is not None
@@ -48,7 +48,7 @@ class TestRequestMixinIntegration:
         """Integration test: POST request to httpbin.org/post."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithRequestIntegration("https://httpbin.org/post")
+        scraper = ScraperWithRequestIntegration("https://httpbin.org/post")
         try:
             result = scraper.request("https://httpbin.org/post", method="POST", json={"test": "data"}, timeout=10)
             assert result is not None

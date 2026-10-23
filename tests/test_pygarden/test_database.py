@@ -7,7 +7,7 @@ from pygarden.database import Database
 
 class DummyDB(Database):
     def open(self):
-        self.connection = types.SimpleNamespace()
+        self.connection = types.SimpleNamespace(commit=lambda: None)
         self.cursor = types.SimpleNamespace()
         return True
 

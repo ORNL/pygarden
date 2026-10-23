@@ -6,7 +6,7 @@ from pygarden.scrapers.mixins.html import HtmlMixin
 from pygarden.scrapers.scraper import Scraper
 
 
-class TestScraperWithHtmlIntegration(HtmlMixin, Scraper):
+class ScraperWithHtmlIntegration(HtmlMixin, Scraper):
     """Test scraper using HtmlMixin for integration tests."""
 
     def parse(self, data):
@@ -22,7 +22,7 @@ class TestHtmlMixinIntegration:
         """Integration test: Request HTML from example.com."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithHtmlIntegration("https://example.com")
+        scraper = ScraperWithHtmlIntegration("https://example.com")
         result = scraper.request("https://example.com", method="GET")
         assert result is not None
         assert hasattr(result, "find")  # BeautifulSoup object
@@ -35,7 +35,7 @@ class TestHtmlMixinIntegration:
         """Integration test: Request HTML from httpbin.org/html."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithHtmlIntegration("https://httpbin.org/html")
+        scraper = ScraperWithHtmlIntegration("https://httpbin.org/html")
         result = scraper.request("https://httpbin.org/html", method="GET")
         assert result is not None
         assert hasattr(result, "find")  # BeautifulSoup object

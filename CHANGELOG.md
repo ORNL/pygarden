@@ -10,9 +10,11 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Added `trellis` extra - a database framework similar mybatis but for Python.
 - Add a reusable FastAPI authentication plugin for DOE OneID, including
   PostgreSQL-backed registration, approval, and session management.
 - Add the `oneid` optional dependency group and include it in the `all` extra.
+- Added and expanded the `duckdb` extra to be more in-line with the other extras.
 
 ### Changed
 

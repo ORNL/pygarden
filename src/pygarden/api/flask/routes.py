@@ -80,9 +80,9 @@ def postgres_healthcheck():
     if not dbname:
         return "Need to set either DATABASE_DB_PG or DATABASE_DB ENV variables", 503
     elif len(dbname) > 1:
-        logger.warn("Found multiple PostgreSQL ENV vars, using first one: " + str(dbname[0]))
+        logger.warning("Found multiple PostgreSQL ENV vars, using first one: " + str(dbname[0]))
     elif dbname[0] == 'postgres':
-        logger.warn("Using default database name: " + dbname[0])
+        logger.warning("Using default database name: " + dbname[0])
     else:
         logger.info("Database name set to: " + str(dbname[0]))
 
@@ -91,9 +91,9 @@ def postgres_healthcheck():
     if not user:
         return "Need to set either DATABASE_USER_PG or DATABASE_USER ENV variables", 503
     elif len(user) > 1:
-        logger.warn("Found multiple PostgreSQL ENV vars, using first one: " + str(user[0]))
+        logger.warning("Found multiple PostgreSQL ENV vars, using first one: " + str(user[0]))
     elif user[0] == 'postgres':
-        logger.warn("Using default user: " + user[0])
+        logger.warning("Using default user: " + user[0])
     else:
         logger.info("Database User set to: " + str(user))
 
@@ -102,7 +102,7 @@ def postgres_healthcheck():
     if not password:
         return "Need to set either DATABASE_PW_PG or DATABASE_PW ENV variables", 503
     elif password[0] == 'postgres':
-        logger.warn("Using default password: " + password)
+        logger.warning("Using default password: " + password)
     else:
         logger.info("Database Password set to: " + str(password))
 
@@ -111,7 +111,7 @@ def postgres_healthcheck():
     if not host:
         return "Need to set either DATABASE_HOST_PG or DATABASE_HOST ENV variables", 503
     elif host[0] == 'localhost':
-        logger.warn("Using default host: " + host)
+        logger.warning("Using default host: " + host)
     else:
         logger.info("Database host set to: " + str(host))
 
@@ -120,7 +120,7 @@ def postgres_healthcheck():
     if not port:
         return "Need to set either DATABASE_PORT_PG or DATABASE_PORT ENV variables", 503
     elif port[0] == 5432:
-        logger.warn("Using default port: " + str(port))
+        logger.warning("Using default port: " + str(port))
     else:
         logger.info("Database port set to: " + str(port))
 
@@ -176,7 +176,7 @@ def mssql_healthcheck():
     if not dbname:
         return "Need to set either DATABASE_DB_MS or DATABASE_DB ENV variables", 503
     elif dbname[0] == 'CommonDB':
-        logger.warn("Using default database name: " + dbname)
+        logger.warning("Using default database name: " + dbname)
     else:
         logger.info("Database name set to: " + str(dbname))
 
@@ -185,7 +185,7 @@ def mssql_healthcheck():
     if not user:
         return "Need to set either DATABASE_USER_MS or DATABASE_USER ENV variables", 503
     elif user[0] == 'sa':
-        logger.warn("Using default user: " + user)
+        logger.warning("Using default user: " + user)
     else:
         logger.info("Database User set to: " + str(user))
 
@@ -194,7 +194,7 @@ def mssql_healthcheck():
     if not password:
         return "Need to set either DATABASE_PW_MS or DATABASE_PW ENV variables", 503
     elif password[0] == '5nowDog5':
-        logger.warn("Using default password: " + password)
+        logger.warning("Using default password: " + password)
     else:
         logger.info("Database Password set to: " + str(password))
 
@@ -203,7 +203,7 @@ def mssql_healthcheck():
     if not host:
         return "Need to set either DATABASE_HOST_MS or DATABASE_HOST ENV variables", 503
     elif host[0] == 'localhost':
-        logger.warn("Using default host: " + host)
+        logger.warning("Using default host: " + host)
     else:
         logger.info("Database host set to: " + str(host))
 
@@ -212,7 +212,7 @@ def mssql_healthcheck():
     if not port:
         return "Need to set either DATABASE_PORT_MS or DATABASE_PORT ENV variables", 503
     elif port[0] == 1433:
-        logger.warn("Using default port: " + str(port))
+        logger.warning("Using default port: " + str(port))
     else:
         logger.info("Database port set to: " + str(port))
 
@@ -265,7 +265,7 @@ Validates RabbitMQ connectivity by making an HTTP request to the
     if not os.getenv(host):
         return "Need to set RABBIT_MQ_HOST variable", 503
     elif host == 'localhost':
-        logger.warn("Using default host: " + host)
+        logger.warning("Using default host: " + host)
     else:
         logger.info("RabbitMQ host set to: " + str(host))
 
@@ -273,7 +273,7 @@ Validates RabbitMQ connectivity by making an HTTP request to the
     if not os.getenv(port):
         return "Need to set RABBIT_MQ_PORT ENV variable", 503
     elif port == 15692:
-        logger.warn("Using default port: " + str(port))
+        logger.warning("Using default port: " + str(port))
     else:
         logger.info("RabbitMQ port set to: " + str(port))
 
@@ -312,7 +312,7 @@ def redis_healthcheck():
     if not os.getenv(host):
         return "Need to set REDIS_HOST ENV variable", 503
     elif host == 'localhost':
-        logger.warn("Using default host: " + host)
+        logger.warning("Using default host: " + host)
     else:
         logger.info("RabbitMQ host set to: " + str(host))
 
@@ -320,7 +320,7 @@ def redis_healthcheck():
     if not os.getenv(port):
         return "Need to set REDIS_PORT ENV variable", 503
     elif port == 6379:
-        logger.warn("Using default port: " + str(port))
+        logger.warning("Using default port: " + str(port))
     else:
         logger.info("RabbitMQ port set to: " + str(port))
     try:

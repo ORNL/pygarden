@@ -7,7 +7,7 @@ from pygarden.scrapers.mixins.xml_soup import XmlSoupMixin
 from pygarden.scrapers.scraper import Scraper
 
 
-class TestScraperWithXmlSoup(XmlSoupMixin, Scraper):
+class ScraperWithXmlSoup(XmlSoupMixin, Scraper):
     """Test scraper using XmlSoupMixin."""
 
     def parse(self, data):
@@ -22,7 +22,7 @@ class TestXmlSoupMixin:
         """Test XmlSoupMixin can be used with Scraper."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithXmlSoup("https://example.com")
+        scraper = ScraperWithXmlSoup("https://example.com")
         assert scraper.url == "https://example.com"
 
     @patch("pygarden.scrapers.mixins.xml_soup.requests.request")
@@ -46,7 +46,7 @@ class TestXmlSoupMixin:
         mock_response.text = '<?xml version="1.0"?><root><item>Test</item></root>'
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithXmlSoup("https://example.com/xml")
+        scraper = ScraperWithXmlSoup("https://example.com/xml")
         # Use html.parser instead of lxml to avoid dependency issues in tests
         result = scraper.request("https://example.com/xml", method="GET", parser="html.parser")
         assert result is not None
@@ -62,7 +62,7 @@ class TestXmlSoupMixin:
         mock_response.text = '<?xml version="1.0"?><root>Test</root>'
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithXmlSoup("https://example.com/xml")
+        scraper = ScraperWithXmlSoup("https://example.com/xml")
         result = scraper.request("https://example.com/xml", method="GET", parser="html.parser")
         assert result is not None
 
