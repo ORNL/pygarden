@@ -14,14 +14,13 @@ authors = [
     {name = "Mitchell Broughton", email = "broxsonmr@ornl.gov" },
     {name = "Alec Hamaker"},
 ]
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.11,<3.15"
 keywords = ["mixins", "logging", "database", "mysqlmixin", "postgresmixin", "pandasmixin"]
 license = {file = "LICENSE"}
 classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",

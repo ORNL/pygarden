@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [0.3.36] - 2026-08-21
 
+### Removed
+
+- Removed support for EOL Python 3.10
+
 ### Added
 
 - Add a reusable FastAPI authentication plugin for DOE OneID, including
