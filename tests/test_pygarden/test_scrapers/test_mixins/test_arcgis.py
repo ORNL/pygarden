@@ -7,7 +7,7 @@ from pygarden.scrapers.mixins.arcgis import ArcgisMixin
 from pygarden.scrapers.scraper import Scraper
 
 
-class TestScraperWithArcgis(ArcgisMixin, Scraper):
+class ScraperWithArcgis(ArcgisMixin, Scraper):
     """Test scraper using ArcgisMixin."""
 
     def parse(self, data):
@@ -22,7 +22,7 @@ class TestArcgisMixin:
         """Test ArcgisMixin can be used with Scraper."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithArcgis("https://example.com/arcgis/rest/services")
+        scraper = ScraperWithArcgis("https://example.com/arcgis/rest/services")
         assert scraper.url == "https://example.com/arcgis/rest/services"
         assert hasattr(scraper, "query_parameters")
         assert scraper.query_parameters["params"]["f"] == "json"
@@ -33,7 +33,7 @@ class TestArcgisMixin:
         """Test ArcgisMixin default query parameters."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithArcgis("https://example.com/arcgis")
+        scraper = ScraperWithArcgis("https://example.com/arcgis")
         params = scraper.query_parameters["params"]
         assert params["f"] == "json"
         assert params["where"] == "1=1"
@@ -53,7 +53,7 @@ class TestArcgisMixin:
         }
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithArcgis("https://example.com/arcgis/rest/services")
+        scraper = ScraperWithArcgis("https://example.com/arcgis/rest/services")
         result = scraper.request("https://example.com/arcgis/rest/services")
         assert isinstance(result, dict)
         assert "features" in result
@@ -68,7 +68,7 @@ class TestArcgisMixin:
         mock_response.json.return_value = {"features": []}
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithArcgis("https://example.com/arcgis")
+        scraper = ScraperWithArcgis("https://example.com/arcgis")
         scraper.query_parameters["params"]["outFields"] = "name,id"
         result = scraper.request("https://example.com/arcgis")
         assert isinstance(result, dict)
@@ -84,7 +84,7 @@ class TestArcgisMixin:
         mock_response.json.return_value = {"features": []}
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithArcgis("https://example.com/arcgis")
+        scraper = ScraperWithArcgis("https://example.com/arcgis")
         result = scraper.request("https://example.com/arcgis", method="GET", headers={"X-Test": "value"})
         assert isinstance(result, dict)
         mock_request.assert_called_once()

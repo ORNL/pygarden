@@ -7,7 +7,7 @@ from pygarden.scrapers.mixins.cloudscraper import CloudscraperMixin
 from pygarden.scrapers.scraper import Scraper
 
 
-class TestScraperWithCloudscraper(CloudscraperMixin, Scraper):
+class ScraperWithCloudscraper(CloudscraperMixin, Scraper):
     """Test scraper using CloudscraperMixin."""
 
     def parse(self, data):
@@ -22,7 +22,7 @@ class TestCloudscraperMixin:
         """Test CloudscraperMixin can be used with Scraper."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithCloudscraper("https://example.com")
+        scraper = ScraperWithCloudscraper("https://example.com")
         assert scraper.url == "https://example.com"
 
     @patch("pygarden.scrapers.mixins.cloudscraper.cloudscraper.create_scraper")
@@ -36,7 +36,7 @@ class TestCloudscraperMixin:
         mock_scraper.get.return_value = mock_response
         mock_create_scraper.return_value = mock_scraper
 
-        scraper = TestScraperWithCloudscraper("https://example.com")
+        scraper = ScraperWithCloudscraper("https://example.com")
         result = scraper.request("https://example.com", n_retries=3)
         assert result is not None
         assert hasattr(result, "find")  # BeautifulSoup object
@@ -53,7 +53,7 @@ class TestCloudscraperMixin:
         mock_scraper.get.return_value = mock_response
         mock_create_scraper.return_value = mock_scraper
 
-        scraper = TestScraperWithCloudscraper("https://example.com")
+        scraper = ScraperWithCloudscraper("https://example.com")
         result = scraper.request("https://example.com", n_retries=2)
         assert result is None
 
@@ -73,7 +73,7 @@ class TestCloudscraperMixin:
         mock_scraper.get.side_effect = [mock_response1, mock_response2, mock_response3]
         mock_create_scraper.return_value = mock_scraper
 
-        scraper = TestScraperWithCloudscraper("https://example.com")
+        scraper = ScraperWithCloudscraper("https://example.com")
         result = scraper.request("https://example.com", n_retries=3)
         assert result is not None
         assert result.find("h1") is not None

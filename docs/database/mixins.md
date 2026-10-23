@@ -15,7 +15,7 @@ Use extras to install the dependencies required by non-default mixins:
 
 - `pip install "pygarden[postgres]"`: `PostgresMixin` and `AsyncPostgresMixin`
 - `pip install "pygarden[mssql]"`: `MSSQLMixin`
-- `pip install "pygarden[duckdb]"`: `DuckDBMixin`
+- `pip install "pygarden[duckdb]"`: `DuckDB` and the deprecated `DuckDBMixin`
 - `pip install "pygarden[db-pandas]"`: `PandasMixin`
 - `pip install "pygarden[influx]"`: `InfluxMixin`
 
@@ -105,6 +105,15 @@ class MSSQLDatabase(Database, MSSQLMixin):
     pass
 ```
 
+## AsyncMSSQLMixin (`pygarden.mixins.aioodbc_mixin`)
+
+**Backend**: Microsoft SQL Server via `aioodbc`.
+
+This mixin implements the async `fetch`, `fetchrow`, `execute`, `executemany`,
+and transaction interface used by Trellis. Install it with either the `mssql`
+or `trellis-mssql` extra. It uses the same `connection_info` dictionary as
+other database mixins and honors the MSSQL-specific environment variables.
+
 ---
 
 ## SQLiteMixin (`pygarden.mixins.sqlite`)
@@ -170,6 +179,10 @@ asyncio.run(main())
 
 **Backend**: DuckDB.
 
+!!! warning "Deprecated"
+    `DuckDBMixin.open()` and `DuckDBMixin.query()` will be removed in a future
+    release. Use `from pygarden.extras.duckdb import DuckDB` for new code.
+
 Responsibilities:
 
 - Provides a connection to DuckDB, typically for analytical workloads or
@@ -179,6 +192,8 @@ Responsibilities:
 Install via:
 
 - `pip install "pygarden[duckdb]"`.
+
+See the [DuckDB guide](duckdb.md) for the supported class API.
 
 ---
 
@@ -240,7 +255,9 @@ Install via:
 - Use **MSSQLMixin** for Microsoft SQL Server.
 - Use **SQLiteMixin** for local/testing SQLite databases.
 - Use **AsyncPostgresMixin** for asynchronous PostgreSQL workloads.
-- Use **DuckDBMixin** for analytical workloads with DuckDB.
+- Use the standalone **DuckDB** class from `pygarden.extras.duckdb` for new
+  analytical workloads. Reserve the deprecated **DuckDBMixin** for legacy
+  applications that have not yet migrated.
 - Use **MultipleMixin** when managing several databases at once.
 - Use **PandasMixin** when you want data frames instead of raw rows.
 - Use **InfluxMixin** for time-series data in InfluxDB.

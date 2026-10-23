@@ -7,7 +7,7 @@ from pygarden.scrapers.mixins.html import HtmlMixin
 from pygarden.scrapers.scraper import Scraper
 
 
-class TestScraperWithHtml(HtmlMixin, Scraper):
+class ScraperWithHtml(HtmlMixin, Scraper):
     """Test scraper using HtmlMixin."""
 
     def parse(self, data):
@@ -22,7 +22,7 @@ class TestHtmlMixin:
         """Test HtmlMixin can be used with Scraper."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithHtml("https://example.com")
+        scraper = ScraperWithHtml("https://example.com")
         assert scraper.url == "https://example.com"
 
     @patch("pygarden.scrapers.mixins.html.requests.request")
@@ -34,7 +34,7 @@ class TestHtmlMixin:
         mock_response.text = "<html><body><h1>Test</h1></body></html>"
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithHtml("https://example.com")
+        scraper = ScraperWithHtml("https://example.com")
         result = scraper.request("https://example.com", method="GET")
         assert result is not None
         assert hasattr(result, "find")  # BeautifulSoup object
@@ -49,7 +49,7 @@ class TestHtmlMixin:
         mock_response.text = "<html><body>POST Response</body></html>"
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithHtml("https://httpbin.org/post")
+        scraper = ScraperWithHtml("https://httpbin.org/post")
         result = scraper.request("https://httpbin.org/post", method="POST")
         assert result is not None
         mock_request.assert_called_once()

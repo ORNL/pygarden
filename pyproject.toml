@@ -1,6 +1,6 @@
 [project]
 name = "pygarden"
-version = "0.3.35"
+version = "0.3.36"
 readme = "README.md"
 description = "Package to perform everyday tasks - logging, accessing database, etc."
 authors = [
@@ -14,14 +14,13 @@ authors = [
     {name = "Mitchell Broughton", email = "broxsonmr@ornl.gov" },
     {name = "Alec Hamaker"},
 ]
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.11,<3.15"
 keywords = ["mixins", "logging", "database", "mysqlmixin", "postgresmixin", "pandasmixin"]
 license = {file = "LICENSE"}
 classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -35,12 +34,19 @@ dependencies = [
     "rich",
     "loguru",
     "APScheduler",
-    "SQLAlchemy",
 ]
 
 [project.optional-dependencies]
 postgres = ["psycopg[binary]>=3.0.0", "asyncpg"]
-mssql = ["pymssql>=2.2.11"]
+trellis = [
+    "asyncpg",
+    "click",
+    "tomli; python_version < '3.11'",
+]
+sqlalchemy = ["SQLAlchemy"]
+scheduler = ["SQLAlchemy"]
+mssql = ["pymssql>=2.2.11", "aioodbc>=0.5.0"]
+trellis-mssql = ["pygarden[trellis]", "aioodbc>=0.5.0"]
 influx = ["influxdb"]
 db-pandas = [
     "pandas",
@@ -58,6 +64,15 @@ flask-api = [
     "flask-swagger-ui",
     "redis",
     "psycopg",
+    "requests",
+    "celery"
+]
+
+fastapi-api = [
+    "fastapi",
+    "redis",
+    "psycopg",
+    "pymssql",
     "requests",
     "celery"
 ]
@@ -90,18 +105,25 @@ scrapers = [
     "cfscrape",
     "cloudscraper",
     "beautifulsoup4",
-    "websocket",
+    "websocket-client",
 ]
 duckdb = [
-    "duckdb>=0.8.1",
+    "duckdb>=1.2.1",
+]
+oneid = [
+    "fastapi",
+    "fastapi-sessions",
+    "pyjwt[cryptography]",
+    "requests",
 ]
 all = [
-    "pygarden[postgres,mssql,influx,db-pandas,auth,flask-api,scrapers,cli,s3,analysis,duckdb,llama,api]"
+    "pygarden[postgres,trellis,trellis-mssql,sqlalchemy,scheduler,mssql,influx,db-pandas,auth,flask-api,fastapi-api,scrapers,cli,s3,analysis,duckdb,llama,api,oneid]"
 ]
 dev = [
     "ruff",
     "pytest",
     "pytest-cov",
+    "httpx",
     "moto",
     "python-hcl2",
     "bumpversion",
@@ -138,6 +160,12 @@ ignore = ["D203", "D212", "D400", "D415", "D401"]
 quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
+
+[tool.pytest.ini_options]
+addopts = "-m 'not integration'"
+markers = [
+    "integration: tests that make network requests or require external services",
+]
 
 [lint.mccabe]
 max-complexity = 10

@@ -7,7 +7,7 @@ from pygarden.scrapers.mixins.json import JsonMixin
 from pygarden.scrapers.scraper import Scraper
 
 
-class TestScraperWithJson(JsonMixin, Scraper):
+class ScraperWithJson(JsonMixin, Scraper):
     """Test scraper using JsonMixin."""
 
     def parse(self, data):
@@ -22,7 +22,7 @@ class TestJsonMixin:
         """Test JsonMixin can be used with Scraper."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithJson("https://httpbin.org/json")
+        scraper = ScraperWithJson("https://httpbin.org/json")
         assert scraper.url == "https://httpbin.org/json"
 
     @patch("pygarden.scrapers.mixins.json.requests.request")
@@ -34,7 +34,7 @@ class TestJsonMixin:
         mock_response.json.return_value = {"key": "value", "number": 42}
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithJson("https://httpbin.org/json")
+        scraper = ScraperWithJson("https://httpbin.org/json")
         result = scraper.request("https://httpbin.org/json", method="GET")
         assert isinstance(result, dict)
         assert result["key"] == "value"
@@ -49,7 +49,7 @@ class TestJsonMixin:
         mock_response.json.return_value = {"status": "success"}
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithJson("https://httpbin.org/post")
+        scraper = ScraperWithJson("https://httpbin.org/post")
         result = scraper.request("https://httpbin.org/post", method="POST")
         assert isinstance(result, dict)
         assert result["status"] == "success"
@@ -63,7 +63,7 @@ class TestJsonMixin:
         mock_response.json.return_value = {"data": "test"}
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithJson("https://httpbin.org/json")
+        scraper = ScraperWithJson("https://httpbin.org/json")
         result = scraper.request("https://httpbin.org/json", method="GET", headers={"X-Test": "value"})
         assert isinstance(result, dict)
         mock_request.assert_called_once()

@@ -7,7 +7,7 @@ from pygarden.scrapers.mixins.cfscrape import CfscrapeMixin
 from pygarden.scrapers.scraper import Scraper
 
 
-class TestScraperWithCfscrape(CfscrapeMixin, Scraper):
+class ScraperWithCfscrape(CfscrapeMixin, Scraper):
     """Test scraper using CfscrapeMixin."""
 
     def parse(self, data):
@@ -22,7 +22,7 @@ class TestCfscrapeMixin:
         """Test CfscrapeMixin can be used with Scraper."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithCfscrape("https://example.com")
+        scraper = ScraperWithCfscrape("https://example.com")
         assert scraper.url == "https://example.com"
 
     @patch("pygarden.scrapers.mixins.cfscrape.cfscrape")
@@ -36,7 +36,7 @@ class TestCfscrapeMixin:
         mock_scraper.get.return_value = mock_response
         mock_cfscrape_module.create_scraper.return_value = mock_scraper
 
-        scraper = TestScraperWithCfscrape("https://example.com")
+        scraper = ScraperWithCfscrape("https://example.com")
         result = scraper.request("https://example.com", verify=False)
         assert result is not None
         assert hasattr(result, "find")  # BeautifulSoup object
@@ -54,7 +54,7 @@ class TestCfscrapeMixin:
         mock_scraper.get.return_value = mock_response
         mock_cfscrape_module.create_scraper.return_value = mock_scraper
 
-        scraper = TestScraperWithCfscrape("https://example.com")
+        scraper = ScraperWithCfscrape("https://example.com")
         result = scraper.request("https://example.com", verify=True)
         assert result is not None
         assert mock_scraper.verify is True
@@ -70,7 +70,7 @@ class TestCfscrapeMixin:
         mock_scraper.get.return_value = mock_response
         mock_cfscrape_module.create_scraper.return_value = mock_scraper
 
-        scraper = TestScraperWithCfscrape("https://example.com")
+        scraper = ScraperWithCfscrape("https://example.com")
         result = scraper.request("https://example.com", verify=False, delay=5)
         assert result is not None
         mock_cfscrape_module.create_scraper.assert_called_once_with(delay=5)

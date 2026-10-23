@@ -37,7 +37,9 @@ Install optional features with `uv sync --extra <name>` or
 Available extras include:
 
 - `postgres`: Enables PostgreSQL support via `psycopg` and `asyncpg`
-- `mssql`: Enables MSSQL support via `pymssql`
+- `mssql`: Enables synchronous MSSQL support via `pymssql` and async support via `aioodbc`
+- `trellis`: Enables PostgreSQL Trellis support via `asyncpg`
+- `trellis-mssql`: Enables MSSQL Trellis support via `aioodbc`
 - `duckdb`: Enables DuckDB support
 - `db-pandas`: Adds pandas helpers for database work
 - `influx`: Enables InfluxDB support
@@ -49,7 +51,32 @@ Available extras include:
 - `analysis`: Installs analysis dependencies
 - `llama`: Installs llama.cpp support
 - `api`: Installs generic API helper dependencies
+- `oneid`: Installs the FastAPI OneID authentication plugin dependencies; use it
+  together with `postgres`
 - `all`: Installs all optional extras
+
+### DuckDB
+
+Install the optional dependency and import the supported DuckDB class with:
+
+```bash
+python -m pip install "pygarden[duckdb]"
+```
+
+```python
+from pygarden.extras.duckdb import DuckDB
+
+with DuckDB() as db:
+    rows = db.sql("SELECT ? AS value", [42]).fetchall()
+```
+
+Parquet, spatial, PostgreSQL, and HTTPFS extensions are enabled by default and
+can be disabled individually in the constructor.
+
+`DuckDBMixin` remains available for compatibility, but its `open()` and
+`query()` methods are deprecated and will be removed in a future release. See
+the [DuckDB documentation](docs/database/duckdb.md) for persistent databases,
+extensions, PostgreSQL attachments, and terminal or web interfaces.
 
 #### `pymssql` on MacOS
 

@@ -77,6 +77,7 @@ class Database(ABC):
         connection_info: Optional[dict] = None,
         retries: int = 3,
         retry_interval: float = 60.0,
+        commit_on_exit: bool=True,
         **kwargs,
     ):
         """
@@ -86,6 +87,7 @@ class Database(ABC):
 
         :param log_file_info: A dictionary containing log file info.
         :param connection_info: A dictionary containing connection info.
+        :param commit_on_exit: A boolean indicating whether to commit changes on exit without errors. Defaults to True.
         """
         if log_file_info is None:
             log_file_info = {
@@ -103,6 +105,7 @@ class Database(ABC):
         self.retry_interval = retry_interval
         self.connection_info = connection_info
         self.logger.debug(connection_info)
+        self.commit_on_exit = commit_on_exit
         self.connection = None
         self.cursor = None
         self.logger.debug("Database object successfully initialized")
@@ -134,7 +137,16 @@ class Database(ABC):
 
     def __exit__(self, err_type, err_value, err_traceback):
         """Handle database closing when leaving with."""
-        self.close()
+        try:
+            if self.connection:
+                if err_type is None and self.commit_on_exit:
+                    self.connection.commit()
+                else:
+                    self.connection.rollback()
+        finally:
+            self.close()
+
+        return False
 
     def silent_open(self):
         """Open database silently without returning anything."""
@@ -162,7 +174,6 @@ class Database(ABC):
             self.cursor = None
 
         if self.connection:
-            self.connection.commit()
             self.connection.close()
             self.connection = None
 

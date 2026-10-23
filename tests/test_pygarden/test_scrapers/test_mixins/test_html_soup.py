@@ -7,7 +7,7 @@ from pygarden.scrapers.mixins.html_soup import HtmlSoupMixin
 from pygarden.scrapers.scraper import Scraper
 
 
-class TestScraperWithHtmlSoup(HtmlSoupMixin, Scraper):
+class ScraperWithHtmlSoup(HtmlSoupMixin, Scraper):
     """Test scraper using HtmlSoupMixin."""
 
     def parse(self, data):
@@ -22,7 +22,7 @@ class TestHtmlSoupMixin:
         """Test HtmlSoupMixin can be used with Scraper."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithHtmlSoup("https://example.com")
+        scraper = ScraperWithHtmlSoup("https://example.com")
         assert scraper.url == "https://example.com"
 
     @patch("pygarden.scrapers.mixins.html_soup.requests.request")
@@ -34,7 +34,7 @@ class TestHtmlSoupMixin:
         mock_response.text = "<html><body>Test</body></html>"
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithHtmlSoup("https://example.com")
+        scraper = ScraperWithHtmlSoup("https://example.com")
         result = scraper.request_html("https://example.com", method="GET")
         assert result == "<html><body>Test</body></html>"
 
@@ -47,7 +47,7 @@ class TestHtmlSoupMixin:
         mock_response.text = "<html><body><p>Test</p></body></html>"
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithHtmlSoup("https://example.com")
+        scraper = ScraperWithHtmlSoup("https://example.com")
         result = scraper.request("https://example.com", method="GET", parser="html.parser")
         assert result is not None
         assert hasattr(result, "find")  # BeautifulSoup object
@@ -62,7 +62,7 @@ class TestHtmlSoupMixin:
         mock_response.text = "<html><body>Test</body></html>"
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithHtmlSoup("https://example.com")
+        scraper = ScraperWithHtmlSoup("https://example.com")
         # Use html.parser instead of lxml to avoid dependency issues in tests
         result = scraper.request("https://example.com", method="GET", parser="html.parser")
         assert result is not None

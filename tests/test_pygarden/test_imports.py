@@ -1,18 +1,23 @@
+"""Test that modules with installed dependencies can be imported."""
+
 import importlib
 import pkgutil
 
 
 def iter_modules(package_name: str):
+    """Yield every importable module name beneath a package."""
     pkg = importlib.import_module(package_name)
     for mod in pkgutil.walk_packages(pkg.__path__, prefix=pkg.__name__ + "."):
         yield mod.name
 
 
 def test_all_modules_importable():
+    """Import package modules except those requiring optional dependencies."""
     # Import all submodules to ensure there are no import-time errors
     failures = []
     optional_modules = {
         "pygarden.llama_cpp",  # requires llama-cpp-python
+        "pygarden.mqtt",  # requires paho-mqtt
         "pygarden.mixins.postgres",  # requires psycopg
         "pygarden.mixins.postgres_logger",  # requires psycopg
         "pygarden.mixins.minio_mixin",  # requires minio
@@ -20,6 +25,8 @@ def test_all_modules_importable():
         "pygarden.mixins.multiple",  # requires psycopg, pymssql, etc.
         "pygarden.mixins.mssql",  # requires pymssql
         "pygarden.mixins.influx",  # requires influxdb-client
+        "pygarden.mixins.duckdb_mixin",  # requires duckdb
+        "pygarden.extras.duckdb",  # requires duckdb
         "pygarden.scrapers",  # optional scrapers dependencies (cfscrape, cloudscraper, etc.)
         "pygarden.scrapers.mixins.websocket",  # requires websockets
         "pygarden.scrapers.seleniumscraper",  # requires selenium

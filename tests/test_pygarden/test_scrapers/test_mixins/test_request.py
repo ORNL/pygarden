@@ -7,7 +7,7 @@ from pygarden.scrapers.mixins.request import RequestMixin
 from pygarden.scrapers.scraper import Scraper
 
 
-class TestScraperWithRequest(RequestMixin, Scraper):
+class ScraperWithRequest(RequestMixin, Scraper):
     """Test scraper using RequestMixin."""
 
     def parse(self, data):
@@ -22,7 +22,7 @@ class TestRequestMixin:
         """Test RequestMixin can be used with Scraper."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithRequest("https://httpbin.org/get")
+        scraper = ScraperWithRequest("https://httpbin.org/get")
         assert scraper.url == "https://httpbin.org/get"
 
     @patch("pygarden.scrapers.mixins.request.requests.request")
@@ -34,7 +34,7 @@ class TestRequestMixin:
         mock_response.text = "test response"
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithRequest("https://httpbin.org/get")
+        scraper = ScraperWithRequest("https://httpbin.org/get")
         result = scraper.request("https://httpbin.org/get", method="GET")
         assert result == mock_response
         mock_request.assert_called_once()
@@ -47,7 +47,7 @@ class TestRequestMixin:
         mock_response = MagicMock()
         mock_request.return_value = mock_response
 
-        scraper = TestScraperWithRequest("https://httpbin.org/post")
+        scraper = ScraperWithRequest("https://httpbin.org/post")
         result = scraper.request("https://httpbin.org/post", method="POST", data={"key": "value"})
         assert result == mock_response
         mock_request.assert_called_once()

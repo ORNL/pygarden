@@ -7,7 +7,7 @@ from pygarden.scrapers.mixins.websocket import WebsocketMixin
 from pygarden.scrapers.scraper import Scraper
 
 
-class TestScraperWithWebsocket(WebsocketMixin, Scraper):
+class ScraperWithWebsocket(WebsocketMixin, Scraper):
     """Test scraper using WebsocketMixin."""
 
     def __init__(self, url, send_dict=None, timeout=30, skip_num=0, **kwargs):
@@ -29,7 +29,7 @@ class TestWebsocketMixin:
         """Test WebsocketMixin can be used with Scraper."""
         monkeypatch.setenv("SCRAPER_DATA_PATH", str(tmp_path / "data"))
         monkeypatch.setenv("SCRAPER_RAW_DATA", str(tmp_path / "raw"))
-        scraper = TestScraperWithWebsocket("wss://example.com/ws", send_dict={"action": "test"})
+        scraper = ScraperWithWebsocket("wss://example.com/ws", send_dict={"action": "test"})
         assert scraper.url == "wss://example.com/ws"
         assert scraper.send_dict == {"action": "test"}
 
@@ -42,7 +42,7 @@ class TestWebsocketMixin:
         mock_ws.recv.return_value = '{"status": "ok"}'
         mock_create_connection.return_value = mock_ws
 
-        scraper = TestScraperWithWebsocket("wss://example.com/ws", send_dict={"action": "test"})
+        scraper = ScraperWithWebsocket("wss://example.com/ws", send_dict={"action": "test"})
         result = scraper.request("wss://example.com/ws")
         assert result == '{"status": "ok"}'
         mock_ws.send.assert_called_once()
@@ -61,7 +61,7 @@ class TestWebsocketMixin:
         mock_ws.recv.side_effect = ["skip1", "skip2", "actual_result"]
         mock_create_connection.return_value = mock_ws
 
-        scraper = TestScraperWithWebsocket("wss://example.com/ws", send_dict={"test": "data"}, skip_num=2)
+        scraper = ScraperWithWebsocket("wss://example.com/ws", send_dict={"test": "data"}, skip_num=2)
         result = scraper.request("wss://example.com/ws")
         # The code's while loop sets result to each recv() call and decrements skip_num
         # So with skip_num=2, it will: recv() -> "skip1" (skip_num=1), recv() -> "skip2" (skip_num=0), exit loop
@@ -81,7 +81,7 @@ class TestWebsocketMixin:
         mock_ws.recv.return_value = "response"
         mock_create_connection.return_value = mock_ws
 
-        scraper = TestScraperWithWebsocket("wss://example.com/ws", send_dict=None)
+        scraper = ScraperWithWebsocket("wss://example.com/ws", send_dict=None)
         result = scraper.request("wss://example.com/ws")
         assert result == "response"
         # send should still be called even if send_dict is None
@@ -96,7 +96,7 @@ class TestWebsocketMixin:
         mock_ws.recv.return_value = "response"
         mock_create_connection.return_value = mock_ws
 
-        scraper = TestScraperWithWebsocket("wss://example.com/ws", timeout=60)
+        scraper = ScraperWithWebsocket("wss://example.com/ws", timeout=60)
         result = scraper.request("wss://example.com/ws")
         assert result == "response"
         mock_create_connection.assert_called_once_with("wss://example.com/ws", timeout=60)
