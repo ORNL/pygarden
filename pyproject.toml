@@ -141,7 +141,11 @@ dev = [
 pygarden = "pygarden.cli:common_cli"
 
 [project.urls]
-Source = "https://code.ornl.gov/pygarden/pygarden"
+Homepage = "https://github.com/ORNL/pygarden"
+Documentation = "https://ornl.github.io/pygarden/"
+Repository = "https://github.com/ORNL/pygarden"
+Issues = "https://github.com/ORNL/pygarden/issues"
+Changelog = "https://github.com/ORNL/pygarden/releases"
 
 [build-system]
 requires = ["hatchling"]
