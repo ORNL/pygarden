@@ -11,6 +11,9 @@ permissions:
 
 jobs:
   publish:
+    if: >
+      github.event.pull_request.merged == true &&
+      startsWith(github.head_ref, 'release/')
     environment:
       name: pypi
     runs-on: ubuntu-latest
