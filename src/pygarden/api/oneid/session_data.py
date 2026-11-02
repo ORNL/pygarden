@@ -25,3 +25,5 @@ class SessionData(BaseModel):
     admin: bool
     us_citizen: bool = False
     affiliation: str = ""
+    identity_issuer: str = ""
+    identity_subject: str = ""

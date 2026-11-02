@@ -10,7 +10,7 @@ handlers.  All settings are read from :mod:`pygarden.api.oneid.config`.
 
 from uuid import UUID
 
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, Response
 from fastapi_sessions.frontends.implementations import CookieParameters, SessionCookie
 
 from pygarden.mail import send_email
@@ -19,6 +19,7 @@ from . import config
 from .auth_db import AuthDB
 from .basic_verifier import BasicVerifier
 from .db_backend import DBBackend
+from .oidc import begin_login
 from .session_data import SessionData
 
 
@@ -63,8 +64,8 @@ def get_public_base_url(request: Request) -> str:
     """
     Return the canonical public base URL.
 
-    Uses ``PUBLIC_BASE_URL`` from config when set; otherwise reconstructs it
-    from ``x-forwarded-*`` headers or the request URL.
+    Uses ``PUBLIC_BASE_URL`` from config when set. Development/test may use the
+    direct request base URL; forwarded headers are never trusted here.
 
     :param request: Incoming FastAPI request.
     :returns: Base URL string without a trailing slash.
@@ -73,18 +74,9 @@ def get_public_base_url(request: Request) -> str:
     if config.PUBLIC_BASE_URL:
         return config.PUBLIC_BASE_URL
 
-    forwarded_proto = request.headers.get("x-forwarded-proto")
-    forwarded_host = request.headers.get("x-forwarded-host")
-    forwarded_port = request.headers.get("x-forwarded-port")
-
-    scheme = (forwarded_proto or request.url.scheme or "http").split(",")[0].strip()
-    host = (forwarded_host or request.headers.get("host") or request.url.hostname or "").split(",")[0].strip()
-    port = (forwarded_port or "").split(",")[0].strip()
-
-    if host and ":" not in host and port and port not in {"80", "443"}:
-        host = f"{host}:{port}"
-
-    return f"{scheme}://{host}".rstrip("/")
+    if config.ENVIRON.lower() not in {"dev", "development", "test"}:
+        raise ValueError("PUBLIC_BASE_URL must be configured outside development")
+    return str(request.base_url).rstrip("/")
 
 
 def get_oauth_redirect_uri(request: Request) -> str:
@@ -98,16 +90,30 @@ def get_oauth_redirect_uri(request: Request) -> str:
     return f"{get_public_base_url(request)}{config.OAUTH_REDIRECT_PATH}"
 
 
-def get_login_url(request: Request) -> str:
+def get_login_url(request: Request, response: Response, return_to: str = "/") -> str:
     """
     Build the OneID authorization URL for the login redirect.
 
     :param request: Incoming FastAPI request.
+    :param response: Response that receives the signed OIDC transaction cookie.
     :returns: Full OneID authorization URL.
     :rtype: str
     """
     redirect_uri = get_oauth_redirect_uri(request)
-    return f"{config.ONEID_AUTH_URL}?response_type=code&client_id={config.ONEID_CLIENT}&redirect_uri={redirect_uri}"
+    if config.ENVIRON.lower() not in {"dev", "development", "test"} and not config.SESSION_COOKIE_SECURE:
+        raise ValueError("SESSION_COOKIE_SECURE must be enabled outside development")
+    if not config.ONEID_ISSUER or not config.ONEID_CLIENT:
+        raise ValueError("ONEID_ISSUER and ONEID_CLIENT must be configured")
+    return begin_login(
+        client_id=config.ONEID_CLIENT,
+        client_secret=config.ONEID_CLIENT_SECRET or None,
+        authorization_endpoint=config.ONEID_AUTH_URL,
+        redirect_uri=redirect_uri,
+        session_secret=config.SESSION_SECRET_KEY,
+        secure_cookie=config.SESSION_COOKIE_SECURE,
+        response=response,
+        return_to=return_to,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -170,9 +176,9 @@ def get_session_id(redirect: bool = True):
         try:
             session_id = cookie.__call__(request)
             sd = await backend.read(session_id)
-            if sd and sd.email:
+            if sd and sd.user_id > 0:
                 async with AuthDB() as adb:
-                    if await adb.get_email_status(sd.email) == "active":
+                    if await adb.get_user_status_by_id(sd.user_id) == "active":
                         return str(session_id)
         except Exception:
             pass
@@ -200,9 +206,9 @@ async def get_user(request: Request) -> SessionData:
     try:
         session_id = cookie.__call__(request)
         sd = await backend.read(session_id)
-        if sd and sd.email:
+        if sd and sd.user_id > 0:
             async with AuthDB() as adb:
-                email_status = await adb.get_email_status(sd.email)
+                email_status = await adb.get_user_status_by_id(sd.user_id)
     except Exception:
         raise RequiresLoginException()
 

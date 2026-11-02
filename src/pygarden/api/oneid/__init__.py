@@ -59,8 +59,8 @@ is raised.  Register an exception handler to redirect them to the login page::
 
     @app.exception_handler(RequiresLoginException)
     async def require_login_handler(request, _exc):
-        response = RedirectResponse(url=get_login_url(request))
-        response.set_cookie("redirect_after_login", str(request.url))
+        response = RedirectResponse(url="/")
+        response.headers["location"] = get_login_url(request, response, return_to="/dashboard")
         return response
 """
 
@@ -78,11 +78,24 @@ from .auth import (
 )
 from .auth_db import AuthDB
 from .auth_routes import router
+from .oidc import (
+    ValidatedIdentity,
+    begin_login,
+    callback_return_to,
+    clear_transaction_cookie,
+    validate_callback,
+)
 from .session_data import SessionData
 
 __all__ = [
     # Router — mount this in your FastAPI app
     "router",
+    # OIDC boundary for applications that manage their own local identities.
+    "ValidatedIdentity",
+    "begin_login",
+    "callback_return_to",
+    "clear_transaction_cookie",
+    "validate_callback",
     # FastAPI dependencies
     "get_user",
     "get_session_id",

@@ -14,7 +14,7 @@ Example minimal ``.env``::
     SESSION_SECRET_KEY=super-secret-change-me
     AUTH_DB_SCHEMA=public
     AUTO_APPROVE_USERS=false
-    FIRST_USER_AUTO_ADMIN=true
+    FIRST_USER_AUTO_ADMIN=false
     SEND_NEW_USER_EMAIL=true
 """
 
@@ -30,13 +30,14 @@ APP_NAME = ce("APP_NAME", "Application")
 PUBLIC_BASE_URL = ce("PUBLIC_BASE_URL", "").strip().rstrip("/")
 """
 Canonical public base URL (e.g. ``https://myapp.example.com``).
-When empty the URL is inferred from incoming request headers.
+Required outside development/test; forwarded request headers are never trusted.
 """
 
 ENVIRON = ce("ENVIRON", "prod")
 """
-Deployment environment.  Set to ``dev`` to skip JWT signature verification
-(useful for local development without a valid OneID token).
+Deployment environment. OIDC signature, issuer, audience, state, nonce, and PKCE
+checks are enforced in every environment. HTTP is accepted only for loopback
+OIDC endpoints used by local development tests.
 """
 
 # ---------------------------------------------------------------------------
@@ -45,6 +46,12 @@ Deployment environment.  Set to ``dev`` to skip JWT signature verification
 
 ONEID_CLIENT = ce("ONEID_CLIENT", "")
 """OAuth client ID registered with your OneID provider."""
+
+ONEID_CLIENT_SECRET = ce("ONEID_CLIENT_SECRET", "")
+"""OAuth client secret, when required by the registered client."""
+
+ONEID_ISSUER = ce("ONEID_ISSUER", "")
+"""Exact expected issuer URL from the OneID ID token."""
 
 ONEID_AUTH_URL = ce("ONEID_AUTH_URL", "https://eams-auth.oneid.energy.gov/as/authorization.oauth2")
 """Authorization endpoint URL."""
@@ -130,6 +137,9 @@ Defaults to ``DATABASE_SCHEMA`` then ``public``.
 AUTH_USERS_TABLE = ce("AUTH_USERS_TABLE", "users")
 """Name of the users table."""
 
+AUTH_IDENTITIES_TABLE = ce("AUTH_IDENTITIES_TABLE", "user_identities")
+"""Table mapping external OIDC issuer/subject pairs to local user IDs."""
+
 AUTH_SESSIONS_TABLE = ce("AUTH_SESSIONS_TABLE", "user_sessions")
 """Name of the user sessions table."""
 
@@ -206,10 +216,5 @@ Automatically approve all new user registrations without admin intervention.
 Useful for internal tools where any authenticated user should have access.
 """
 
-FIRST_USER_AUTO_ADMIN = ce("FIRST_USER_AUTO_ADMIN", True)
-"""
-When the very first user registers, automatically approve them and grant admin
-privileges.  This bootstraps the admin account so the application is usable
-without manual database intervention.  Subsequent users follow the normal
-approval flow unless ``AUTO_APPROVE_USERS`` is also ``true``.
-"""
+FIRST_USER_AUTO_ADMIN = ce("FIRST_USER_AUTO_ADMIN", False)
+"""Deprecated compatibility setting. OIDC login never grants admin privileges."""

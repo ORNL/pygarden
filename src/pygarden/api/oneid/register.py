@@ -11,6 +11,7 @@ The variables below have no safe defaults and **must** be set before the
 application starts:
 
 - ``ONEID_CLIENT``       — OAuth client ID registered with your OneID provider
+- ``ONEID_ISSUER``       — exact issuer value expected in ID tokens
 - ``SESSION_SECRET_KEY`` — Random secret used to sign session cookies
 - ``DATABASE_HOST``      — Postgres host
 - ``DATABASE_DB``        — Postgres database name
@@ -21,11 +22,16 @@ Optional but commonly useful
 -----------------------------
 - ``APP_NAME``                    — Application name used in notification emails
 - ``PUBLIC_BASE_URL``             — Override if running behind a proxy
+- ``ONEID_CLIENT_SECRET``          — client secret when required by the registration
+- ``ONEID_AUTH_URL``               — authorization endpoint
+- ``ONEID_TOKEN_URL``              — token endpoint
+- ``ONEID_JWKS_URL``               — signing keys endpoint
+- ``SESSION_COOKIE_SECURE``        — enable Secure cookies in production
 - ``AUTH_DB_SCHEMA``              — Postgres schema (default: ``public``)
 - ``AUTH_USERS_TABLE``            — Users table name (default: ``users``)
 - ``AUTH_SESSIONS_TABLE``         — Sessions table name (default: ``user_sessions``)
 - ``AUTO_APPROVE_USERS``          — ``true`` to skip manual approval (default: ``false``)
-- ``FIRST_USER_AUTO_ADMIN``       — ``true`` to bootstrap the first admin (default: ``true``)
+- ``FIRST_USER_AUTO_ADMIN``       — deprecated compatibility setting (default: ``false``; never grants admin)
 - ``SEND_NEW_USER_EMAIL``         — ``false`` to disable admin notifications (default: ``true``)
 - ``OAUTH_REDIRECT_PATH``         — Callback path registered with OneID (default: ``/login/oauth2/code/oneid``)
 
@@ -64,8 +70,8 @@ Minimal example
     # Redirect unauthenticated users to the OneID login page
     @app.exception_handler(RequiresLoginException)
     async def require_login_handler(request, _exc):
-        response = RedirectResponse(url=get_login_url(request))
-        response.set_cookie("redirect_after_login", str(request.url))
+        response = RedirectResponse(url="/")
+        response.headers["location"] = get_login_url(request, response, return_to="/dashboard")
         return response
 
     # Bootstrap database tables on startup (safe to call repeatedly)

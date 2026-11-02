@@ -18,13 +18,11 @@ All endpoint paths are configurable via environment variables (see
 - ``GET {AUTH_PATH_LOGIN_URL}``    — Returns the OneID login URL (default: ``/login-url``)
 """
 
+import json
 from uuid import UUID, uuid4
 
-import jwt
-import requests as http_requests
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from fastapi.responses import RedirectResponse
-from jwt import PyJWKClient
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from . import config
 from .auth import (
@@ -36,6 +34,7 @@ from .auth import (
     send_new_user_email,
 )
 from .auth_db import AuthDB
+from .oidc import callback_return_to, clear_transaction_cookie, validate_callback
 from .session_data import SessionData
 
 router = APIRouter()
@@ -53,117 +52,75 @@ def normalize_email(email: str | None) -> str:
 
 
 @router.get(config.OAUTH_REDIRECT_PATH)
-async def login_oauth2_callback(code: str, request: Request) -> Response:
-    """
-    Handle the OneID OAuth 2.0 authorization code callback.
+async def login_oauth2_callback(
+    request: Request,
+    code: str | None = None,
+    state: str | None = None,
+    error: str | None = None,
+) -> Response:
+    """Validate the OIDC response before provisioning or creating a session."""
+    if error or not code or not state:
+        raise HTTPException(status_code=401, detail="OIDC authorization was not completed")
+    if not config.ONEID_ISSUER or not config.ONEID_CLIENT:
+        raise HTTPException(status_code=503, detail="OneID is not configured")
 
-    Exchanges the code for a JWT, extracts user identity, and either creates
-    a new session for an existing active user or registers a new user account.
-
-    Auto-approve behaviour:
-    - If this is the first user to register, they are automatically approved
-      and granted admin privileges (controlled by ``FIRST_USER_AUTO_ADMIN``).
-    - If ``AUTO_APPROVE_USERS`` is ``true``, all new registrations are approved
-      immediately without requiring admin intervention.
-
-    :param code: Authorization code from OneID.
-    :param request: Incoming FastAPI request.
-    :returns: Redirect response.
-    """
+    redirect_uri = get_oauth_redirect_uri(request)
+    return_to = callback_return_to(request, config.SESSION_SECRET_KEY, state)
+    identity = await validate_callback(
+        request,
+        code=code,
+        state=state,
+        issuer=config.ONEID_ISSUER,
+        client_id=config.ONEID_CLIENT,
+        client_secret=config.ONEID_CLIENT_SECRET or None,
+        token_endpoint=config.ONEID_TOKEN_URL,
+        jwks_uri=config.ONEID_JWKS_URL,
+        redirect_uri=redirect_uri,
+        session_secret=config.SESSION_SECRET_KEY,
+    )
+    email = normalize_email(identity.email)
     async with AuthDB() as adb:
-        redirect_url = config.AUTH_REDIRECT_DEFAULT
-        if request.cookies.get("redirect_after_login"):
-            redirect_url = request.cookies.get("redirect_after_login")
-
-        response = RedirectResponse(url=redirect_url)
-        if request.cookies.get("redirect_after_login"):
-            response.delete_cookie("redirect_after_login")
-
-        # Exchange authorization code for JWT
-        jwks_client = PyJWKClient(config.ONEID_JWKS_URL)
-        jwt_resp = http_requests.post(
-            config.ONEID_TOKEN_URL,
-            data={
-                "grant_type": "authorization_code",
-                "code": code,
-                "redirect_uri": get_oauth_redirect_uri(request),
-                "client_id": config.ONEID_CLIENT,
-            },
-            timeout=15,
-        )
-        token = jwt_resp.json().get("access_token")
-        signing_key = jwks_client.get_signing_key_from_jwt(token)
-        verify_signature = config.ENVIRON != "dev"
-        jwt_data = jwt.decode(
-            token,
-            signing_key.key,
-            algorithms=["RS256"],
-            options={"verify_signature": verify_signature},
-        )
-
-        email = normalize_email(jwt_data.get("email"))
-        if not email:
-            raise HTTPException(status_code=401, detail="OneID response did not include an email address.")
-
-        email_status = await adb.get_email_status(email)
-
-        # Build the session data from JWT claims.  DOE-specific fields are
-        # optional and fall back to their SessionData defaults when absent.
-        session_data = SessionData(
-            user_id=-1,
-            email=email,
-            first_name=jwt_data.get("given_name", ""),
-            last_name=jwt_data.get("family_name", ""),
-            admin=False,
-            us_citizen=bool(jwt_data.get("us_citizen", False)),
-            affiliation=(
-                f"{jwt_data.get('doe_affiliation_level_1', '')}/{jwt_data.get('doe_affiliation_level_2', '')}"
-            ).strip("/")
-            or "",
-        )
-
-        if email_status == "active":
-            user = await adb.get_user_by_email(email)
-            session_data.user_id = user[config.COL_USER_ID]
-            session_data.admin = user.get(config.COL_ADMIN, False)
+        user = await adb.get_user_by_identity(identity.issuer, identity.subject)
+        if user is None:
+            user = await adb.create_user_for_identity(
+                issuer=identity.issuer,
+                subject=identity.subject,
+                email=email,
+                first_name=identity.given_name,
+                last_name=identity.family_name,
+                approved=config.AUTO_APPROVE_USERS,
+            )
+        user_id = user[config.COL_USER_ID]
+        status = await adb.get_user_status_by_id(user_id)
+        if status == "disabled":
+            response = RedirectResponse(url=config.AUTH_REDIRECT_DISABLED)
+        elif status != "active":
+            pending = SessionData(
+                user_id=user_id,
+                email=email,
+                first_name=identity.given_name,
+                last_name=identity.family_name,
+                admin=False,
+                identity_issuer=identity.issuer,
+                identity_subject=identity.subject,
+            )
+            await send_new_user_email(pending, request)
+            response = RedirectResponse(url=config.AUTH_REDIRECT_UNAPPROVED)
+        else:
+            session_data = SessionData(
+                user_id=user_id,
+                email=email,
+                first_name=identity.given_name,
+                last_name=identity.family_name,
+                admin=bool(user.get(config.COL_ADMIN, False)),
+                identity_issuer=identity.issuer,
+                identity_subject=identity.subject,
+            )
             session = uuid4()
             await backend.create(session, session_data)
+            response = RedirectResponse(url=return_to)
             cookie.attach_to_response(response, session)
-
-        elif email_status == "disabled":
-            response = RedirectResponse(url=config.AUTH_REDIRECT_DISABLED)
-
-        elif email_status == "unapproved":
-            response = RedirectResponse(url=config.AUTH_REDIRECT_UNAPPROVED)
-
-        else:
-            # New user — determine whether to auto-approve
-            is_first_user = (await adb.count_users()) == 0
-            should_approve = config.AUTO_APPROVE_USERS or is_first_user
-            should_admin = is_first_user and config.FIRST_USER_AUTO_ADMIN
-
-            await adb.create_user(
-                email=email,
-                first_name=session_data.first_name,
-                last_name=session_data.last_name,
-                us_citizen=session_data.us_citizen,
-                affiliation=session_data.affiliation,
-                approved=should_approve,
-                admin=should_admin,
-            )
-
-            if should_approve:
-                # User is immediately active — create a session and log them in
-                user = await adb.get_user_by_email(email)
-                session_data.user_id = user[config.COL_USER_ID]
-                session_data.admin = should_admin
-                session = uuid4()
-                await backend.create(session, session_data)
-                cookie.attach_to_response(response, session)
-            else:
-                await send_new_user_email(session_data, request)
-                response = RedirectResponse(url=config.AUTH_REDIRECT_CREATED)
-
+    clear_transaction_cookie(response, redirect_uri=redirect_uri, secure_cookie=config.SESSION_COOKIE_SECURE)
     return response
 
 
@@ -210,13 +167,18 @@ async def user_info(user: SessionData = Depends(get_user)):
 
 
 @router.get(config.AUTH_PATH_LOGIN_URL)
-def login_url(request: Request):
+def login_url(request: Request, return_to: str = "/"):
     """
     Return the OneID login URL for the current request context.
 
-    Useful for front-end clients that need to construct a login button.
+    Useful for front-end clients that need to construct a login button. The
+    response receives a short-lived signed transaction cookie.
 
     :param request: Incoming FastAPI request.
     :returns: OneID authorization URL string.
     """
-    return get_login_url(request)
+    response = JSONResponse(content="")
+    url = get_login_url(request, response, return_to=return_to)
+    response.body = json.dumps(url).encode()
+    response.headers["content-length"] = str(len(response.body))
+    return response
