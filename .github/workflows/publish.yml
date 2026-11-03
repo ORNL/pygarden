@@ -1,22 +1,28 @@
 name: Build and publish package to PyPI
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
       - main
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   publish:
+    if: >-
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head_ref, 'release/')
     environment:
       name: pypi
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
