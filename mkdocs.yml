@@ -1,4 +1,6 @@
 site_name: pyGARDEN Documentation
+extra_javascript:
+  - javascripts/site-improve.js
 nav:
   - Home: index.md
   - Core:
