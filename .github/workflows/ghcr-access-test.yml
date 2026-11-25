@@ -1,0 +1,45 @@
+name: Verify GHCR access
+
+on:
+  push:
+    branches: [ci/ghcr-access-test-0.3.36]
+
+permissions:
+  contents: read
+
+jobs:
+  ghcr-access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/ornl/pygarden:0.3.36-core
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v3
+      - name: Build core image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: core
+          platforms: linux/amd64
+          load: true
+          tags: ${{ env.IMAGE }}
+      - name: Verify version before publishing
+        run: |
+          docker run --rm "$IMAGE" python -c 'from importlib.metadata import version; assert version("pygarden") == "0.3.36"'
+      - name: Log in to GHCR with the repository token
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push versioned core image
+        run: docker push "$IMAGE"
+      - name: Pull and verify the published image
+        run: |
+          docker image rm "$IMAGE"
+          docker pull "$IMAGE"
+          docker run --rm "$IMAGE" python -c 'from importlib.metadata import version; assert version("pygarden") == "0.3.36"; import pygarden; print("GHCR push and pull verified")'
