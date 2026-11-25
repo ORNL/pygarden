@@ -239,7 +239,7 @@ def test_tui_renders_query_and_quits(monkeypatch: pytest.MonkeyPatch, capsys: py
     commands = iter(["SELECT 1 AS value", "\\q"])
     monkeypatch.setattr("builtins.input", lambda prompt: next(commands))
     database = _without_extensions()
-    database.connect()
+    database.connect(":memory:")
 
     assert database.launch_ui(mode="tui") is None
     output = capsys.readouterr().out

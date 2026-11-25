@@ -113,13 +113,35 @@ You can combine extras as needed, for example:
 
 ## Getting the Image
 
-The Docker image for this project is hosted on [Savannah](https://savannah.ornl.gov/),
-and is tagged with `savannah.ornl.gov/common/pygarden:${PYTHON_VERSION:-3.12}-latest`,
-where `${PYTHON_VERSION:-3.12}` is the Python version you want to use. To pull the
-image, you can run:
+Python 3.12 images for Linux amd64 are published to GitHub Container Registry:
+
+| Contents | Moving tag | Version tags (example) |
+| --- | --- | --- |
+| All runtime extras (`pygarden[all]`) | `latest` | `0.3.36`, `0.3.36-all` |
+| Core library dependencies only | `core` | `0.3.36-core` |
+
+Pull either image with:
 
 ```bash
-docker pull savannah.ornl.gov/common/pygarden:${PYTHON_VERSION:-3.12}-latest
+docker pull ghcr.io/ornl/pygarden:latest
+docker pull ghcr.io/ornl/pygarden:core
+docker pull ghcr.io/ornl/pygarden:0.3.36
+docker pull ghcr.io/ornl/pygarden:0.3.36-core
+```
+
+Version tags use the version in `pyproject.toml`. Each successful main build
+refreshes both the moving and matching version tags; reusing a package version
+updates its image tags. Bump the version for each distinct release.
+
+The full image includes CPU support for `llama-cpp-python`; models, browser
+binaries, and database servers are not bundled. The core image does not include
+the optional CLI dependencies. Both images default to the Python interpreter.
+
+To build locally:
+
+```bash
+docker build --target all -t pygarden:latest .
+docker build --target core -t pygarden:core .
 ```
 
 ## Saving the Image to a Tar File
@@ -127,7 +149,7 @@ docker pull savannah.ornl.gov/common/pygarden:${PYTHON_VERSION:-3.12}-latest
 If you want to save the image to a tar file, you can run:
 
 ```bash
-docker save savannah.ornl.gov/common/pygarden:${PYTHON_VERSION:-3.12}-latest -o pygarden.tar
+docker save ghcr.io/ornl/pygarden:latest -o pygarden.tar
 gzip pygarden.tar  # optionally compress the tar file
 ```
 
@@ -243,3 +265,34 @@ with PostgresDatabase() as db:
 ## Testing
 
 The tests for `pygarden` use `pytest` and are available in the `dev` extra.
+
+To run the same Python 3.12 suite as CI:
+
+```bash
+uv sync --locked --python 3.12 --extra all --extra dev
+uv run --no-sync pytest
+```
+
+Install PostgreSQL server tools and put their binary directory on `PATH` for the
+local database fixtures. Building all extras also requires a C/C++ compiler,
+CMake, and unixODBC development libraries. Integration tests are excluded by
+default; this includes tests contacting public services and the private Savannah
+SQL Server registry. Run them explicitly with `uv run --no-sync pytest -m integration`.
+
+## Continuous Integration and Publishing
+
+Pull requests targeting `main` and pushes to `main` run the default test suite
+on Python 3.12. After tests pass, both image variants are built and smoke-tested.
+Pull requests never publish artifacts.
+
+Each successful main push publishes the images to GHCR. It also checks the
+version declared in `pyproject.toml` against PyPI: a new version is built and
+published, while an existing version is skipped. Bump the package version to
+release updated code on PyPI. Lookup failures stop publishing. Main pipeline
+runs are serialized to keep image tags from being overwritten by older builds.
+
+PyPI publishing uses `PYPI_API_TOKEN` from the existing `pypi` GitHub environment.
+GHCR uses the workflow's `GITHUB_TOKEN` with package write permission; ORNL must
+allow package creation, and package visibility must allow the intended consumers
+to pull the images. Publishing runs automatically subject to existing environment
+protection rules.
