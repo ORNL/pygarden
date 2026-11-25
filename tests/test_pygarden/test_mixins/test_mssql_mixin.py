@@ -83,6 +83,7 @@ def _wait_for_sqlserver(host: str, port: int, timeout_s: int = 90) -> None:
     raise RuntimeError(f"SQL Server not ready within {timeout_s}s: {last_err!r}")
 
 
+@pytest.mark.integration
 def test_mssql_basic_query(has_docker):
     if not has_docker:
         pytest.skip("Docker not available")

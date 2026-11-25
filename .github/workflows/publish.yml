@@ -1,41 +1,130 @@
-name: Build and publish package to PyPI
+name: Test and publish
 
 on:
   pull_request:
-    types:
-      - closed
-    branches:
-      - main
+    branches: [main]
+  push:
+    branches: [main]
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.8.22"
+          python-version: "3.12"
+          enable-cache: true
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake unixodbc-dev postgresql
+          echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
+      - name: Install test dependencies
+        env:
+          CMAKE_ARGS: -DGGML_NATIVE=OFF
+          CMAKE_BUILD_PARALLEL_LEVEL: "2"
+        run: uv sync --locked --extra all --extra dev
+      - name: Run tests
+        run: uv run --no-sync pytest
+
+  images:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v3
+      - name: Build core image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: core
+          platforms: linux/amd64
+          load: true
+          tags: ghcr.io/ornl/pygarden:core
+          cache-from: type=gha,scope=core
+          cache-to: type=gha,mode=max,scope=core
+      - name: Build full image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: all
+          platforms: linux/amd64
+          load: true
+          tags: ghcr.io/ornl/pygarden:latest
+          cache-from: type=gha,scope=all
+          cache-to: type=gha,mode=max,scope=all
+      - name: Smoke-test images
+        run: |
+          docker run --rm ghcr.io/ornl/pygarden:core python -c 'import pygarden; import importlib.util; assert importlib.util.find_spec("llama_cpp") is None'
+          docker run --rm ghcr.io/ornl/pygarden:latest python -c 'import pygarden, aioodbc, asyncpg, boto3, duckdb, fastapi, flask, llama_cpp, polars_st, psycopg, pymssql, selenium'
+          docker run --rm ghcr.io/ornl/pygarden:latest pygarden --help
+
+  publish-images:
+    needs: images
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - target: core
+            tag: core
+          - target: all
+            tag: latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push images
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: ${{ matrix.target }}
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/ornl/pygarden:${{ matrix.tag }}
+          cache-from: type=gha,scope=${{ matrix.target }}
+
   publish:
-    if: >-
-      github.event.pull_request.merged == true &&
-      startsWith(github.event.pull_request.head_ref, 'release/')
+    needs: test
+    if: github.event_name == 'push'
     environment:
       name: pypi
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: "0.7.3"
-
-      - name: Set up Python
-        run: uv python install
-
+          version: "0.8.22"
+          python-version: "3.12"
+      - name: Check whether this version is published
+        id: version
+        run: python scripts/check_pypi_version.py >> "$GITHUB_OUTPUT"
       - name: Build distributions
+        if: steps.version.outputs.publish == 'true'
         run: uv build
-
       - name: Publish to PyPI
+        if: steps.version.outputs.publish == 'true'
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: uv publish
