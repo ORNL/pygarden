@@ -83,10 +83,25 @@ jobs:
         include:
           - target: core
             tag: core
+            version_tags: ghcr.io/ornl/pygarden:{0}-core
           - target: all
             tag: latest
+            version_tags: |
+              ghcr.io/ornl/pygarden:{0}
+              ghcr.io/ornl/pygarden:{0}-all
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Read package version
+        id: version
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import tomllib
+          with open("pyproject.toml", "rb") as source:
+              print("value=" + tomllib.load(source)["project"]["version"])
+          PY
       - uses: docker/setup-buildx-action@v3
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -101,7 +116,9 @@ jobs:
           target: ${{ matrix.target }}
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/ornl/pygarden:${{ matrix.tag }}
+          tags: |
+            ghcr.io/ornl/pygarden:${{ matrix.tag }}
+            ${{ format(matrix.version_tags, steps.version.outputs.value) }}
           cache-from: type=gha,scope=${{ matrix.target }}
 
   publish:

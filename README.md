@@ -115,15 +115,23 @@ You can combine extras as needed, for example:
 
 Python 3.12 images for Linux amd64 are published to GitHub Container Registry:
 
-- `ghcr.io/ornl/pygarden:latest` includes all runtime extras (`pygarden[all]`).
-- `ghcr.io/ornl/pygarden:core` includes only the core library dependencies.
+| Contents | Moving tag | Version tags (example) |
+| --- | --- | --- |
+| All runtime extras (`pygarden[all]`) | `latest` | `0.3.36`, `0.3.36-all` |
+| Core library dependencies only | `core` | `0.3.36-core` |
 
 Pull either image with:
 
 ```bash
 docker pull ghcr.io/ornl/pygarden:latest
 docker pull ghcr.io/ornl/pygarden:core
+docker pull ghcr.io/ornl/pygarden:0.3.36
+docker pull ghcr.io/ornl/pygarden:0.3.36-core
 ```
+
+Version tags use the version in `pyproject.toml`. Each successful main build
+refreshes both the moving and matching version tags; reusing a package version
+updates its image tags. Bump the version for each distinct release.
 
 The full image includes CPU support for `llama-cpp-python`; models, browser
 binaries, and database servers are not bundled. The core image does not include
